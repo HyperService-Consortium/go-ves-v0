@@ -2,6 +2,8 @@
 syntax = "proto3";
 
 service VES {
+    rpc UserRegister (UserRegisterRequest) returns (UserRegisterReply);
+
     rpc SessionStart (SessionStartRequest) returns (SessionStartReply);
     rpc SessionAckForInit (SessionAckForInitRequest) returns (SessionAckForInitReply);
 
@@ -10,18 +12,19 @@ service VES {
 }
 
 // service CenteredVES {
-    // rpc SessionFinishedList (SessionFinishedListRequest) returns (SessionFinishedListReply);
-    // rpc SessionRequestList (SessionRequestListRequest) returns (SessionRequestListReply);
-    // rpc SessionRequireTransactList (SessionRequireTransactListRequest) returns (SessionRequireTransactListReply);
-    // rpc AttestationList (AttestationListRequest) returns (AttestationListReply);
-    //
-    // rpc SessionFinished (SessionFinishedRequest) returns (SessionFinishedReply);
-    // rpc SessionRequestForInit (SessionRequestForInitRequest) returns (SessionRequestForInitReply);
-    //
-    // rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
-    // rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+//     rpc SessionFinishedList (SessionFinishedListRequest) returns (SessionFinishedListReply);
+//     rpc SessionRequestList (SessionRequestListRequest) returns (SessionRequestListReply);
+//     rpc SessionRequireTransactList (SessionRequireTransactListRequest) returns (SessionRequireTransactListReply);
+//     rpc AttestationList (AttestationListRequest) returns (AttestationListReply);
+//
+//     rpc SessionFinished (SessionFinishedRequest) returns (SessionFinishedReply);
+//     rpc SessionRequestForInit (SessionRequestForInitRequest) returns (SessionRequestForInitReply);
+//
+//     rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+//     rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
 // }
 
+// temporarily define dapp server
 service DApp {
     rpc SessionFinished (SessionFinishedRequest) returns (SessionFinishedReply);
     rpc SessionRequestForInit (SessionRequestForInitRequest) returns (SessionRequestForInitReply);
@@ -48,10 +51,23 @@ message Signature {
     bytes content = 2;
 }
 
+message Account {
+    uint32 chain_type = 1;
+    bytes address = 2;
+}
+
 message Attestation {
     uint32 tid = 1;
     bytes content = 2;
     repeated Signature signature = 3;
+}
+
+message UserRegisterRequest {
+    Account user = 1;
+}
+
+message UserRegisterReply {
+    bool ok = 1;
 }
 
 message SessionStartRequest {
@@ -60,19 +76,17 @@ message SessionStartRequest {
 
 message SessionStartReply {
     bool ok = 1;
-    string info = 2;
 }
 
 message SessionAckForInitRequest {
     // isc_address
     bytes session_id = 1;
-    bytes user_address = 2;
+    Account user = 2;
     Signature user_signature = 3;
 }
 
 message SessionAckForInitReply {
     bool ok = 1;
-    string info = 2;
 }
 
 message SessionFinishedRequest {
@@ -83,7 +97,6 @@ message SessionFinishedRequest {
 
 message SessionFinishedReply {
     bool ok = 1;
-    string info = 2;
 }
 
 message SessionRequestForInitRequest {
@@ -105,7 +118,6 @@ message SessionRequireTransactRequest {
 
 message SessionRequireTransactReply {
     bool ok = 1;
-    string info = 2;
 }
 
 message AttestationReceiveRequest {
@@ -116,5 +128,4 @@ message AttestationReceiveRequest {
 
 message AttestationReceiveReply {
     bool ok = 1;
-    string info = 2;
 }

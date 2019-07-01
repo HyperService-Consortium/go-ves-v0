@@ -2,6 +2,7 @@ module github.com/Myriad-Dreamin/go-ves
 
 require (
 	github.com/Myriad-Dreamin/go-py v0.0.0-20190629155946-c47d2c093430
+	github.com/alecthomas/gocyclo v0.0.0-20150208221726-aa8f8b160214 // indirect
 	github.com/alecthomas/gometalinter v3.0.0+incompatible // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
 	github.com/golang/protobuf v1.3.1
