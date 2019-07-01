@@ -1,0 +1,120 @@
+
+syntax = "proto3";
+
+service VES {
+    rpc SessionStart (SessionStartRequest) returns (SessionStartReply);
+    rpc SessionAckForInit (SessionAckForInitRequest) returns (SessionAckForInitReply);
+
+    rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+    rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+}
+
+// service CenteredVES {
+    // rpc SessionFinishedList (SessionFinishedListRequest) returns (SessionFinishedListReply);
+    // rpc SessionRequestList (SessionRequestListRequest) returns (SessionRequestListReply);
+    // rpc SessionRequireTransactList (SessionRequireTransactListRequest) returns (SessionRequireTransactListReply);
+    // rpc AttestationList (AttestationListRequest) returns (AttestationListReply);
+    //
+    // rpc SessionFinished (SessionFinishedRequest) returns (SessionFinishedReply);
+    // rpc SessionRequestForInit (SessionRequestForInitRequest) returns (SessionRequestForInitReply);
+    //
+    // rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+    // rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+// }
+
+service DApp {
+    rpc SessionFinished (SessionFinishedRequest) returns (SessionFinishedReply);
+    rpc SessionRequestForInit (SessionRequestForInitRequest) returns (SessionRequestForInitReply);
+
+    rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+    rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+}
+
+message OpIntents {
+    repeated bytes contents = 1;
+    repeated bytes dependencies = 2;
+}
+
+message Transaction {
+    uint32 chain_type = 1;
+    bytes src = 2;
+    bytes dst = 3;
+    bytes domain = 4;
+    bytes meta = 5;
+}
+
+message Signature {
+    uint32 signature_type = 1;
+    bytes content = 2;
+}
+
+message Attestation {
+    uint32 tid = 1;
+    bytes content = 2;
+    repeated Signature signature = 3;
+}
+
+message SessionStartRequest {
+    OpIntents opintents = 1;
+}
+
+message SessionStartReply {
+    bool ok = 1;
+    string info = 2;
+}
+
+message SessionAckForInitRequest {
+    // isc_address
+    bytes session_id = 1;
+    bytes user_address = 2;
+    Signature user_signature = 3;
+}
+
+message SessionAckForInitReply {
+    bool ok = 1;
+    string info = 2;
+}
+
+message SessionFinishedRequest {
+    // isc_address
+    bytes session_id = 1;
+    uint32 isc_state = 2;
+}
+
+message SessionFinishedReply {
+    bool ok = 1;
+    string info = 2;
+}
+
+message SessionRequestForInitRequest {
+    // isc_address
+    bytes session_id = 1;
+    uint32 isc_state = 2;
+}
+
+message SessionRequestForInitReply {
+    repeated bytes opintents = 1;
+    repeated bytes dependencies = 2;
+}
+
+message SessionRequireTransactRequest {
+    // isc_address
+    bytes session_id = 1;
+    Transaction tx = 2;
+}
+
+message SessionRequireTransactReply {
+    bool ok = 1;
+    string info = 2;
+}
+
+message AttestationReceiveRequest {
+    // isc_address
+    bytes session_id = 1;
+    Attestation atte = 2;
+}
+
+message AttestationReceiveReply {
+    bool ok = 1;
+    string info = 2;
+}

@@ -3,7 +3,7 @@ package main
 
 import "fmt"
 
-import "github.com/Myriad-Dreamin/go-ves/go-py"
+import "github.com/Myriad-Dreamin/go-py"
 
 import "github.com/Myriad-Dreamin/go-ves/go-uiputils/op-intent"
 import "github.com/Myriad-Dreamin/go-ves/go-uiputils/file-load"

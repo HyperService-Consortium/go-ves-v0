@@ -1,0 +1,78 @@
+!_TAG_FILE_FORMAT	2
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted/
+!_TAG_PROGRAM_AUTHOR	Joel Stemmer	/stemmertech@gmail.com/
+!_TAG_PROGRAM_NAME	gotags
+!_TAG_PROGRAM_URL	https://github.com/jstemmer/gotags
+!_TAG_PROGRAM_VERSION	1.4.1	/go1.12.6/
+BuildGraph	go-uiputils\op-intent\op_intent.go	13;"	f	access:public	language:Go	line:13	signature:(pDict GoPy.PyDict)	type:GoPy.PyTuple
+Descriptor	grpc\uip.pb.go	35;"	m	access:public	ctype:HelloRequest	language:Go	line:35	signature:()	type:[]byte, []int
+Descriptor	grpc\uip.pb.go	74;"	m	access:public	ctype:HelloReply	language:Go	line:74	signature:()	type:[]byte, []int
+FileLoad	go-uiputils\file-load\file_load.go	7;"	v	access:public	language:Go	line:7	type:GoPy.RefPyObject
+GetMessage	grpc\uip.pb.go	96;"	m	access:public	ctype:HelloReply	language:Go	line:96	signature:()	type:string
+GetName	grpc\uip.pb.go	57;"	m	access:public	ctype:HelloRequest	language:Go	line:57	signature:()	type:string
+GreeterClient	grpc\uip.pb.go	133;"	n	access:public	language:Go	line:133	type:interface
+GreeterServer	grpc\uip.pb.go	155;"	n	access:public	language:Go	line:155	type:interface
+HelloReply	grpc\uip.pb.go	64;"	t	access:public	language:Go	line:64	type:struct
+HelloRequest	grpc\uip.pb.go	25;"	t	access:public	language:Go	line:25	type:struct
+Jsonize	go-uiputils\op-intent\op_intent.go	9;"	f	access:public	language:Go	line:9	signature:(mObj GoPy.RefPyObject)	type:string
+LoadJson	go-uiputils\file-load\file_load.go	10;"	f	access:public	language:Go	line:10	signature:(pathToJson string)	type:GoPy.PyDict
+Message	grpc\uip.pb.go	65;"	w	access:public	ctype:HelloReply	language:Go	line:65	type:string
+Name	grpc\uip.pb.go	26;"	w	access:public	ctype:HelloRequest	language:Go	line:26	type:string
+NewGreeterClient	grpc\uip.pb.go	141;"	f	access:public	language:Go	line:141	signature:(cc *grpc.ClientConn)	type:GreeterClient
+OpIntent	go-uiputils\op-intent\op_intent.go	6;"	v	access:public	language:Go	line:6	type:GoPy.PyClass
+ProtoMessage	grpc\uip.pb.go	34;"	m	access:public	ctype:HelloRequest	language:Go	line:34	signature:()
+ProtoMessage	grpc\uip.pb.go	73;"	m	access:public	ctype:HelloReply	language:Go	line:73	signature:()
+RegisterGreeterServer	grpc\uip.pb.go	159;"	f	access:public	language:Go	line:159	signature:(s *grpc.Server, srv GreeterServer)
+Reset	grpc\uip.pb.go	32;"	m	access:public	ctype:HelloRequest	language:Go	line:32	signature:()
+Reset	grpc\uip.pb.go	71;"	m	access:public	ctype:HelloReply	language:Go	line:71	signature:()
+SayHello	grpc\uip.pb.go	134;"	m	access:public	language:Go	line:134	ntype:GreeterClient	signature:(ctx context.Context, in *HelloRequest, opts )	type:*HelloReply, error
+SayHello	grpc\uip.pb.go	145;"	m	access:public	ctype:greeterClient	language:Go	line:145	signature:(ctx context.Context, in *HelloRequest, opts )	type:*HelloReply, error
+SayHello	grpc\uip.pb.go	156;"	m	access:public	language:Go	line:156	ntype:GreeterServer	signature:(context.Context, *HelloRequest)	type:*HelloReply, error
+String	grpc\uip.pb.go	33;"	m	access:public	ctype:HelloRequest	language:Go	line:33	signature:()	type:string
+String	grpc\uip.pb.go	72;"	m	access:public	ctype:HelloReply	language:Go	line:72	signature:()	type:string
+XXX_DiscardUnknown	grpc\uip.pb.go	51;"	m	access:public	ctype:HelloRequest	language:Go	line:51	signature:()
+XXX_DiscardUnknown	grpc\uip.pb.go	90;"	m	access:public	ctype:HelloReply	language:Go	line:90	signature:()
+XXX_Marshal	grpc\uip.pb.go	42;"	m	access:public	ctype:HelloRequest	language:Go	line:42	signature:(b []byte, deterministic bool)	type:[]byte, error
+XXX_Marshal	grpc\uip.pb.go	81;"	m	access:public	ctype:HelloReply	language:Go	line:81	signature:(b []byte, deterministic bool)	type:[]byte, error
+XXX_Merge	grpc\uip.pb.go	45;"	m	access:public	ctype:HelloRequest	language:Go	line:45	signature:(src proto.Message)
+XXX_Merge	grpc\uip.pb.go	84;"	m	access:public	ctype:HelloReply	language:Go	line:84	signature:(src proto.Message)
+XXX_NoUnkeyedLiteral	grpc\uip.pb.go	27;"	w	access:public	ctype:HelloRequest	language:Go	line:27
+XXX_NoUnkeyedLiteral	grpc\uip.pb.go	66;"	w	access:public	ctype:HelloReply	language:Go	line:66
+XXX_Size	grpc\uip.pb.go	48;"	m	access:public	ctype:HelloRequest	language:Go	line:48	signature:()	type:int
+XXX_Size	grpc\uip.pb.go	87;"	m	access:public	ctype:HelloReply	language:Go	line:87	signature:()	type:int
+XXX_Unmarshal	grpc\uip.pb.go	39;"	m	access:public	ctype:HelloRequest	language:Go	line:39	signature:(b []byte)	type:error
+XXX_Unmarshal	grpc\uip.pb.go	78;"	m	access:public	ctype:HelloReply	language:Go	line:78	signature:(b []byte)	type:error
+XXX_sizecache	grpc\uip.pb.go	29;"	w	access:public	ctype:HelloRequest	language:Go	line:29	type:int32
+XXX_sizecache	grpc\uip.pb.go	68;"	w	access:public	ctype:HelloReply	language:Go	line:68	type:int32
+XXX_unrecognized	grpc\uip.pb.go	28;"	w	access:public	ctype:HelloRequest	language:Go	line:28	type:[]byte
+XXX_unrecognized	grpc\uip.pb.go	67;"	w	access:public	ctype:HelloReply	language:Go	line:67	type:[]byte
+_Greeter_SayHello_Handler	grpc\uip.pb.go	163;"	f	access:private	language:Go	line:163	signature:(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor)	type:interface{}, error
+_Greeter_serviceDesc	grpc\uip.pb.go	181;"	v	access:private	language:Go	line:181
+cc	grpc\uip.pb.go	138;"	w	access:private	ctype:greeterClient	language:Go	line:138	type:*grpc.ClientConn
+context	grpc\uip.pb.go	7;"	i	language:Go	line:7
+fileDescriptor_4b7b69f611a15cdb	grpc\uip.pb.go	110;"	v	access:private	language:Go	line:110
+fileload	go-uiputils\file-load\file_load.go	1;"	p	language:Go	line:1
+fmt	grpc\uip.pb.go	8;"	i	language:Go	line:8
+fmt	op_intent.go	4;"	i	language:Go	line:4
+github.com/Myriad-Dreamin/go-py	go-uiputils\file-load\file_load.go	4;"	i	language:Go	line:4
+github.com/Myriad-Dreamin/go-py	go-uiputils\op-intent\op_intent.go	3;"	i	language:Go	line:3
+github.com/Myriad-Dreamin/go-py	op_intent.go	6;"	i	language:Go	line:6
+github.com/Myriad-Dreamin/go-ves/go-uiputils/file-load	op_intent.go	9;"	i	language:Go	line:9
+github.com/Myriad-Dreamin/go-ves/go-uiputils/op-intent	op_intent.go	8;"	i	language:Go	line:8
+github.com/golang/protobuf/proto	grpc\uip.pb.go	9;"	i	language:Go	line:9
+google.golang.org/grpc	grpc\uip.pb.go	10;"	i	language:Go	line:10
+greeterClient	grpc\uip.pb.go	137;"	t	access:private	language:Go	line:137	type:struct
+init	go-uiputils\file-load\file_load.go	14;"	f	access:private	language:Go	line:14	signature:()
+init	go-uiputils\op-intent\op_intent.go	17;"	f	access:private	language:Go	line:17	signature:()
+init	grpc\uip.pb.go	103;"	f	access:private	language:Go	line:103	signature:()
+init	grpc\uip.pb.go	108;"	f	access:private	language:Go	line:108	signature:()
+mModule	go-uiputils\op-intent\op_intent.go	5;"	v	access:private	language:Go	line:5	type:GoPy.PyModule
+main	mux.go	1;"	p	language:Go	line:1
+main	op_intent.go	12;"	f	access:private	language:Go	line:12	signature:()
+main	op_intent.go	1;"	p	language:Go	line:1
+math	grpc\uip.pb.go	11;"	i	language:Go	line:11
+opintent	go-uiputils\op-intent\op_intent.go	1;"	p	language:Go	line:1
+server	server\server.go	1;"	p	language:Go	line:1
+uip	grpc\uip.pb.go	4;"	p	language:Go	line:4
+xxx_messageInfo_HelloReply	grpc\uip.pb.go	94;"	v	access:private	language:Go	line:94	type:proto.InternalMessageInfo
+xxx_messageInfo_HelloRequest	grpc\uip.pb.go	55;"	v	access:private	language:Go	line:55	type:proto.InternalMessageInfo
