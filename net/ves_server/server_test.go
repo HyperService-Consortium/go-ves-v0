@@ -1,4 +1,4 @@
-package ves
+package main
 
 import (
 	"fmt"
@@ -12,13 +12,14 @@ import (
 )
 
 const (
-	address     = "127.0.0.1:23351"
-	defaultName = "world"
+	m_address = "127.0.0.1:23351"
 )
 
 func TestUserRegister(t *testing.T) {
+	go main()
+
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	conn, err := grpc.Dial(m_address, grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("did not connect: %v", err)
 	}

@@ -64,6 +64,8 @@ message Attestation {
 
 message UserRegisterRequest {
     Account user = 1;
+    string user_name = 2;
+    string chain_id = 3;
 }
 
 message UserRegisterReply {
