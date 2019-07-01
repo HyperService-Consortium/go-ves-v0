@@ -1,6 +1,6 @@
 package opintent
 
-import "github.com/Myriad-Dreamin/go-ves/go-py"
+import "github.com/Myriad-Dreamin/go-py"
 
 var mModule GoPy.PyModule
 var OpIntent GoPy.PyClass

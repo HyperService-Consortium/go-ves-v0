@@ -1,7 +1,7 @@
 package fileload
 
 
-import "github.com/Myriad-Dreamin/go-ves/go-py"
+import "github.com/Myriad-Dreamin/go-py"
 
 
 var FileLoad GoPy.RefPyObject
