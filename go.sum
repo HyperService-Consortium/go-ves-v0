@@ -35,6 +35,8 @@ github.com/mgechev/dots v0.0.0-20190603122614-18fa4c4b71cc h1:ErGdrZWM/CrAz0FVwc
 github.com/mgechev/dots v0.0.0-20190603122614-18fa4c4b71cc/go.mod h1:KQ7+USdGKfpPjXk4Ga+5XxQM4Lm4e3gAogrreFAYpOg=
 github.com/mgechev/revive v0.0.0-20190608130921-614718608751 h1:9wUHdlDi3lbRofNNyuNxcGjofM6UHZ76JbWNMT0trF4=
 github.com/mgechev/revive v0.0.0-20190608130921-614718608751/go.mod h1:zjxQ45LhNlXgIFJ5OO8HiTbrdgSGK2Uz96SriTGBjxY=
+github.com/mibk/dupl v1.0.0 h1:aZc3jqrF9n0tUHwHt/+jsRxA8cRgA0Gdl56M7W7PoqE=
+github.com/mibk/dupl v1.0.0/go.mod h1:pCr4pNxxIbFGvtyCOi0c7LVjmV6duhKWV+ex5vh38ME=
 github.com/nicksnyder/go-i18n v1.10.0 h1:5AzlPKvXBH4qBzmZ09Ua9Gipyruv6uApMcrNZdo96+Q=
 github.com/nicksnyder/go-i18n v1.10.0/go.mod h1:HrK7VCrbOvQoUAQ7Vpy7i87N7JZZZ7R2xBGjv0j365Q=
 github.com/olekukonko/tablewriter v0.0.1 h1:b3iUnf1v+ppJiOfNX4yxxqfWKMQPZR5yoh8urCTFX88=
