@@ -1,78 +1,170 @@
 package session
 
-import types "github.com/Myriad-Dreamin/go-ves/types"
+import (
+	"bytes"
+	"errors"
 
-type Session struct {
-	ISCAddress   []byte
-	Accounts     []types.Account
-	Transactions [][]byte
+	verifier "github.com/Myriad-Dreamin/go-ves/crypto/verifier"
+	types "github.com/Myriad-Dreamin/go-ves/types"
+
+	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping"
+)
+
+type SerialSession struct {
+	ID               int64           `xorm:"pk unique notnull autoincr 'id'"`
+	ISCAddress       []byte          `xorm:"unique 'isc_address'"`
+	Accounts         []types.Account `xorm:"-"`
+	Transactions     [][]byte        `xorm:"-"`
+	TransactionCount uint32          `xorm:"'transaction_count'"`
+	UnderTransacting uint32          `xorm:"'under_transacting'"`
+	Status           uint8           `xorm:"'status'"`
+	Content          []byte          `xorm:"'content'"`
+	Acks             []byte          `xorm:"'acks'"`
 }
 
-func (ses *Session) GetGUID() (isc_address []byte) {
+func (ses *SerialSession) TableName() string {
+	return "ves_session"
+}
+
+func (ses *SerialSession) ToKVMap() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                ses.ID,
+		"isc_address":       ses.ISCAddress,
+		"transaction_count": ses.TransactionCount,
+		"under_transacting": ses.UnderTransacting,
+		"status":            ses.Status,
+		"content":           ses.Content,
+		"acks":              ses.Acks,
+	}
+}
+
+func (ses *SerialSession) GetID() int64 {
+	return ses.ID
+}
+
+func (ses *SerialSession) GetGUID() (isc_address []byte) {
 	return ses.ISCAddress
 }
 
-func (ses *Session) GetAccounts() (accounts []types.Account) {
-	// ?
+func (ses *SerialSession) GetObjectPtr() interface{} {
+	return new(SerialSession)
 }
 
-func (ses *Session) GetTransaction(transaction_id uint32) (transaction []byte) {
-
+func (ses *SerialSession) GetSlicePtr() interface{} {
+	return new([]SerialSession)
 }
 
-func (ses *Session) GetTransactions() (transactions [][]byte) {
+func (ses *SerialSession) GetAccounts() []types.Account {
 
+	// move to adapdator
+	// if ses.Accounts == nil {
+	// 	ses.Accounts = nil
+	// }
+
+	return ses.Accounts
 }
 
-func (ses *Session) IsSyncing() (syncing bool) {
+func (ses *SerialSession) GetTransaction(transaction_id uint32) []byte {
+	// if ses.Transactions == nil {
+	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
+	// }
+	// if ses.Transactions[transaction_id] == nil {
+	// 	ses.Transactions[transaction_id] = nil
+	// }
 
+	return ses.Transactions[transaction_id]
 }
 
-func (ses *Session) GetTransactingTransaction() (transaction_id uint32, err error) {
+func (ses *SerialSession) GetTransactions() (transactions [][]byte) {
+	// if ses.Transactions == nil {
+	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
+	// }
 
+	return ses.Transactions
 }
 
-func (ses *Session) AckForInit(
+func (ses *SerialSession) GetTransactingTransaction() (transaction_id uint32, err error) {
+	// Status
+	return ses.UnderTransacting, nil
+}
+
+func (ses *SerialSession) GetContent() []byte {
+	return ses.Content
+}
+
+func (ses *SerialSession) InitFromOpIntents(types.OpIntents) (bool, string, error) {
+	return false, "TODO", nil
+}
+
+func Verify(signature types.Signature, contentProviding, publicKey []byte) bool {
+	return bytes.Equal(contentProviding, signature.GetContent()) &&
+		verifier.Verify(signature, publicKey) == true
+}
+
+func (ses *SerialSession) AckForInit(
 	account types.Account,
 	signature types.Signature,
 ) (success_or_not bool, help_info string, err error) {
-
+	var addr = account.GetAddress()
+	for idx, ak := range ses.GetAccounts() {
+		if bytes.Equal(ak.GetAddress(), addr) {
+			if !bitmap.InLength(ses.Acks, idx) {
+				return false, "", errors.New("wrong Acks bytes set..")
+			}
+			if bitmap.Get(ses.Acks, idx) {
+				return false, "have acked", nil
+			}
+			if !Verify(signature, ses.GetContent(), account.GetAddress()) {
+				return false, "verify signature error...", nil
+			}
+			bitmap.Set(ses.Acks, idx)
+			// todo: NSB
+			return true, "", nil
+		}
+	}
+	return false, "account not found in this session", nil
 }
 
-func (ses *Session) ProcessAttestation(
+func (ses *SerialSession) ProcessAttestation(
 	attestation types.Attestation,
 ) (success_or_not bool, help_info string, err error) {
-
+	return false, "TODO", nil
 }
 
-func (ses *Session) SyncFromISC() (err error) {
-
+func (ses *SerialSession) SyncFromISC() (err error) {
+	return errors.New("TODO")
 }
 
 // the database which used by others
-type SessionBase struct {
+type SerialSessionBase struct {
 }
 
-func (sb *SessionBase) InsertSession(
+func (sb *SerialSessionBase) InsertSessionInfo(
 	db types.MultiIndex, session types.Session,
-) (err error) {
-
+) error {
+	return db.Insert(session.(*SerialSession))
 }
 
-func (sb *SessionBase) FindSession(
+func (sb *SerialSessionBase) FindSessionInfo(
 	db types.MultiIndex, isc_address []byte,
 ) (session types.Session, err error) {
-
+	var sessions interface{}
+	sessions, err = db.Select(&SerialSession{ISCAddress: isc_address})
+	if err != nil {
+		return
+	}
+	session = &(sessions.([]SerialSession)[0])
+	return
 }
 
-func (sb *SessionBase) UpdateSession(
+func (sb *SerialSessionBase) UpdateSessionInfo(
 	db types.MultiIndex, session types.Session,
 ) (err error) {
-
+	return db.Modify(session, session.ToKVMap())
 }
 
-func (sb *SessionBase) DeleteSession(
+func (sb *SerialSessionBase) DeleteSessionInfo(
 	db types.MultiIndex, isc_address []byte,
 ) (err error) {
-
+	return db.Delete(&SerialSession{ISCAddress: isc_address})
 }
