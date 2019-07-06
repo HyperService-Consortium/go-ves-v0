@@ -56,3 +56,42 @@ type ORMMultiIndex interface {
 	// 可以Update到多个
 	// MultiModify(ORMObject, ORMObject) error
 }
+
+type VESDB interface {
+	SetMultiIndex(MultiIndex) success_or_not
+
+	SetSessionBase(SessionBase) success_or_not
+
+	SetUserBase(UserBase) success_or_not
+
+	// insert accounts maps from guid to account
+	InsertSession(Session) error
+
+	// find accounts which guid is corresponding to user
+	FindSession(isc_address) (Session, error)
+
+	UpdateSession(Session) error
+
+	DeleteSession(isc_address) error
+
+	// insert accounts maps from guid to account
+	InsertAccount(user_name, Account) error
+
+	// DeleteAccount(user_name, Account) error
+
+	// DeleteAccountByName(user_name) error
+
+	// DeleteAccountByID(user_id) error
+
+	// find accounts which guid is corresponding to user
+	FindUser(user_name) (User, error)
+
+	// find accounts which guid is corresponding to user
+	FindAccounts(user_name, chain_type) ([]Account, error)
+
+	// return true if user has this account
+	HasAccount(user_name, Account) (bool, error)
+
+	// return the user which has this account
+	InvertFind(Account) (user_name, error)
+}
