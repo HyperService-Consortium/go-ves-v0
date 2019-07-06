@@ -1,52 +1,50 @@
 package user
 
-import types "github.com/Myriad-Dreamin/go-ves/types"
+import (
+	types "github.com/Myriad-Dreamin/go-ves/types"
+)
 
 // an implementation of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc"
 
 type User struct {
-	Name     string
-	Accounts []*AccountAdapdator
+	ID       int64           `xorm:"pk autoincr 'id'"`
+	Name     string          `xorm:"'name'"`
+	Accounts []types.Account `xorm:"-"`
 }
 
-type AccountAdapdator struct {
-	ChainType uint64
-	Address   []byte
-}
-
-func NewAccountAdapdator(account types.Account) *AccountAdapdator {
-	return &AccountAdapdator{
-		ChainType: account.GetChainType(),
-		Address:   account.GetAddress(),
-	}
-}
-
-func NewAccountsAdapdator(accounts []types.Account) (accs []*AccountAdapdator) {
+func ConvertAccounts(accounts []types.Account) (ret []map[string]interface{}) {
 	for _, account := range accounts {
-		accs = append(accs, NewAccountAdapdator(account))
+		ret = append(ret, map[string]interface{}{
+			"chain_type": account.GetChainType(),
+			"address":    account.GetAddress(),
+		})
 	}
 	return
 }
 
-type UserBase struct {
+func (u User) ToKVMap() map[string]interface{} {
+	return map[string]interface{}{
+		"name":     u.Name,
+		"accounts": ConvertAccounts(u.Accounts),
+	}
 }
 
-func (ub *UserBase) InsertAccount(db types.MultiIndex, name string, account types.Account) error {
-	a := NewAccountAdapdator(account)
+func (u User) GetName() string {
+	return u.Name
 }
 
-func (ub *UserBase) FindUser(db types.MultiIndex, name string) (user User, err error) {
-
+func (u User) GetAccounts() []types.Account {
+	return u.Accounts
 }
 
-func (ub *UserBase) FindAccounts(db types.MultiIndex, username string, chainType uint32) (accs []Account, err error) {
-
+func (this User) GetID() int64 {
+	return this.ID
 }
 
-func (ub *UserBase) HasAccount(db types.MultiIndex, name string, account types.Account) (has bool, err error) {
-
+func (this User) GetSlicePtr() interface{} {
+	return new([]User)
 }
 
-func (ub *UserBase) InvertFind(db types.MultiIndex, account types.Account) (name string, err error) {
-
+func (this User) GetObjectPtr() interface{} {
+	return &User{}
 }

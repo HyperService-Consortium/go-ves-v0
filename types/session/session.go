@@ -25,11 +25,11 @@ type SerialSession struct {
 	Acks             []byte          `xorm:"'acks'"`
 }
 
-func (ses *SerialSession) TableName() string {
+func (ses SerialSession) TableName() string {
 	return "ves_session"
 }
 
-func (ses *SerialSession) ToKVMap() map[string]interface{} {
+func (ses SerialSession) ToKVMap() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                ses.ID,
 		"isc_address":       ses.ISCAddress,
@@ -41,23 +41,23 @@ func (ses *SerialSession) ToKVMap() map[string]interface{} {
 	}
 }
 
-func (ses *SerialSession) GetID() int64 {
+func (ses SerialSession) GetID() int64 {
 	return ses.ID
 }
 
-func (ses *SerialSession) GetGUID() (isc_address []byte) {
+func (ses SerialSession) GetGUID() (isc_address []byte) {
 	return ses.ISCAddress
 }
 
-func (ses *SerialSession) GetObjectPtr() interface{} {
+func (ses SerialSession) GetObjectPtr() interface{} {
 	return new(SerialSession)
 }
 
-func (ses *SerialSession) GetSlicePtr() interface{} {
+func (ses SerialSession) GetSlicePtr() interface{} {
 	return new([]SerialSession)
 }
 
-func (ses *SerialSession) GetAccounts() []types.Account {
+func (ses SerialSession) GetAccounts() []types.Account {
 
 	// move to adapdator
 	// if ses.Accounts == nil {
@@ -67,7 +67,7 @@ func (ses *SerialSession) GetAccounts() []types.Account {
 	return ses.Accounts
 }
 
-func (ses *SerialSession) GetTransaction(transaction_id uint32) []byte {
+func (ses SerialSession) GetTransaction(transaction_id uint32) []byte {
 	// if ses.Transactions == nil {
 	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
 	// }
@@ -78,7 +78,7 @@ func (ses *SerialSession) GetTransaction(transaction_id uint32) []byte {
 	return ses.Transactions[transaction_id]
 }
 
-func (ses *SerialSession) GetTransactions() (transactions [][]byte) {
+func (ses SerialSession) GetTransactions() (transactions [][]byte) {
 	// if ses.Transactions == nil {
 	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
 	// }
@@ -86,16 +86,16 @@ func (ses *SerialSession) GetTransactions() (transactions [][]byte) {
 	return ses.Transactions
 }
 
-func (ses *SerialSession) GetTransactingTransaction() (transaction_id uint32, err error) {
+func (ses SerialSession) GetTransactingTransaction() (transaction_id uint32, err error) {
 	// Status
 	return ses.UnderTransacting, nil
 }
 
-func (ses *SerialSession) GetContent() []byte {
+func (ses SerialSession) GetContent() []byte {
 	return ses.Content
 }
 
-func (ses *SerialSession) InitFromOpIntents(types.OpIntents) (bool, string, error) {
+func (ses SerialSession) InitFromOpIntents(types.OpIntents) (bool, string, error) {
 	return false, "TODO", nil
 }
 
@@ -104,7 +104,7 @@ func Verify(signature types.Signature, contentProviding, publicKey []byte) bool 
 		verifier.Verify(signature, publicKey) == true
 }
 
-func (ses *SerialSession) AckForInit(
+func (ses SerialSession) AckForInit(
 	account types.Account,
 	signature types.Signature,
 ) (success_or_not bool, help_info string, err error) {
@@ -128,13 +128,13 @@ func (ses *SerialSession) AckForInit(
 	return false, "account not found in this session", nil
 }
 
-func (ses *SerialSession) ProcessAttestation(
+func (ses SerialSession) ProcessAttestation(
 	attestation types.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	return false, "TODO", nil
 }
 
-func (ses *SerialSession) SyncFromISC() (err error) {
+func (ses SerialSession) SyncFromISC() (err error) {
 	return errors.New("TODO")
 }
 
@@ -142,13 +142,13 @@ func (ses *SerialSession) SyncFromISC() (err error) {
 type SerialSessionBase struct {
 }
 
-func (sb *SerialSessionBase) InsertSessionInfo(
+func (sb SerialSessionBase) InsertSessionInfo(
 	db types.MultiIndex, session types.Session,
 ) error {
-	return db.Insert(session.(*SerialSession))
+	return db.Insert(session.(SerialSession))
 }
 
-func (sb *SerialSessionBase) FindSessionInfo(
+func (sb SerialSessionBase) FindSessionInfo(
 	db types.MultiIndex, isc_address []byte,
 ) (session types.Session, err error) {
 	var sessions interface{}
@@ -160,19 +160,19 @@ func (sb *SerialSessionBase) FindSessionInfo(
 	return
 }
 
-func (sb *SerialSessionBase) UpdateSessionInfo(
+func (sb SerialSessionBase) UpdateSessionInfo(
 	db types.MultiIndex, session types.Session,
 ) (err error) {
 	return db.Modify(session, session.ToKVMap())
 }
 
-func (sb *SerialSessionBase) DeleteSessionInfo(
+func (sb SerialSessionBase) DeleteSessionInfo(
 	db types.MultiIndex, isc_address []byte,
 ) (err error) {
 	return db.Delete(&SerialSession{ISCAddress: isc_address})
 }
 
-func (sb *SerialSessionBase) InsertSessionAccounts(
+func (sb SerialSessionBase) InsertSessionAccounts(
 	db types.Index, isc_address []byte, accounts []types.Account,
 ) (err error) {
 	var k, v []byte
@@ -188,7 +188,7 @@ func (sb *SerialSessionBase) InsertSessionAccounts(
 	return
 }
 
-func (sb *SerialSessionBase) FindSessionAccounts(
+func (sb SerialSessionBase) FindSessionAccounts(
 	db types.Index, isc_address []byte, getter func(uint64, []byte) error,
 ) (err error) {
 	var k, v []byte
@@ -214,3 +214,9 @@ func (sb *SerialSessionBase) FindSessionAccounts(
 		v = v[n:]
 	}
 }
+
+// func (sb SerialSessionBase) InsertTransaction(
+// 	db types.Index, transaction_id uint64, Transaction []byte
+// ) (err error) (
+//
+// )

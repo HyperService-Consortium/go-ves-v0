@@ -56,6 +56,10 @@ func (this *XORMMultiIndexImpl) Insert(obj types.KVObject) (err error) {
 	_, err = this.db.Insert(obj)
 	return
 }
+func (this *XORMMultiIndexImpl) Get(condition types.KVObject) (bool, error) {
+	has, err := this.db.Get(condition)
+	return has, err
+}
 
 func (this *XORMMultiIndexImpl) Select(condition types.KVObject) (interface{}, error) {
 	sli := condition.GetSlicePtr()

@@ -26,6 +26,8 @@ type MultiIndex interface {
 
 	Insert(KVObject) error
 
+	Get(KVObject) (bool, error)
+
 	Select(KVObject) (interface{}, error)
 
 	SelectAll(KVObject) (interface{}, error)
