@@ -20,10 +20,17 @@ func (server *Server) UserRegister(
 	return &uiprpc.UserRegisterReply{Ok: true}, nil
 }
 
+/*
+OpIntents->
+	Contents             [][]byte `protobuf:"bytes,1,rep,name=contents,proto3" json:"contents,omitempty"`
+	Dependencies         [][]byte `protobuf:"bytes,2,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
+*/
 func (server *Server) SessionStart(
 	ctx context.Context,
 	in *uiprpc.SessionStartRequest,
 ) (*uiprpc.SessionStartReply, error) {
+	// ctts, deps := in.Opintents.Contents, in.Opintents.Dependencies
+	//
 	return &uiprpc.SessionStartReply{Ok: true}, nil
 }
 
