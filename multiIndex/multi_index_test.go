@@ -3,7 +3,36 @@ package types
 import (
 	"fmt"
 	"testing"
+
+	"github.com/Myriad-Dreamin/go-ves/types"
+	mtest "github.com/Myriad-Dreamin/mydrest"
 )
+
+type TT struct {
+	Id      int64  `xorm:"pk autoincr"`
+	Name    string `xorm:"unique"`
+	Balance float64
+}
+
+type TestHelper struct {
+	mtest.TestHelper
+	fact *XORMMultiIndexFatory
+	res  types.MultiIndex
+}
+
+var s TestHelper
+
+func (this *TT) GetSlicePtr() interface{} {
+	return new([]TT)
+}
+
+func (this *TT) GetObjectPtr() interface{} {
+	return &TT{}
+}
+
+func (this *TT) GetId() int64 {
+	return this.Id
+}
 
 func newTT(name string, balance float64) *TT {
 	ret := new(TT)
@@ -11,139 +40,104 @@ func newTT(name string, balance float64) *TT {
 	ret.Balance = balance
 	return ret
 }
-func (this *TT) GetSlice() interface{} {
-	var ret []TT
-	return &ret
-}
-func (this *TT) GetId() int64 {
-	return this.Id
+
+const path = "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8"
+
+func SetUpHelper() {
+	var err error
+	s.fact = new(XORMMultiIndexFatory)
+	s.res, err = s.fact.GetDB("mysql", path)
+	s.OutAssertNoErr(err)
+	// err = s.res.RegisterObject(new(TT))
+	s.OutAssertNoErr(err)
 }
 
-const path = "root:12345678@tcp(127.0.0.1:3306)/test?charset=utf8"
+func TestMain(m *testing.M) {
+	SetUpHelper()
+	m.Run()
+}
 
 func TestGetDB(t *testing.T) {
-	var fact ORMMultiIndexFatory = new(ORMFactoty_szh)
-	res, err := fact.GetDB("mysql", path)
-	if err != nil {
-		t.Error(err, "\n")
-	} else {
-		fmt.Printf("RES %T\n", res)
-	}
+	var fact ORMMultiIndexFatory = new(XORMMultiIndexFatory)
+	_, err := fact.GetDB("mysql", path)
+	s.AssertNoErr(t, err)
 }
 
 func TestInsert(t *testing.T) {
-	fact := new(ORMFactoty_szh)
-	res, err := fact.GetDB("mysql", path)
-	err = res.RegisterObject(new(TT))
-	if err != nil {
-		t.Error("reg err", err)
-		return
-	}
+	var err error
 	tt1 := newTT("szh1", 10)
 	tt2 := newTT("szh2", 11)
-	err = res.Insert(tt1)
-	if err != nil {
-		t.Error("tt1 err", err)
-	}
-	err = res.Insert(tt2)
-	if err != nil {
-		t.Error("tt2 err", err)
-	}
+	err = s.res.Insert(tt1)
+	s.AssertNoErr(t, err)
+	err = s.res.Insert(tt2)
+	s.AssertNoErr(t, err)
+	fmt.Println(s.res.SelectAll(tt1))
 }
 
 func TestSelect(t *testing.T) {
-	fact := new(ORMFactoty_szh)
-	res, err := fact.GetDB("mysql", path)
-	err = res.RegisterObject(new(TT))
-	if err != nil {
-		t.Error("reg err", err)
-		return
-	}
-	tt1 := newTT("szh1", 10)
-	tt2 := newTT("szh2", 11)
-	err = res.Insert(tt1)
-	err = res.Insert(tt2)
+	var err error
 	condition := new(TT)
 	condition.Balance = 11
 	var result interface{}
-	result, err = res.Select(condition)
-	if err != nil {
-		t.Error("SELECT ERR", err)
-	}
-	/*
-		fmt.Println(result.([]TT), res.regTable[reflect.TypeOf(tt1).Name()])
-		(result.([]TT))[0].Balance = 15
-		fmt.Println(res.regTable[reflect.TypeOf(tt1).Name()])
-		(*((res.regTable[reflect.TypeOf(tt1).Name()]).(*[]TT)))[0].Balance = 20
-	*/
+	result, err = s.res.Select(condition)
+	s.AssertNoErr(t, err)
 	fmt.Println(result.([]TT))
 }
 
 func TestDelete(t *testing.T) {
-	fact := new(ORMFactoty_szh)
-	res, err := fact.GetDB("mysql", path)
-	err = res.RegisterObject(new(TT))
-	if err != nil {
-		t.Error("reg err", err)
-		return
-	}
+	var err error
 	tt1 := newTT("szh1", 10)
-	tt2 := newTT("szh2", 11)
-	err = res.Insert(tt1)
-	err = res.Insert(tt2)
-	err = res.Delete(tt1)
-	if err != nil {
-		t.Error("DELETE", err)
-	}
+	err = s.res.Delete(tt1)
+	s.AssertNoErr(t, err)
 	sb := &TT{Balance: 11}
-	err = res.Delete(sb)
-	if err != nil {
-		t.Error("DELETE", err)
-	}
-	err = res.Delete(newTT("SD", 1000))
-	if err == nil {
-		t.Error("SB DELETE")
-	}
+	err = s.res.Delete(sb)
+	s.AssertNoErr(t, err)
+	err = s.res.Delete(newTT("SD", 1000))
+	s.AssertEqual(t, err, errorObjectNotFound)
 
 }
 
 func TestMultiDelete(t *testing.T) {
-	fact := new(ORMFactoty_szh)
-	res, err := fact.GetDB("mysql", path)
-	err = res.RegisterObject(new(TT))
-	if err != nil {
-		t.Error("reg err", err)
-		return
-	}
+	fmt.Println("8")
+	var err error
 	tt1 := newTT("szh1", 10)
 	tt2 := newTT("szh2", 11)
 	tt3 := newTT("szh3", 10)
-	err = res.Insert(tt1)
-	err = res.Insert(tt2)
-	err = res.Insert(tt3)
-	err = res.MultiDelete(&TT{Balance: 10})
-	if err != nil {
-		t.Error("MULTIDELETE", err)
-	}
+	err = s.res.Insert(tt1)
+	s.AssertNoErr(t, err)
+	err = s.res.Insert(tt2)
+	s.AssertNoErr(t, err)
+	err = s.res.Insert(tt3)
+	s.AssertNoErr(t, err)
+	err = s.res.MultiDelete(&TT{Balance: 10})
+	s.AssertNoErr(t, err)
+	var result interface{}
+	result, err = s.res.SelectAll(tt1)
+	s.AssertNoErr(t, err)
+	fmt.Println(result.([]TT))
 }
 
 func TestModify(t *testing.T) {
-	fact := new(ORMFactoty_szh)
-	res, err := fact.GetDB("mysql", path)
-	err = res.RegisterObject(new(TT))
-	if err != nil {
-		t.Error("reg err", err)
-		return
-	}
-	tt1 := newTT("szh1", 10)
+	fmt.Println("9")
+	var err error
 	tt2 := newTT("szh2", 11)
-	tt3 := newTT("szh3", 10)
-	err = res.Insert(tt1)
-	err = res.Insert(tt2)
-	err = res.Insert(tt3)
+	var result interface{}
+	result, err = s.res.Select(tt2)
+	s.AssertNoErr(t, err)
+	tt2 = &result.([]TT)[0]
 	mod := map[string]interface{}{"Balance": 17}
-	err = res.Modify(tt2, mod)
-	if err != nil {
-		t.Error("MODIFY", err)
-	}
+	err = s.res.Modify(tt2, mod)
+	s.AssertNoErr(t, err)
+	result, err = s.res.SelectAll(tt2)
+	s.AssertNoErr(t, err)
+	fmt.Println(result.([]TT))
+}
+
+func TestClearTable(t *testing.T) {
+	fmt.Println("10")
+	var err error
+	err = s.res.MultiDelete(&TT{Balance: 10})
+	s.AssertNoErr(t, err)
+	err = s.res.MultiDelete(&TT{Balance: 17})
+	s.AssertNoErr(t, err)
 }

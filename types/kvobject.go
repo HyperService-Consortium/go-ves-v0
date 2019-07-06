@@ -1,9 +1,7 @@
 package types
 
-type KVObject []KVPair
-
-/*
-type MObj struct {
-
+type KVObject interface {
+	GetObjectPtr() interface{}
+	GetSlicePtr() interface{}
+	GetId() int64
 }
-*/
