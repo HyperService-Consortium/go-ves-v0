@@ -3,11 +3,14 @@ package session
 import (
 	"bytes"
 	"errors"
+	"io"
 
 	verifier "github.com/Myriad-Dreamin/go-ves/crypto/verifier"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
 	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping"
+	const_prefix "github.com/Myriad-Dreamin/go-ves/database/const_prefix"
+	serial_helper "github.com/Myriad-Dreamin/go-ves/serial_helper"
 )
 
 type SerialSession struct {
@@ -167,4 +170,47 @@ func (sb *SerialSessionBase) DeleteSessionInfo(
 	db types.MultiIndex, isc_address []byte,
 ) (err error) {
 	return db.Delete(&SerialSession{ISCAddress: isc_address})
+}
+
+func (sb *SerialSessionBase) InsertSessionAccounts(
+	db types.Index, isc_address []byte, accounts []types.Account,
+) (err error) {
+	var k, v []byte
+	k, err = serial_helper.DecoratePrefix(const_prefix.AccountsPrefix, isc_address)
+	if err != nil {
+		return
+	}
+	v, err = serial_helper.SerializeAccountsInterface(accounts)
+	if err != nil {
+		return
+	}
+	db.Set(k, v)
+	return
+}
+
+func (sb *SerialSessionBase) FindSessionAccounts(
+	db types.Index, isc_address []byte, getter func(uint64, []byte) error,
+) (err error) {
+	var k, v []byte
+	k, err = serial_helper.DecoratePrefix(const_prefix.AccountsPrefix, isc_address)
+	if err != nil {
+		return
+	}
+	v, err = db.Get(k)
+	if err != nil {
+		return
+	}
+	var ct uint64
+	var n int64
+	for {
+		n, ct, k, err = serial_helper.UnserializeAccountInterface(v)
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return
+		}
+		getter(ct, k)
+		v = v[n:]
+	}
 }
