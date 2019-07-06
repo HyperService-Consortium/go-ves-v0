@@ -10,13 +10,23 @@ type KVMap = map[string]interface{}
 type KVObject interface {
 	GetObjectPtr() interface{}
 	GetSlicePtr() interface{}
-	GetId() int64
+	GetID() int64
+	ToKVMap() KVMap
+}
+
+type Index interface {
+	Get([]byte) ([]byte, error)
+	Set([]byte, []byte) error
+	Delete([]byte) error
+	Batch([][]byte, [][]byte) error
 }
 
 type MultiIndex interface {
 	// RegisterObject(KVObject) error
 
 	Insert(KVObject) error
+
+	Get(KVObject) (bool, error)
 
 	Select(KVObject) (interface{}, error)
 
@@ -58,6 +68,8 @@ type ORMMultiIndex interface {
 }
 
 type VESDB interface {
+	SetIndex(Index) success_or_not
+
 	SetMultiIndex(MultiIndex) success_or_not
 
 	SetSessionBase(SessionBase) success_or_not
@@ -65,14 +77,14 @@ type VESDB interface {
 	SetUserBase(UserBase) success_or_not
 
 	// insert accounts maps from guid to account
-	InsertSession(Session) error
+	InsertSessionInfo(Session) error
 
 	// find accounts which guid is corresponding to user
-	FindSession(isc_address) (Session, error)
+	FindSessionInfo(isc_address) (Session, error)
 
-	UpdateSession(Session) error
+	UpdateSessionInfo(Session) error
 
-	DeleteSession(isc_address) error
+	DeleteSessionInfo(isc_address) error
 
 	// insert accounts maps from guid to account
 	InsertAccount(user_name, Account) error
