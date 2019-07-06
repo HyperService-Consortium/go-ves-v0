@@ -1,6 +1,6 @@
 package types
 
-type chain_type = uint32
+type chain_type = uint64
 type address = []byte
 type user_name = string
 
