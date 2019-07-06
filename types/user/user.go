@@ -6,14 +6,33 @@ import types "github.com/Myriad-Dreamin/go-ves/types"
 
 type User struct {
 	Name     string
-	Accounts []types.Account
+	Accounts []*AccountAdapdator
+}
+
+type AccountAdapdator struct {
+	ChainType uint64
+	Address   []byte
+}
+
+func NewAccountAdapdator(account types.Account) *AccountAdapdator {
+	return &AccountAdapdator{
+		ChainType: account.GetChainType(),
+		Address:   account.GetAddress(),
+	}
+}
+
+func NewAccountsAdapdator(accounts []types.Account) (accs []*AccountAdapdator) {
+	for _, account := range accounts {
+		accs = append(accs, NewAccountAdapdator(account))
+	}
+	return
 }
 
 type UserBase struct {
 }
 
 func (ub *UserBase) InsertAccount(db types.MultiIndex, name string, account types.Account) error {
-
+	a := NewAccountAdapdator(account)
 }
 
 func (ub *UserBase) FindUser(db types.MultiIndex, name string) (user User, err error) {
