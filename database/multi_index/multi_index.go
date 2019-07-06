@@ -1,4 +1,4 @@
-package types
+package xorm_multi_index
 
 import (
 	"errors"
@@ -22,35 +22,9 @@ type XORMMultiIndexImpl struct {
 	// regTable map[string]types.KVObject
 }
 
-// func (this *XORMMultiIndexImpl) RegisterObject(obj types.KVObject) error {
-// 	if this.db == nil {
-// 		return notHandleDBError
-// 	}
-// 	if obj == nil {
-// 		return nilObjError
-// 	}
-// 	tp := reflect.TypeOf(obj).Name()
-// 	if this.regTable[tp] == nil {
-// 		err := this.db.Sync(obj)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		this.regTable[tp] = obj
-// 	}
-// 	return nil
-// }
-
-// func (this *XORMMultiIndexImpl) GetSliceFactory(condition types.KVObject) (types.KVObject, error) {
-// 	if condition == nil {
-// 		return nil, nilConditionError
-// 	}
-// 	tp := reflect.TypeOf(condition).Name()
-// 	sliFactory := this.regTable[tp]
-// 	if sliFactory == nil {
-// 		return nil, notRegisteredObjectError
-// 	}
-// 	return sliFactory, nil
-// }
+func (this *XORMMultiIndexImpl) Register(obj types.KVObject) error {
+	return this.db.Sync(obj)
+}
 
 func (this *XORMMultiIndexImpl) Insert(obj types.KVObject) (err error) {
 	_, err = this.db.Insert(obj)
@@ -105,7 +79,7 @@ func (this *XORMMultiIndexImpl) Modify(oldObj types.KVObject, newValue types.KVM
 	if !has {
 		return errorObjectNotFound
 	}
-	_, err = this.db.Table(oldObj).Id(oldObj.GetId()).Update(newValue)
+	_, err = this.db.Table(oldObj).Id(oldObj.GetID()).Update(newValue)
 	// fmt.Println("MODI SUCC", affected)
 	return err
 }
@@ -115,7 +89,7 @@ func (this *XORMMultiIndexImpl) MultiModify(condition types.KVObject, newValue t
 		return err
 	}
 	for _, obj := range sli.([]types.KVObject) {
-		_, err := this.db.Table(condition).Id(obj.GetId()).Update(newValue)
+		_, err := this.db.Table(condition).Id(obj.GetID()).Update(newValue)
 		if err != nil {
 			return err
 		}
@@ -124,14 +98,10 @@ func (this *XORMMultiIndexImpl) MultiModify(condition types.KVObject, newValue t
 	return nil
 }
 
-type ORMMultiIndexFatory interface {
-	GetDB(string, string) (types.MultiIndex, error)
-}
-
 type XORMMultiIndexFatory struct {
 }
 
-func (this *XORMMultiIndexFatory) GetDB(tp string, pth string) (types.MultiIndex, error) {
+func (this *XORMMultiIndexFatory) GetDB(tp string, pth string) (*XORMMultiIndexImpl, error) {
 	ret := new(XORMMultiIndexImpl)
 	db, err := xorm.NewEngine(tp, pth)
 	if err != nil {

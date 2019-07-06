@@ -1,4 +1,4 @@
-package types
+package xorm_multi_index
 
 import (
 	"fmt"
@@ -22,6 +22,14 @@ type TestHelper struct {
 
 var s TestHelper
 
+func (this *TT) ToKVMap() map[string]interface{} {
+	return map[string]interface{}{
+		"id":      this.Id,
+		"name":    this.Name,
+		"balance": this.Balance,
+	}
+}
+
 func (this *TT) GetSlicePtr() interface{} {
 	return new([]TT)
 }
@@ -30,7 +38,7 @@ func (this *TT) GetObjectPtr() interface{} {
 	return &TT{}
 }
 
-func (this *TT) GetId() int64 {
+func (this *TT) GetID() int64 {
 	return this.Id
 }
 
@@ -58,7 +66,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetDB(t *testing.T) {
-	var fact ORMMultiIndexFatory = new(XORMMultiIndexFatory)
+	var fact *XORMMultiIndexFatory = new(XORMMultiIndexFatory)
 	_, err := fact.GetDB("mysql", path)
 	s.AssertNoErr(t, err)
 }

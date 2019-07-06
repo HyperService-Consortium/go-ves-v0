@@ -2,8 +2,10 @@ package session
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"io"
+	"math/rand"
 
 	verifier "github.com/Myriad-Dreamin/go-ves/crypto/verifier"
 	types "github.com/Myriad-Dreamin/go-ves/types"
@@ -15,7 +17,7 @@ import (
 
 type SerialSession struct {
 	ID               int64           `xorm:"pk unique notnull autoincr 'id'"`
-	ISCAddress       []byte          `xorm:"unique 'isc_address'"`
+	ISCAddress       []byte          `xorm:"notnull 'isc_address'"`
 	Accounts         []types.Account `xorm:"-"`
 	Transactions     [][]byte        `xorm:"-"`
 	TransactionCount uint32          `xorm:"'transaction_count'"`
@@ -23,6 +25,14 @@ type SerialSession struct {
 	Status           uint8           `xorm:"'status'"`
 	Content          []byte          `xorm:"'content'"`
 	Acks             []byte          `xorm:"'acks'"`
+}
+
+func randomSession() *SerialSession {
+	var buf = make([]byte, 20)
+	binary.PutVarint(buf, rand.Int63())
+	return &SerialSession{
+		ISCAddress: buf,
+	}
 }
 
 func (ses SerialSession) TableName() string {
@@ -145,7 +155,7 @@ type SerialSessionBase struct {
 func (sb SerialSessionBase) InsertSessionInfo(
 	db types.MultiIndex, session types.Session,
 ) error {
-	return db.Insert(session.(SerialSession))
+	return db.Insert(session.(*SerialSession))
 }
 
 func (sb SerialSessionBase) FindSessionInfo(
@@ -156,7 +166,11 @@ func (sb SerialSessionBase) FindSessionInfo(
 	if err != nil {
 		return
 	}
-	session = &(sessions.([]SerialSession)[0])
+	f := sessions.([]SerialSession)
+	if f == nil {
+		return nil, errors.New("not found")
+	}
+	session = &f[0]
 	return
 }
 
