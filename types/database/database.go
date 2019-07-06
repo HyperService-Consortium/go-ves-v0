@@ -1,15 +1,21 @@
 package vesdb
 
-import "github.com/Myriad-Dreamin/go-ves/types"
+import types "github.com/Myriad-Dreamin/go-ves/types"
 
 type Database struct {
-	pdb    types.MultiIndex
+	sindb  types.Index
+	muldb  types.MultiIndex
 	sesdb  types.SessionBase
 	userdb types.UserBase
 }
 
+func (db *Database) SetIndex(phyDB types.Index) bool {
+	db.sindb = phyDB
+	return true
+}
+
 func (db *Database) SetMultiIndex(phyDB types.MultiIndex) bool {
-	db.pdb = phyDB
+	db.muldb = phyDB
 	return true
 }
 
@@ -23,24 +29,24 @@ func (db *Database) SetUserBase(logicDB types.UserBase) bool {
 	return true
 }
 
-func (db *Database) InsertSession(session types.Session) error {
-	return db.sesdb.InsertSession(db.pdb, session)
+func (db *Database) InsertSessionInfo(session types.Session) error {
+	return db.sesdb.InsertSessionInfo(db.muldb, session)
 }
 
-func (db *Database) FindSession(isc_address []byte) (types.Session, error) {
-	return db.sesdb.FindSession(db.pdb, isc_address)
+func (db *Database) FindSessionInfo(isc_address []byte) (types.Session, error) {
+	return db.sesdb.FindSessionInfo(db.muldb, isc_address)
 }
 
-func (db *Database) UpdateSession(session types.Session) error {
-	return db.sesdb.UpdateSession(db.pdb, session)
+func (db *Database) UpdateSessionInfo(session types.Session) error {
+	return db.sesdb.UpdateSessionInfo(db.muldb, session)
 }
 
-func (db *Database) DeleteSession(isc_address []byte) error {
-	return db.sesdb.DeleteSession(db.pdb, isc_address)
+func (db *Database) DeleteSessionInfo(isc_address []byte) error {
+	return db.sesdb.DeleteSessionInfo(db.muldb, isc_address)
 }
 
 func (db *Database) InsertAccount(user_name string, account types.Account) error {
-	return db.userdb.InsertAccount(db.pdb, user_name, account)
+	return db.userdb.InsertAccount(db.muldb, user_name, account)
 }
 
 // func (db *Database) DeleteAccount(user_name string, account types.Account) ( error) {
@@ -56,17 +62,17 @@ func (db *Database) InsertAccount(user_name string, account types.Account) error
 // }
 
 func (db *Database) FindUser(user_name string) (types.User, error) {
-	return db.userdb.FindUser(db.pdb, user_name)
+	return db.userdb.FindUser(db.muldb, user_name)
 }
 
-func (db *Database) FindAccounts(user_name string, chain_type uint32) ([]types.Account, error) {
-	return db.userdb.FindAccounts(db.pdb, user_name, chain_type)
+func (db *Database) FindAccounts(user_name string, chain_type uint64) ([]types.Account, error) {
+	return db.userdb.FindAccounts(db.muldb, user_name, chain_type)
 }
 
 func (db *Database) HasAccount(user_name string, account types.Account) (bool, error) {
-	return db.userdb.HasAccount(db.pdb, user_name, account)
+	return db.userdb.HasAccount(db.muldb, user_name, account)
 }
 
 func (db *Database) InvertFind(account types.Account) (string, error) {
-	return db.userdb.InvertFind(db.pdb, account)
+	return db.userdb.InvertFind(db.muldb, account)
 }
