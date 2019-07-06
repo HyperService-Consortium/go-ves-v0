@@ -2,7 +2,7 @@ package user
 
 import types "github.com/Myriad-Dreamin/go-ves/types"
 
-// a implement of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc"
+// an implementation of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc"
 
 type User struct {
 	Name     string
