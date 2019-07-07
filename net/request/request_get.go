@@ -16,28 +16,10 @@ var (
 	request_timeout = 5 * time.Second
 )
 
-type RequestClient struct {
-	BaseURL string
-	Header  req.Header
-}
-
-func NewRequestClient(url string) *RequestClient {
-	return &RequestClient{BaseURL: url}
-}
-
-func (jc *RequestClient) SetHeader(strMap map[string]string) *RequestClient {
-	jc.Header = req.Header(strMap)
-	return jc
-}
-
-func (jc *RequestClient) SetHeaderWithReqHeader(header req.Header) *RequestClient {
-	jc.Header = header
-	return jc
-}
-
-func (jc *RequestClient) Group(sub string) *RequestClient {
-	return &RequestClient{BaseURL: jc.BaseURL + sub, Header: jc.Header}
-}
+type QueryParam = req.QueryParam
+type Param = req.Param
+type Resp = req.Resp
+type Header = req.Header
 
 func get(s string, v ...interface{}) ([]byte, error) {
 	resp, err := req.Get(s, v...)
@@ -51,6 +33,55 @@ func get(s string, v ...interface{}) ([]byte, error) {
 	return resp.ToBytes()
 }
 
+func getx(s string, v ...interface{}) (*Resp, error) {
+	resp, err := req.Get(s, v...)
+	if err != nil {
+		return nil, err
+	}
+	var sc = resp.Response().StatusCode
+	if sc != 200 {
+		return nil, fmt.Errorf("error code: %v", sc)
+	}
+	return resp, err
+}
+
+func getc(s string, handler func(*Resp) error, v ...interface{}) error {
+	resp, err := req.Get(s, v...)
+	if err != nil {
+		return err
+	}
+	var sc = resp.Response().StatusCode
+	if sc != 200 {
+		return fmt.Errorf("error code: %v", sc)
+	}
+
+	err = handler(resp)
+	return err
+}
+
+type RequestClient struct {
+	BaseURL string
+	Header  Header
+}
+
+func NewRequestClient(url string) *RequestClient {
+	return &RequestClient{BaseURL: url}
+}
+
+func (jc *RequestClient) SetHeader(strMap map[string]string) *RequestClient {
+	jc.Header = Header(strMap)
+	return jc
+}
+
+func (jc *RequestClient) SetHeaderWithReqHeader(header Header) *RequestClient {
+	jc.Header = header
+	return jc
+}
+
+func (jc *RequestClient) Group(sub string) *RequestClient {
+	return &RequestClient{BaseURL: jc.BaseURL + sub, Header: jc.Header}
+}
+
 func (jc *RequestClient) Get() ([]byte, error) {
 	return get(jc.BaseURL, jc.Header)
 }
@@ -60,7 +91,7 @@ func (jc *RequestClient) GetWithKVMap(request map[string]interface{}) ([]byte, e
 }
 
 func (jc *RequestClient) GetWithParams(params ...interface{}) ([]byte, error) {
-	return get(jc.BaseURL, jc.Header, params)
+	return get(jc.BaseURL, append(params, jc.Header)...)
 }
 
 func (jc *RequestClient) GetWithStruct(request interface{}) ([]byte, error) {
@@ -82,7 +113,7 @@ func (jc *RequestClient) GetWithStruct(request interface{}) ([]byte, error) {
 
 type RequestClientX struct {
 	BaseURL string
-	Header  req.Header
+	Header  Header
 	path    string
 }
 
@@ -90,23 +121,11 @@ func NewRequestClientX(url string) *RequestClientX {
 	return &RequestClientX{BaseURL: url}
 }
 
-func getx(s string, v ...interface{}) (*req.Resp, error) {
-	resp, err := req.Get(s, v...)
-	if err != nil {
-		return nil, err
-	}
-	var sc = resp.Response().StatusCode
-	if sc != 200 {
-		return nil, fmt.Errorf("error code: %v", sc)
-	}
-	return resp, err
-}
-
 func (jc *RequestClientX) SetHeader(i interface{}) *RequestClientX {
 	switch s := i.(type) {
 	case map[string]string:
-		jc.Header = req.Header(s)
-	case req.Header:
+		jc.Header = Header(s)
+	case Header:
 		jc.Header = s
 	default:
 	}
@@ -186,33 +205,19 @@ func (jc *RequestClientX) Get(params ...interface{}) ([]byte, error) {
 	return get(r, params...)
 }
 
-func (jc *RequestClientX) Use(handler func(*req.Resp) error) *Context {
+func (jc *RequestClientX) Use(handler func(*Resp) error) *Context {
 	return &Context{BaseURL: jc.BaseURL + jc.path, Header: jc.Header, handler: handler}
 }
 
 type Context struct {
 	BaseURL string
-	Header  req.Header
-	handler func(*req.Resp) error
+	Header  Header
+	handler func(*Resp) error
 }
 
 func (jc *Context) Path(path string) *Context {
 	jc.BaseURL += path
 	return jc
-}
-
-func getc(s string, handler func(*req.Resp) error, v ...interface{}) error {
-	resp, err := req.Get(s, v...)
-	if err != nil {
-		return err
-	}
-	var sc = resp.Response().StatusCode
-	if sc != 200 {
-		return fmt.Errorf("error code: %v", sc)
-	}
-
-	err = handler(resp)
-	return err
 }
 
 func (jc *Context) Get(params ...interface{}) error {
