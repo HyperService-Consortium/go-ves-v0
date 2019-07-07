@@ -7,17 +7,24 @@ import (
 )
 
 type XORMUserAdapter struct {
-	ID        int64  `xorm:"pk autoincr 'id'"`
-	Name      string `xorm:"'name'"`
-	ChainType uint64 `xorm:"'chain_id'"`
-	Address   []byte `xorm:"'address'"`
+	ID      int64  `xorm:"pk autoincr 'id'"`
+	Name    string `xorm:"'name'"`
+	ChainId uint64 `xorm:"'chain_id'"`
+	Address []byte `xorm:"'address'"`
 }
 
 func NewXORMUserAdapter(name string, account types.Account) *XORMUserAdapter {
 	return &XORMUserAdapter{
-		Name:      name,
-		ChainType: account.GetChainId(),
-		Address:   account.GetAddress(),
+		Name:    name,
+		ChainId: account.GetChainId(),
+		Address: account.GetAddress(),
+	}
+}
+
+func NewXORMUserAdapterWithOnlyAccount(account types.Account) *XORMUserAdapter {
+	return &XORMUserAdapter{
+		ChainId: account.GetChainId(),
+		Address: account.GetAddress(),
 	}
 }
 
@@ -54,7 +61,7 @@ func (ua XORMUserAdapter) GetAddress() []byte {
 }
 
 func (ua XORMUserAdapter) GetChainId() uint64 {
-	return ua.ChainType
+	return ua.ChainId
 }
 
 func (ua XORMUserAdapter) GetID() int64 {
@@ -73,7 +80,7 @@ func (ua XORMUserAdapter) ToKVMap() map[string]interface{} {
 	return map[string]interface{}{
 		"id":       ua.ID,
 		"name":     ua.Name,
-		"chain_id": ua.ChainType,
+		"chain_id": ua.ChainId,
 		"address":  ua.Address,
 	}
 }
@@ -98,7 +105,7 @@ func (ub XORMUserBase) FindUser(db types.MultiIndex, name string) (user types.Us
 }
 
 func (ub XORMUserBase) FindAccounts(db types.MultiIndex, username string, chainType uint64) (accs []types.Account, err error) {
-	condition := XORMUserAdapter{Name: username, ChainType: chainType}
+	condition := XORMUserAdapter{Name: username, ChainId: chainType}
 	sli, err := db.Select(&condition)
 	if err != nil {
 		return
@@ -114,7 +121,13 @@ func (ub XORMUserBase) HasAccount(db types.MultiIndex, name string, account type
 }
 
 func (ub XORMUserBase) InvertFind(db types.MultiIndex, account types.Account) (name string, err error) {
-
-	//condition := User{Accounts}
-	return "", nil
+	condition := NewXORMUserAdapterWithOnlyAccount(account)
+	sli, err := db.Select(condition)
+	if err != nil {
+		return
+	}
+	if sli == nil {
+		return "", errors.New("not found")
+	}
+	return (sli.([]XORMUserAdapter))[0].Name, nil
 }
