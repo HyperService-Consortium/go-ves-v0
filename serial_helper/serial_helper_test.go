@@ -17,8 +17,8 @@ type mA struct {
 	y []byte
 }
 
-func (a *mA) GetChainType() uint64 { return a.x }
-func (a *mA) GetAddress() []byte   { return a.y }
+func (a *mA) GetChainId() uint64 { return a.x }
+func (a *mA) GetAddress() []byte { return a.y }
 
 func TestSerialize(t *testing.T) {
 	a := &mA{1, []byte{6, 6}}
@@ -107,7 +107,7 @@ func TestThreeAccounts(t *testing.T) {
 		s.AssertNoErr(t, err)
 
 		fmt.Println(n, len(qwq), aa, c)
-		s.AssertEqual(t, aa.GetChainType(), c.x)
+		s.AssertEqual(t, aa.GetChainId(), c.x)
 		s.AssertTrue(t, bytes.Equal(aa.GetAddress(), c.y))
 		qwq = qwq[n:]
 	}

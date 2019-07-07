@@ -36,9 +36,9 @@ func TestUserRegister(t *testing.T) {
 	defer cancel()
 	r, err := c.UserRegister(
 		ctx,
-		&uiprpc.UserRegisterRequest{User: &uiprpc.Account{
-			ChainType: 1,
-			Address:   []byte{1},
+		&uiprpc.UserRegisterRequest{Account: &uiprpc.Account{
+			ChainId: 1,
+			Address: []byte{1},
 		},
 		})
 	if err != nil {

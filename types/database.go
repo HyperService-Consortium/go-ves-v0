@@ -99,7 +99,7 @@ type VESDB interface {
 	FindUser(user_name) (User, error)
 
 	// find accounts which guid is corresponding to user
-	FindAccounts(user_name, chain_type) ([]Account, error)
+	FindAccounts(user_name, chain_id) ([]Account, error)
 
 	// return true if user has this account
 	HasAccount(user_name, Account) (bool, error)

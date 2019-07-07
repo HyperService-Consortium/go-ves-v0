@@ -16,8 +16,7 @@ type TT struct {
 
 type TestHelper struct {
 	mtest.TestHelper
-	fact *XORMMultiIndexFatory
-	res  types.MultiIndex
+	res types.MultiIndex
 }
 
 var s TestHelper
@@ -53,8 +52,7 @@ const path = "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8"
 
 func SetUpHelper() {
 	var err error
-	s.fact = new(XORMMultiIndexFatory)
-	s.res, err = s.fact.GetDB("mysql", path)
+	s.res, err = GetXORMMultiIndex("mysql", path)
 	s.OutAssertNoErr(err)
 	// err = s.res.RegisterObject(new(TT))
 	s.OutAssertNoErr(err)
@@ -66,8 +64,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetDB(t *testing.T) {
-	var fact *XORMMultiIndexFatory = new(XORMMultiIndexFatory)
-	_, err := fact.GetDB("mysql", path)
+	_, err := GetXORMMultiIndex("mysql", path)
 	s.AssertNoErr(t, err)
 }
 

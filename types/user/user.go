@@ -15,8 +15,8 @@ type User struct {
 func ConvertAccounts(accounts []types.Account) (ret []map[string]interface{}) {
 	for _, account := range accounts {
 		ret = append(ret, map[string]interface{}{
-			"chain_type": account.GetChainType(),
-			"address":    account.GetAddress(),
+			"chain_id": account.GetChainId(),
+			"address":  account.GetAddress(),
 		})
 	}
 	return

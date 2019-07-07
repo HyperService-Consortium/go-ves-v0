@@ -39,7 +39,7 @@ message OpIntents {
 }
 
 message Transaction {
-    uint32 chain_type = 1;
+    uint64 chain_id = 1;
     bytes src = 2;
     bytes dst = 3;
     bytes domain = 4;
@@ -52,20 +52,19 @@ message Signature {
 }
 
 message Account {
-    uint32 chain_type = 1;
+    uint64 chain_id = 1;
     bytes address = 2;
 }
 
 message Attestation {
-    uint32 tid = 1;
+    uint64 tid = 1;
     bytes content = 2;
     repeated Signature signature = 3;
 }
 
 message UserRegisterRequest {
-    Account user = 1;
+    Account account = 1;
     string user_name = 2;
-    string chain_id = 3;
 }
 
 message UserRegisterReply {

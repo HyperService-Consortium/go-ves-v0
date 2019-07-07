@@ -1,12 +1,12 @@
 package types
 
-type chain_type = uint64
+type chain_id = uint64
 type address = []byte
 type user_name = string
 
 // an implementation of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc"
 type Account interface {
-	GetChainType() chain_type
+	GetChainId() chain_id
 	GetAddress() address
 }
 
@@ -42,7 +42,7 @@ type UserBase interface {
 	FindUser(MultiIndex, user_name) (User, error)
 
 	// find accounts which guid is corresponding to user
-	FindAccounts(MultiIndex, user_name, chain_type) ([]Account, error)
+	FindAccounts(MultiIndex, user_name, chain_id) ([]Account, error)
 
 	// return true if user has this account
 	HasAccount(MultiIndex, user_name, Account) (has, error)

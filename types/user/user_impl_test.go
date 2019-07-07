@@ -8,5 +8,5 @@ var testuser_impl2 types.User = User{}
 var testaccount_impl types.Account = XORMUserAdapter{}
 var testaccount_impl2 types.Account = &XORMUserAdapter{}
 
-var testbase_impl types.UserBase = &UserBase{}
-var testbase_impl2 types.UserBase = UserBase{}
+var testbase_impl types.UserBase = &XORMUserBase{}
+var testbase_impl2 types.UserBase = XORMUserBase{}

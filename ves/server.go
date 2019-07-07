@@ -4,55 +4,96 @@ import (
 	"fmt"
 	"net"
 
+	multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc"
+	types "github.com/Myriad-Dreamin/go-ves/types"
+	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
+	session "github.com/Myriad-Dreamin/go-ves/types/session"
+	user "github.com/Myriad-Dreamin/go-ves/types/user"
+	service "github.com/Myriad-Dreamin/go-ves/ves/service"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
+var (
+	migrate_function = XORMMigrate
+)
+
 type Server struct {
+	db types.VESDB
+}
+
+func XORMMigrate(muldb types.MultiIndex) (err error) {
+	var xorm_muldb = muldb.(*multi_index.XORMMultiIndexImpl)
+	err = xorm_muldb.Register(&user.XORMUserAdapter{})
+	if err != nil {
+		return
+	}
+	err = xorm_muldb.Register(&session.SerialSession{})
+	if err != nil {
+		return
+	}
+	return nil
+}
+
+func (server *Server) migrate(muldb types.MultiIndex, mfunc func(types.MultiIndex) error) error {
+	return mfunc(muldb)
 }
 
 func (server *Server) UserRegister(
 	ctx context.Context,
 	in *uiprpc.UserRegisterRequest,
 ) (*uiprpc.UserRegisterReply, error) {
-	return &uiprpc.UserRegisterReply{Ok: true}, nil
+	return service.UserRegisterService{
+		VESDB:               server.db,
+		Context:             ctx,
+		UserRegisterRequest: in,
+	}.Serve()
 }
 
-/*
-OpIntents->
-	Contents             [][]byte `protobuf:"bytes,1,rep,name=contents,proto3" json:"contents,omitempty"`
-	Dependencies         [][]byte `protobuf:"bytes,2,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
-*/
 func (server *Server) SessionStart(
 	ctx context.Context,
 	in *uiprpc.SessionStartRequest,
 ) (*uiprpc.SessionStartReply, error) {
-	// ctts, deps := in.Opintents.Contents, in.Opintents.Dependencies
-	//
-	return &uiprpc.SessionStartReply{Ok: true}, nil
+	return service.SessionStartService{
+		VESDB:               server.db,
+		Context:             ctx,
+		SessionStartRequest: in,
+	}.Serve()
 }
 
 func (server *Server) SessionAckForInit(
 	ctx context.Context,
 	in *uiprpc.SessionAckForInitRequest,
 ) (*uiprpc.SessionAckForInitReply, error) {
-	return &uiprpc.SessionAckForInitReply{Ok: true}, nil
+	return service.SessionAckForInitService{
+		VESDB:                    server.db,
+		Context:                  ctx,
+		SessionAckForInitRequest: in,
+	}.Serve()
 }
 
 func (server *Server) SessionRequireTransact(
 	ctx context.Context,
 	in *uiprpc.SessionRequireTransactRequest,
 ) (*uiprpc.SessionRequireTransactReply, error) {
-	return &uiprpc.SessionRequireTransactReply{Ok: true}, nil
+	return service.SessionRequireTransactService{
+		VESDB:                         server.db,
+		Context:                       ctx,
+		SessionRequireTransactRequest: in,
+	}.Serve()
 }
 
 func (server *Server) AttestationReceive(
 	ctx context.Context,
 	in *uiprpc.AttestationReceiveRequest,
 ) (*uiprpc.AttestationReceiveReply, error) {
-	return &uiprpc.AttestationReceiveReply{Ok: true}, nil
+	return service.AttestationReceiveService{
+		VESDB:                     server.db,
+		Context:                   ctx,
+		AttestationReceiveRequest: in,
+	}.Serve()
 }
 
 func ListenAndServe(port string) error {
@@ -61,9 +102,27 @@ func ListenAndServe(port string) error {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
 
+	var server = new(Server)
+	server.db = new(vesdb.Database)
+	//TODO: SetEnv
+	var muldb *multi_index.XORMMultiIndexImpl
+	muldb, err = multi_index.GetXORMMultiIndex("mysql", "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8")
+	if err != nil {
+		return fmt.Errorf("failed to get muldb: %v", err)
+	}
+	err = server.migrate(muldb, migrate_function)
+	if err != nil {
+		return fmt.Errorf("failed to migrate: %v", err)
+	}
+
+	server.db.SetMultiIndex(muldb)
+
+	server.db.SetUserBase(new(user.XORMUserBase))
+	server.db.SetSessionBase(new(session.SerialSessionBase))
+
 	s := grpc.NewServer()
 
-	uiprpc.RegisterVESServer(s, &Server{})
+	uiprpc.RegisterVESServer(s, server)
 	reflection.Register(s)
 
 	fmt.Printf("prepare to serve on %v\n", port)

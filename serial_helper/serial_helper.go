@@ -14,7 +14,7 @@ var (
 )
 
 func SerializeAccountsInterfaceBuffer(buf io.ReadWriter, account types.Account) error {
-	err := binary.Write(buf, binary.LittleEndian, account.GetChainType())
+	err := binary.Write(buf, binary.LittleEndian, account.GetChainId())
 	if err != nil {
 		return err
 	}

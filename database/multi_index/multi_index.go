@@ -98,10 +98,7 @@ func (this *XORMMultiIndexImpl) MultiModify(condition types.KVObject, newValue t
 	return nil
 }
 
-type XORMMultiIndexFatory struct {
-}
-
-func (this *XORMMultiIndexFatory) GetDB(tp string, pth string) (*XORMMultiIndexImpl, error) {
+func GetXORMMultiIndex(tp string, pth string) (*XORMMultiIndexImpl, error) {
 	ret := new(XORMMultiIndexImpl)
 	db, err := xorm.NewEngine(tp, pth)
 	if err != nil {
