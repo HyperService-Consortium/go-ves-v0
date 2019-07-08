@@ -3,20 +3,18 @@ package nsbcli
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"io"
 	"strings"
 
 	request "github.com/Myriad-Dreamin/go-ves/net/request"
+	"github.com/tidwall/gjson"
 )
 
 const (
-	httpPrefix  = "http://"
-	httpsPrefix = "https://"
+	httpPrefix   = "http://"
+	httpsPrefix  = "https://"
+	maxBytesSize = 64 * 1024
 )
-
-type NSBClient struct {
-	handler *request.RequestClient
-}
 
 func decorateHost(host string) string {
 	if strings.HasPrefix(host, httpPrefix) || strings.HasPrefix(host, httpsPrefix) {
@@ -25,76 +23,43 @@ func decorateHost(host string) string {
 	return "http://" + host
 }
 
-func NewNSBClient(host string) *NSBClient {
-	return &NSBClient{
-		handler: request.NewRequestClient(decorateHost(host)),
-	}
+type NSBClient struct {
+	handler    *request.RequestClient
+	bufferPool *BytesPool
 }
 
-type jsonMap = map[string]interface{}
+// todo: test invalid json
+func (nc *NSBClient) preloadJsonResponse(bb io.ReadCloser) ([]byte, error) {
 
-type preLoadJsonStruct struct {
-	JSONVersion string                 `json:"jsonrpc"`
-	ID          string                 `json:"id"`
-	Error       map[string]interface{} `json:"error"`
-	Result      interface{}            `json:"result"`
-}
+	var b = nc.bufferPool.Get().([]byte)
+	defer nc.bufferPool.Put(b)
 
-type JsonError struct {
-	errorx string
-}
-
-func (je JsonError) Error() string {
-	return je.errorx
-}
-
-func fromJsonMapError(jm jsonMap) *JsonError {
-	return &JsonError{
-		errorx: fmt.Sprintf("jsonrpc error: %v(%v), %v", jm["message"], jm["code"], jm["data"]),
-	}
-}
-
-func fromBytesError(b []byte) *JsonError {
-	var jm jsonMap
-	err := json.Unmarshal(b, &jm)
-	if err != nil {
-		return &JsonError{
-			errorx: fmt.Sprintf("bad format of json error: %v", err),
-		}
-	}
-	return fromJsonMapError(jm)
-}
-
-func preloadJson(b []byte) ([]byte, error) {
-	var jm preLoadJsonStruct
-	if err := json.Unmarshal(b, &jm); err == nil {
-		if jm.JSONVersion != "2.0" {
-			return nil, errors.New("reject ret that is not jsonrpc: 2.0")
-		}
-		if jm.Error != nil {
-			return nil, fromJsonMapError(jm.Error)
-		}
-		if jm.Result != nil {
-			return json.Marshal(jm.Result)
-		}
-	} else {
+	_, err := bb.Read(b)
+	if err != nil && err != io.EOF {
 		return nil, err
+	}
+	bb.Close()
+
+	var jm = gjson.ParseBytes(b)
+	if s := jm.Get("jsonrpc"); !s.Exists() || s.String() != "2.0" {
+		return nil, errors.New("reject ret that is not jsonrpc: 2.0")
+	}
+	if s := jm.Get("error"); s.Exists() {
+		return nil, fromGJsonResultError(s)
+	}
+	if s := jm.Get("result"); s.Exists() {
+		if s.Index > 0 {
+			return b[s.Index : s.Index+len(s.Raw)], nil
+		}
 	}
 	return nil, errors.New("bad format of jsonrpc")
 }
 
-func PretiJson(minterface interface{}) string {
-	je, _ := json.MarshalIndent(minterface, "", "\t")
-	return string(je)
-}
-
-type AbciInfoResponse struct {
-	Data       string `json:"data"`
-	Version    string `json:"version"`
-	AppVersion string `json:"app_version"`
-}
-type AbciInfo struct {
-	Response *AbciInfoResponse `json:"response"`
+func NewNSBClient(host string) *NSBClient {
+	return &NSBClient{
+		handler:    request.NewRequestClient(decorateHost(host)),
+		bufferPool: NewBytesPool(),
+	}
 }
 
 func (nc *NSBClient) GetAbciInfo() (*AbciInfoResponse, error) {
@@ -102,30 +67,116 @@ func (nc *NSBClient) GetAbciInfo() (*AbciInfoResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	b, err = preloadJson(b)
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
 	var a AbciInfo
-	err = json.Unmarshal(b, &a)
+	err = json.Unmarshal(bb, &a)
 	if err != nil {
 		return nil, err
 	}
 	return a.Response, nil
 }
 
-func (nc *NSBClient) GetBlock(id int64) (*AbciInfo, error) {
+func (nc *NSBClient) GetBlock(id int64) (*BlockInfo, error) {
 	b, err := nc.handler.Group("/block").GetWithParams(request.Param{
 		"height": id,
 	})
 	if err != nil {
 		return nil, err
 	}
-	var i interface{}
-	i, err = preloadJson(b)
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(i, err)
-	return nil, nil
+	var a BlockInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (nc *NSBClient) GetBlocks(rangeL, rangeR int64) (*BlocksInfo, error) {
+	b, err := nc.handler.Group("/blockchain").GetWithParams(request.Param{
+		"minHeight": rangeL,
+		"maxHeight": rangeR,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a BlocksInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (nc *NSBClient) GetBlockResults(id int64) (*BlockResultsInfo, error) {
+	b, err := nc.handler.Group("/block_results").GetWithParams(request.Param{
+		"height": id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a BlockResultsInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (nc *NSBClient) GetCommitInfo(id int64) (*CommitInfo, error) {
+	b, err := nc.handler.Group("/commit").GetWithParams(request.Param{
+		"height": id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a CommitInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (nc *NSBClient) GetConsensusParamsInfo(id int64) (*ConsensusParamsInfo, error) {
+	b, err := nc.handler.Group("/consensus_params").GetWithParams(request.Param{
+		"height": id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a ConsensusParamsInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
 }
