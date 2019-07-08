@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"time"
@@ -21,7 +22,7 @@ type Param = req.Param
 type Resp = req.Resp
 type Header = req.Header
 
-func get(s string, v ...interface{}) ([]byte, error) {
+func get(s string, v ...interface{}) (io.ReadCloser, error) {
 	resp, err := req.Get(s, v...)
 	if err != nil {
 		return nil, err
@@ -30,7 +31,7 @@ func get(s string, v ...interface{}) ([]byte, error) {
 	if sc != 200 {
 		return nil, fmt.Errorf("error code: %v", sc)
 	}
-	return resp.ToBytes()
+	return resp.Response().Body, nil
 }
 
 func getx(s string, v ...interface{}) (*Resp, error) {
@@ -82,19 +83,19 @@ func (jc *RequestClient) Group(sub string) *RequestClient {
 	return &RequestClient{BaseURL: jc.BaseURL + sub, Header: jc.Header}
 }
 
-func (jc *RequestClient) Get() ([]byte, error) {
+func (jc *RequestClient) Get() (io.ReadCloser, error) {
 	return get(jc.BaseURL, jc.Header)
 }
 
-func (jc *RequestClient) GetWithKVMap(request map[string]interface{}) ([]byte, error) {
+func (jc *RequestClient) GetWithKVMap(request map[string]interface{}) (io.ReadCloser, error) {
 	return get(jc.BaseURL, jc.Header, request)
 }
 
-func (jc *RequestClient) GetWithParams(params ...interface{}) ([]byte, error) {
+func (jc *RequestClient) GetWithParams(params ...interface{}) (io.ReadCloser, error) {
 	return get(jc.BaseURL, append(params, jc.Header)...)
 }
 
-func (jc *RequestClient) GetWithStruct(request interface{}) ([]byte, error) {
+func (jc *RequestClient) GetWithStruct(request interface{}) (io.ReadCloser, error) {
 	v, err := query.Values(request)
 	if err != nil {
 		return nil, err
@@ -141,7 +142,7 @@ func (jc *RequestClientX) Path(path string) *RequestClientX {
 	return jc
 }
 
-func (jc *RequestClientX) Get(params ...interface{}) ([]byte, error) {
+func (jc *RequestClientX) Get(params ...interface{}) (io.ReadCloser, error) {
 	fin, r := false, jc.BaseURL
 	for idx, param := range params {
 		if reflect.TypeOf(param).Kind() == reflect.Struct {

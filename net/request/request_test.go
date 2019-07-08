@@ -1,6 +1,7 @@
 package request
 
 import (
+	"io"
 	"testing"
 
 	mtest "github.com/Myriad-Dreamin/mydrest"
@@ -42,22 +43,38 @@ func (s *service) myController(r *Resp) (err error) {
 func TestGetParamAndGroup(t *testing.T) {
 	var params = &mParam4{}
 	NSBApi := NewRequestClient("http://47.251.2.73:26657")
-	b, err := NSBApi.Group("/abci_info").GetWithStruct(params)
+	var b, b2 = make([]byte, 1024*1024), make([]byte, 1024*1024)
+	bb, err := NSBApi.Group("/net_info").GetWithStruct(params)
 	s.AssertNoErr(t, err)
+	_, err = bb.Read(b)
+	s.AssertEqual(t, err, io.EOF)
+	bb.Close()
 
-	abciInfoApi := NSBApi.Group("/abci_info")
+	abciInfoApi := NSBApi.Group("/net_info")
 
-	b2, err := abciInfoApi.GetWithStruct(params)
+	bb2, err := abciInfoApi.GetWithStruct(params)
 	s.AssertNoErr(t, err)
+	_, err = bb2.Read(b2)
+	s.AssertEqual(t, err, io.EOF)
+	bb2.Close()
+
 	s.AssertEqual(t, string(b), string(b2))
 
 	NSBApiX := NewRequestClientX("http://47.251.2.73:26657")
-	b2, err = NSBApiX.Group("/abci_info").Get(params)
+	bb2, err = NSBApiX.Group("/net_info").Get(params)
 	s.AssertNoErr(t, err)
+	_, err = bb2.Read(b2)
+	s.AssertEqual(t, err, io.EOF)
+	bb2.Close()
+
 	s.AssertEqual(t, string(b), string(b2))
 
-	b2, err = NSBApiX.Group("/abci_info").Get(&QueryParam{})
+	bb2, err = NSBApiX.Group("/net_info").Get(&QueryParam{})
 	s.AssertNoErr(t, err)
+	_, err = bb2.Read(b2)
+	s.AssertEqual(t, err, io.EOF)
+	bb2.Close()
+
 	s.AssertEqual(t, string(b), string(b2))
 	// req.Debug = true
 	yandeApi := NewRequestClientX("https://yande.re")
