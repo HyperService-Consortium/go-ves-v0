@@ -58,6 +58,7 @@ message Account {
 
 message Attestation {
     uint64 tid = 1;
+    uint64 aid = 1;
     bytes content = 2;
     repeated Signature signature = 3;
 }

@@ -1,4 +1,6 @@
 
+import json
+
 from uiputils.errors import InitializeError
 from uiputils.transaction_intents import TransactionIntents
 
@@ -42,6 +44,20 @@ class OpIntent:
             raise InitializeError("unexpected op_type: " + self.op_type)
 
         getattr(self, self.op_type + 'Init')(intent_json)
+
+    @staticmethod
+    def go_build_graph(intents, dependencies):
+        intents = (json.loads(intent) for intent in intents)
+        dependencies = (json.loads(dependency) for dependency in dependencies)
+        # build eligible Op intents
+        op_intents, op_owners = OpIntent.createopintents(intents)
+
+        # Generate Transaction intents and Dependency Graph
+        tx_intents = TransactionIntents(op_intents, dependencies)
+        if not tx_intents.sort():
+            raise RuntimeError("transaction intents can not be sorted")
+        return [tx_intent.purejson() for tx_intent in tx_intents.intents], op_owners
+
 
     @staticmethod
     def createopintents(op_intents_json):

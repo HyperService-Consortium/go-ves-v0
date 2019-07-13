@@ -1,25 +1,71 @@
 package opintent
 
-import "github.com/Myriad-Dreamin/go-py"
+import (
+	"encoding/json"
+	"errors"
 
-var mModule GoPy.PyModule
-var OpIntent GoPy.PyClass
+	types "github.com/Myriad-Dreamin/go-ves/types"
+)
 
-
-func Jsonize(mObj GoPy.RefPyObject) string {
-    return GoPy.GoString(GoPy.InvokeMemberFunction(mObj, "jsonize"))
+type OpIntentInitializer struct {
 }
 
-func BuildGraph(pDict GoPy.PyDict) GoPy.PyTuple {
-    return GoPy.InvokeMemberFunction(OpIntent, "build_graph", pDict)
+func NewOpIntentInitializer() *OpIntentInitializer {
+	return new(OpIntentInitializer)
 }
 
-func init() {
-	mModule = GoPy.RequireModule("uiputils.op_intents")
-	OpIntent = GoPy.GetAttr(mModule, "OpIntent")
-	
-	GoPy.RegisterAtExitFunc(func(){
-		GoPy.DecRef(&mModule)
-		GoPy.DecRef(&OpIntent)
-	})
+var (
+	invalidOpType = errors.New("there is at least an unexpected op_type in OpIntents")
+)
+
+type BaseOpIntent struct {
+	Name      string
+	OpType    string
+	SubIntent json.RawMessage
+}
+
+func (ier *OpIntentInitializer) InitOpIntent(opIntents types.OpIntents) (transactionIntents []*TransactionIntent, err error) {
+	contents, rawDependencies := opIntents.GetContents(), opIntents.GetDependencies()
+	var intent BaseOpIntent
+	var rtx [][]*TransactionIntent
+	var tx []*TransactionIntent
+	for _, content := range contents {
+		err = json.Unmarshal(content, &intent)
+		if err != nil {
+			return nil, err
+		}
+		switch intent.OpType {
+		case "Payment":
+			if tx, err = ier.InitPaymentOpIntent(intent.Name, intent.SubIntent); err != nil {
+				return nil, err
+			} else {
+				rtx = append(rtx, tx)
+			}
+
+		case "ContractInvocation":
+			return nil, errors.New("todo")
+			// if tx, err = ier.InitContractInvocationOpIntent(intent.Name, intent.SubIntent); err != nil {
+			// 	return nil, err
+			// } else {
+			// 	rtx = append(rtx, tx)
+			// }
+
+		default:
+			return nil, invalidOpType
+		}
+	}
+	if err = ier.TopologicalSort(rtx, rawDependencies); err != nil {
+		return nil, err
+	}
+	for _, rt := range rtx {
+		transactionIntents = append(transactionIntents, rt...)
+	}
+	return
+}
+
+func (ier *OpIntentInitializer) InitContractInvocationOpIntent(
+	name string,
+	subIntent json.RawMessage,
+) (tx []*TransactionIntent, err error) {
+	return
 }

@@ -3,7 +3,9 @@ package session
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"math/rand"
 
@@ -13,18 +15,20 @@ import (
 	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping"
 	const_prefix "github.com/Myriad-Dreamin/go-ves/database/const_prefix"
 	serial_helper "github.com/Myriad-Dreamin/go-ves/serial_helper"
+
+	opintents "github.com/Myriad-Dreamin/go-ves/go-uiputils/op-intent"
 )
 
 type SerialSession struct {
-	ID               int64           `xorm:"pk unique notnull autoincr 'id'"`
-	ISCAddress       []byte          `xorm:"notnull 'isc_address'"`
-	Accounts         []types.Account `xorm:"-"`
-	Transactions     [][]byte        `xorm:"-"`
-	TransactionCount uint32          `xorm:"'transaction_count'"`
-	UnderTransacting uint32          `xorm:"'under_transacting'"`
-	Status           uint8           `xorm:"'status'"`
-	Content          []byte          `xorm:"'content'"`
-	Acks             []byte          `xorm:"'acks'"`
+	ID               int64           `json:"-" xorm:"pk unique notnull autoincr 'id'"`
+	ISCAddress       []byte          `json:"-" xorm:"notnull 'isc_address'"`
+	Accounts         []types.Account `json:"-" xorm:"-"`
+	Transactions     [][]byte        `json:"transactions" xorm:"-"`
+	TransactionCount uint32          `json:"-" xorm:"'transaction_count'"`
+	UnderTransacting uint32          `json:"-" xorm:"'under_transacting'"`
+	Status           uint8           `json:"-" xorm:"'status'"`
+	Content          []byte          `json:"-" xorm:"'content'"`
+	Acks             []byte          `json:"-" xorm:"'acks'"`
 }
 
 func randomSession() *SerialSession {
@@ -105,8 +109,30 @@ func (ses SerialSession) GetContent() []byte {
 	return ses.Content
 }
 
-func (ses SerialSession) InitFromOpIntents(types.OpIntents) (bool, string, error) {
-	return false, "TODO", nil
+func (ses SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, string, error) {
+	intents, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
+	if err != nil {
+		return false, err.Error(), nil
+	}
+	fmt.Println(intents, err)
+	ses.Transactions = make([][]byte, 0, len(intents))
+	for _, intent := range intents {
+		ses.Transactions = append(ses.Transactions, intent.Bytes())
+	}
+	ses.TransactionCount = uint32(len(intents))
+	ses.UnderTransacting = 0
+	ses.Status = 0
+	ses.Content, err = json.Marshal(ses)
+	if err != nil {
+		return false, "", err
+	}
+	// TransactionCount uint32          `xorm:"'transaction_count'"`
+	// UnderTransacting uint32          `xorm:"'under_transacting'"`
+	// Status           uint8           `xorm:"'status'"`
+	// Content          []byte          `xorm:"'content'"`
+	// Acks             []byte          `xorm:"'acks'"`
+
+	return true, "", nil
 }
 
 func Verify(signature types.Signature, contentProviding, publicKey []byte) bool {

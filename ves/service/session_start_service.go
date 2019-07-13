@@ -12,7 +12,7 @@ import (
 	session "github.com/Myriad-Dreamin/go-ves/types/session"
 )
 
-func RequestNSBForNewSession(anyb []byte) ([]byte, error) {
+func RequestNSBForNewSession(anyb types.Session) ([]byte, error) {
 	var buf = make([]byte, 20)
 	binary.PutVarint(buf, rand.Int63())
 	return buf, nil
@@ -36,7 +36,7 @@ func (s SerialSessionStartService) SessionStart() error {
 	if !success {
 		return errors.New(help_info)
 	}
-	ses.ISCAddress, err = RequestNSBForNewSession(ses.Content)
+	ses.ISCAddress, err = RequestNSBForNewSession(ses)
 	if err != nil {
 		return err
 	}

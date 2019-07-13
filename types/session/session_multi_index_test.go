@@ -10,7 +10,6 @@ import (
 
 type TestHelper struct {
 	mtest.TestHelper
-	fact  *xorm_multi_index.XORMMultiIndexFatory
 	res   *xorm_multi_index.XORMMultiIndexImpl
 	logic *SerialSessionBase
 }
@@ -21,8 +20,7 @@ const path = "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8"
 
 func SetUpHelper() {
 	var err error
-	s.fact = new(xorm_multi_index.XORMMultiIndexFatory)
-	s.res, err = s.fact.GetDB("mysql", path)
+	s.res, err = xorm_multi_index.GetXORMMultiIndex("mysql", path)
 	s.OutAssertNoErr(err)
 	err = s.res.Register(&SerialSession{})
 	fmt.Println(err)
@@ -36,8 +34,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetDB(t *testing.T) {
-	var fact *xorm_multi_index.XORMMultiIndexFatory = new(xorm_multi_index.XORMMultiIndexFatory)
-	_, err := fact.GetDB("mysql", path)
+	_, err := xorm_multi_index.GetXORMMultiIndex("mysql", path)
 	s.AssertNoErr(t, err)
 }
 
@@ -76,3 +73,9 @@ func TestLogic(t *testing.T) {
 	fmt.Println(s.logic.FindSessionInfo(s.res, tt1.GetGUID()))
 	fmt.Println(s.logic.FindSessionInfo(s.res, tt2.GetGUID()))
 }
+
+// func TestMoreLogic(t *testing.T) {
+// 	tt1 := randomSession()
+// 	tt2 := randomSession()
+//
+// }
