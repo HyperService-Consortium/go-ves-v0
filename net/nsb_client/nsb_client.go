@@ -1,24 +1,13 @@
 package nsbcli
 
 import (
-	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"strings"
-	"time"
 
 	request "github.com/Myriad-Dreamin/go-ves/net/request"
 	"github.com/tidwall/gjson"
-
-	appl "github.com/HyperServiceOne/NSB/application"
-	cmn "github.com/HyperServiceOne/NSB/common"
-	ISC "github.com/HyperServiceOne/NSB/contract/isc"
-	tx "github.com/HyperServiceOne/NSB/contract/isc/transaction"
-	nmath "github.com/HyperServiceOne/NSB/math"
-	math "github.com/Myriad-Dreamin/go-ves/math"
 )
 
 const (
@@ -40,29 +29,27 @@ type NSBClient struct {
 }
 
 // todo: test invalid json
-func (nc *NSBClient) preloadJsonRPCResponse(responseBuffer io.ReadCloser) ([]byte, error) {
+func (nc *NSBClient) preloadJsonResponse(bb io.ReadCloser) ([]byte, error) {
 
 	var b = nc.bufferPool.Get().([]byte)
 	defer nc.bufferPool.Put(b)
 
-	_, err := responseBuffer.Read(b)
+	_, err := bb.Read(b)
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
-	responseBuffer.Close()
+	bb.Close()
 
-	var jrpcMessage = gjson.ParseBytes(b)
-	if jrpcVer := jrpcMessage.Get("jsonrpc"); !jrpcVer.Exists() || jrpcVer.String() != "2.0" {
+	var jm = gjson.ParseBytes(b)
+	if s := jm.Get("jsonrpc"); !s.Exists() || s.String() != "2.0" {
 		return nil, errors.New("reject ret that is not jsonrpc: 2.0")
 	}
-	if errorResp := jrpcMessage.Get("error"); errorResp.Exists() {
-		return nil, fromGJsonResultError(errorResp)
+	if s := jm.Get("error"); s.Exists() {
+		return nil, fromGJsonResultError(s)
 	}
-	if resultResp := jrpcMessage.Get("result"); resultResp.Exists() {
-		if resultResp.Index > 0 {
-			return b[resultResp.Index : resultResp.Index+len(resultResp.Raw)], nil
-		} else {
-			return nil, nil
+	if s := jm.Get("result"); s.Exists() {
+		if s.Index > 0 {
+			return b[s.Index : s.Index+len(s.Raw)], nil
 		}
 	}
 	return nil, errors.New("bad format of jsonrpc")
@@ -81,7 +68,7 @@ func (nc *NSBClient) GetAbciInfo() (*AbciInfoResponse, error) {
 		return nil, err
 	}
 	var bb []byte
-	bb, err = nc.preloadJsonRPCResponse(b)
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +88,7 @@ func (nc *NSBClient) GetBlock(id int64) (*BlockInfo, error) {
 		return nil, err
 	}
 	var bb []byte
-	bb, err = nc.preloadJsonRPCResponse(b)
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +109,7 @@ func (nc *NSBClient) GetBlocks(rangeL, rangeR int64) (*BlocksInfo, error) {
 		return nil, err
 	}
 	var bb []byte
-	bb, err = nc.preloadJsonRPCResponse(b)
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +129,7 @@ func (nc *NSBClient) GetBlockResults(id int64) (*BlockResultsInfo, error) {
 		return nil, err
 	}
 	var bb []byte
-	bb, err = nc.preloadJsonRPCResponse(b)
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +149,7 @@ func (nc *NSBClient) GetCommitInfo(id int64) (*CommitInfo, error) {
 		return nil, err
 	}
 	var bb []byte
-	bb, err = nc.preloadJsonRPCResponse(b)
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +169,7 @@ func (nc *NSBClient) GetConsensusParamsInfo(id int64) (*ConsensusParamsInfo, err
 		return nil, err
 	}
 	var bb []byte
-	bb, err = nc.preloadJsonRPCResponse(b)
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
 		return nil, err
 	}
@@ -194,68 +181,149 @@ func (nc *NSBClient) GetConsensusParamsInfo(id int64) (*ConsensusParamsInfo, err
 	return &a, nil
 }
 
-type type_sig = uint64
-type Ed25519SignableAccount interface {
-	PublicKey() []byte
-	Sign([]byte) []byte
+func (nc *NSBClient) GetConsensusState() (*ConsensusStateInfo, error) {
+	b, err := nc.handler.Group("/consensus_state").Get()
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a ConsensusStateInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
 }
 
-func (nc *NSBClient) CreateISC(
-	user Ed25519SignableAccount,
-	funds []uint32, iscOwners [][]byte,
-	transactionIntents []*tx.TransactionIntent,
-	vesSig []byte,
-) error {
-	var txHeader cmn.TransactionHeader
-	var fap appl.FAPair
-	var b = make([]byte, 65535)
-	var buf = bytes.NewBuffer(b)
-	err := nc.createISC(buf, funds, iscOwners, transactionIntents, vesSig)
+func (nc *NSBClient) GetGenesis() (*GenesisInfo, error) {
+	b, err := nc.handler.Group("/genesis").Get()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fap.Args = buf.Bytes()
-	txHeader.From = user.PublicKey()
-	txHeader.Data, err = json.Marshal(fap)
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var mrand = math.New()
-	mrand.Seed(time.Now().UnixNano())
-	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
+	var a GenesisInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
 
-	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
-		uint8(n1 >> 24), uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
-		uint8(n2 >> 24), uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
-		uint8(n3 >> 24), uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
-		uint8(n4 >> 24), uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+//NOT DONE
+func (nc *NSBClient) GetHealth() (interface{}, error) {
+	b, err := nc.handler.Group("/health").Get()
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a interface{}
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (nc *NSBClient) GetNetInfo() (*NetInfo, error) {
+	b, err := nc.handler.Group("/net_info").Get()
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a NetInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (nc *NSBClient) GetNumUnconfirmedTxs() (*NumUnconfirmedTxsInfo, error) {
+	b, err := nc.handler.Group("/net_info").Get()
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a NumUnconfirmedTxsInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (nc *NSBClient) GetStatus() (*StatusInfo, error) {
+	b, err := nc.handler.Group("/status").Get()
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a StatusInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+func (nc *NSBClient) GetUnconfirmedTxs(limit int64) (*NumUnconfirmedTxsInfo, error) {
+	b, err := nc.handler.Group("/unconfirmed_txs").GetWithParams(request.Param{
+		"limit": limit,
 	})
-	buf.Reset()
-	err = binary.Write(buf, binary.LittleEndian, &txHeader)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	txHeader.Signature = user.Sign(buf.Bytes())
-	return nil
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a NumUnconfirmedTxsInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
 }
-
-func (nc *NSBClient) createISC(
-	w io.Writer,
-	funds []uint32, iscOwners [][]byte,
-	transactionIntents []*tx.TransactionIntent,
-	vesSig []byte,
-) error {
-	var args ISC.ArgsCreateNewContract
-	args.IscOwners = iscOwners
-	args.Funds = funds
-	args.TransactionIntents = transactionIntents
-	args.VesSig = vesSig
-	b, err := json.Marshal(args)
+func (nc *NSBClient) GetValidators(id int64) (*ValidatorsInfo, error) {
+	b, err := nc.handler.Group("/validators").GetWithParams(request.Param{
+		"height": id,
+	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	fmt.Println(args, b)
-	_, err = w.Write(b)
-	return err
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a ValidatorsInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
 }

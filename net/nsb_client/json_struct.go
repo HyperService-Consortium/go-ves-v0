@@ -174,3 +174,113 @@ type BlockConsensus struct {
 type Validator struct {
 	PubKeyTypes []string `json:"pub_key_types"`
 }
+
+/************************* consensus_state_info ******************************/
+type ConsensusStateInfo struct {
+	RdState *RoundState `json:"round_state"`
+}
+type RoundState struct {
+	HeightRoundStep   string        `json:"height/round/step"`
+	StartTime         string        `json:"start_time"`
+	ProposalBlockHash string        `json:"proposal_block_hash"`
+	LockedBlockHash   string        `json:"locked_block_hash"`
+	ValidBlockHash    string        `json:"valid_block_hash"`
+	HeightVoteSet     []*HeightVote `json:"height_vote_set"`
+}
+type HeightVote struct {
+	Round              string   `json:"round"`
+	Prevotes           []string `json:"prevotes"`
+	PrevotesBitArray   string   `json:"prevotes_bit_array"`
+	Precommits         []string `json:"precommits"`
+	PrecommitsBitArray string   `json:"precommits_bit_array"`
+}
+
+/************************* genesis_info ******************************/
+type GenesisInfo struct {
+	Genesis *Genesis `json:"genesis"`
+}
+type Genesis struct {
+	GenesisTime     string          `json:"genesis_time"`
+	ChainId         string          `json:"chain_id"`
+	ConsensusParams ConsensusParams `json:"consensus_params"`
+	Validators      []*Validator    `json:"validators"`
+	AppHash         string          `json:"app_hash"`
+}
+
+/************************* net_info ******************************/
+
+type NetInfo struct {
+	Listening bool     `json:"listening"`
+	Listeners []string `json:"listeners"` ///NOT CONFIRMED
+	NPeers    string   `json:"n_peers"`
+	Peers     []string `json:"peers"` //NOT CONFIRMED
+}
+
+/************************* num_unconfirmed_txs_info ******************************/
+
+type NumUnconfirmedTxsInfo struct {
+	NTxs       string   `json:"n_txs"`
+	Total      string   `json:"total"`
+	TotalBytes string   `json:"total_bytes"`
+	Txs        []string `json:"txs"` //NOT CONFIRMED
+}
+
+/************************* status_info ******************************/
+
+type StatusInfo struct {
+	NodeInfo      *NodeInfo      `json:"node_info"`
+	SyncInfo      *SyncInfo      `json:"sync_info"`
+	ValidatorInfo *ValidatorInfo `json:"validator_info"`
+}
+
+type NodeInfo struct {
+	ProcotolVersion *ProcotolVersion `json:"protocol_version"`
+	Id              string           `json:"id"`
+	ListenAddr      string           `json:"listen_addr"`
+	NetWork         string           `json:"network"`
+	Version         string           `json:"version"`
+	Channels        string           `json:"channels"`
+	Moniker         string           `json:"moniker"`
+	Other           *Other           `json:"other"`
+}
+
+type ProcotolVersion struct {
+	P2P   string `json:"p2p"`
+	Block string `json:"block"`
+	App   string `json:"app"`
+}
+type Other struct {
+	TxIndex    string `json:"tx_index"`
+	RpcAddress string `json:"rpc_address"`
+}
+
+type SyncInfo struct {
+	LatestBlockHash   string `json:"latest_block_hash"`
+	LatestAppHash     string `json:"latest_app_hash"`
+	LatestBlockHeight string `json:"latest_block_height"`
+	LatestBlockTime   string `json:"latest_block_time"`
+	CatchingUp        bool   `json:"catching_up"`
+}
+
+type ValidatorInfo struct {
+	Address     string  `json:"address"`
+	PubKey      *PubKey `json:"pub_key"`
+	VotingPower string  `json:"voting_power"`
+}
+
+type PubKey struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+/************************* validators_info ******************************/
+type ValidatorsInfo struct {
+	BlockHeight string               `json:"block_height"`
+	Validators  []*FullValidatorInfo `json:"validators"`
+}
+type FullValidatorInfo struct {
+	Address          string  `json:"address"`
+	PubKey           *PubKey `json:"pub_key"`
+	VotingPower      string  `json:"voting_power"`
+	ProposerPriority string  `json:"proposer_priority"`
+}

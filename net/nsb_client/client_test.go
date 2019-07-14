@@ -52,3 +52,45 @@ func TestGetConsensusParamsInfo(t *testing.T) {
 	s.AssertNoErr(t, err)
 	fmt.Println(PretiJson(b))
 }
+
+func TestGetConsensusState(t *testing.T) {
+	b, err := NewNSBClient(host).GetConsensusState()
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
+
+func TestGetGenesis(t *testing.T) {
+	b, err := NewNSBClient(host).GetGenesis()
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
+func TestGetHealth(t *testing.T) {
+	b, err := NewNSBClient(host).GetHealth()
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
+func TestGetNetInfo(t *testing.T) {
+	b, err := NewNSBClient(host).GetNetInfo()
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
+func TestGetNumUnconfirmedTxs(t *testing.T) {
+	b, err := NewNSBClient(host).GetNumUnconfirmedTxs()
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
+func TestGetStatus(t *testing.T) {
+	b, err := NewNSBClient(host).GetStatus()
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
+func TestGetUnconfirmedTxs(t *testing.T) {
+	b, err := NewNSBClient(host).GetUnconfirmedTxs(1)
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
+func TestGetValidators(t *testing.T) {
+	b, err := NewNSBClient(host).GetUnconfirmedTxs(8200)
+	s.AssertNoErr(t, err)
+	fmt.Println(PretiJson(b))
+}
