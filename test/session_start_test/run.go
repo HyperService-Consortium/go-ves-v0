@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -15,7 +16,23 @@ const (
 	m_address = "127.0.0.1:23351"
 )
 
+type obj map[string]interface{}
+
 func main() {
+	var opintent = obj{
+		"name":    "Op1",
+		"op_type": "Payment",
+		"src": obj{
+			"domain":    2,
+			"user_name": "a1",
+		},
+		"dst": obj{
+			"domain":    1,
+			"user_name": "a2",
+		},
+		"amount": "0x2e0",
+		"unit":   "wei",
+	}
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(m_address, grpc.WithInsecure())
@@ -27,12 +44,21 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	r, err := c.UserRegister(
+	var b []byte
+	b, err = json.Marshal(opintent)
+	if err != nil {
+		log.Fatalf("Marshal failed: %v", err)
+	}
+	fmt.Println(string(b))
+	r, err := c.SessionStart(
 		ctx,
-		&uiprpc.UserRegisterRequest{Account: &uiprpc.Account{
-			ChainId: 1,
-			Address: []byte{1},
-		},
+		&uiprpc.SessionStartRequest{
+			Opintents: &uiprpc.OpIntents{
+				Dependencies: nil,
+				Contents: [][]byte{
+					b,
+				},
+			},
 		})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)

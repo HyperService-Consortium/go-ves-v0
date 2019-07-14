@@ -4,7 +4,7 @@ type Processor struct {
 }
 
 func (p *Processor) CheckAddress(addr []byte) bool {
-	return true
+	return len(addr) == 32
 }
 
 var p = new(Processor)

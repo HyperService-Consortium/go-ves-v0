@@ -3,6 +3,7 @@ package session
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -118,6 +119,7 @@ func (ses SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, str
 	ses.Transactions = make([][]byte, 0, len(intents))
 	for _, intent := range intents {
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
+		fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
 	}
 	ses.TransactionCount = uint32(len(intents))
 	ses.UnderTransacting = 0

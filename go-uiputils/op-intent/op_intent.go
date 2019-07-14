@@ -19,9 +19,8 @@ var (
 )
 
 type BaseOpIntent struct {
-	Name      string
-	OpType    string
-	SubIntent json.RawMessage
+	Name   string `json:"name"`
+	OpType string `json:"op_type"`
 }
 
 func (ier *OpIntentInitializer) InitOpIntent(opIntents types.OpIntents) (transactionIntents []*TransactionIntent, err error) {
@@ -36,7 +35,7 @@ func (ier *OpIntentInitializer) InitOpIntent(opIntents types.OpIntents) (transac
 		}
 		switch intent.OpType {
 		case "Payment":
-			if tx, err = ier.InitPaymentOpIntent(intent.Name, intent.SubIntent); err != nil {
+			if tx, err = ier.InitPaymentOpIntent(intent.Name, content); err != nil {
 				return nil, err
 			} else {
 				rtx = append(rtx, tx)
