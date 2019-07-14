@@ -13,6 +13,7 @@ import (
 	request "github.com/Myriad-Dreamin/go-ves/net/request"
 	"github.com/tidwall/gjson"
 
+	appl "github.com/HyperServiceOne/NSB/application"
 	cmn "github.com/HyperServiceOne/NSB/common"
 	ISC "github.com/HyperServiceOne/NSB/contract/isc"
 	tx "github.com/HyperServiceOne/NSB/contract/isc/transaction"
@@ -405,10 +406,14 @@ func (nc *NSBClient) CreateISC(
 	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
 
 	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
-		uint8(n1 >> 24), uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
-		uint8(n2 >> 24), uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
-		uint8(n3 >> 24), uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
-		uint8(n4 >> 24), uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+		uint8(n1 >> 56), uint8(n1>>48) & 0xff, uint8(n1>>40) & 0xff, uint8(n1>>32) & 0xff,
+		uint8(n1>>24) & 0xff, uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
+		uint8(n2 >> 56), uint8(n2>>48) & 0xff, uint8(n2>>40) & 0xff, uint8(n2>>32) & 0xff,
+		uint8(n2>>24) & 0xff, uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
+		uint8(n3 >> 56), uint8(n3>>48) & 0xff, uint8(n3>>40) & 0xff, uint8(n3>>32) & 0xff,
+		uint8(n3>>24) & 0xff, uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
+		uint8(n4 >> 56), uint8(n4>>48) & 0xff, uint8(n4>>40) & 0xff, uint8(n4>>32) & 0xff,
+		uint8(n4>>24) & 0xff, uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
 	})
 	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
@@ -447,4 +452,332 @@ func (nc *NSBClient) createISC(
 	fmt.Println(PretiJson(args), b)
 	_, err = w.Write(b)
 	return err
+}
+
+func (nc *NSBClient) UpdateTxInfo(
+	user Ed25519SignableAccount, contractAddress []byte,
+	tid uint64, transactionIntent *tx.TransactionIntent,
+) ([]byte, error) {
+	var txHeader cmn.TransactionHeader
+	var buf = bytes.NewBuffer(make([]byte, 65535))
+	buf.Reset()
+	fmt.Println(string(buf.Bytes()))
+	err := nc.updateTxInfo(buf, tid, transactionIntent)
+	if err != nil {
+		return nil, err
+	}
+
+	var fap appl.FAPair
+	fap.FuncName = "UpdateTxInfo"
+	fap.Args = buf.Bytes()
+	txHeader.Data, err = json.Marshal(fap)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.ContractAddress = contractAddress
+	txHeader.From = user.GetPublicKey()
+	var mrand = mt19937.New()
+	mrand.Seed(time.Now().UnixNano())
+	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
+
+	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
+		uint8(n1 >> 56), uint8(n1>>48) & 0xff, uint8(n1>>40) & 0xff, uint8(n1>>32) & 0xff,
+		uint8(n1>>24) & 0xff, uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
+		uint8(n2 >> 56), uint8(n2>>48) & 0xff, uint8(n2>>40) & 0xff, uint8(n2>>32) & 0xff,
+		uint8(n2>>24) & 0xff, uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
+		uint8(n3 >> 56), uint8(n3>>48) & 0xff, uint8(n3>>40) & 0xff, uint8(n3>>32) & 0xff,
+		uint8(n3>>24) & 0xff, uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
+		uint8(n4 >> 56), uint8(n4>>48) & 0xff, uint8(n4>>40) & 0xff, uint8(n4>>32) & 0xff,
+		uint8(n4>>24) & 0xff, uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+	})
+	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+	// bug: buf.Reset()
+	buf = bytes.NewBuffer(make([]byte, 65535))
+
+	buf.Write(txHeader.From)
+	buf.Write(txHeader.ContractAddress)
+	buf.Write(txHeader.Data)
+	buf.Write(txHeader.Value.Bytes())
+	buf.Write(txHeader.Nonce.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes())
+	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (nc *NSBClient) updateTxInfo(
+	w io.Writer,
+	tid uint64, transactionIntent *tx.TransactionIntent,
+) error {
+	var args ISC.ArgsUpdateTxInfo
+	args.Tid = tid
+	args.TransactionIntent = transactionIntent
+	b, err := json.Marshal(args)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(PretiJson(args), b)
+	_, err = w.Write(b)
+	return err
+}
+
+func (nc *NSBClient) FreezeInfo(
+	user Ed25519SignableAccount, contractAddress []byte,
+	tid uint64,
+) ([]byte, error) {
+	var txHeader cmn.TransactionHeader
+	var buf = bytes.NewBuffer(make([]byte, 65535))
+	buf.Reset()
+	fmt.Println(string(buf.Bytes()))
+	err := nc.freezeInfo(buf, tid)
+	if err != nil {
+		return nil, err
+	}
+
+	var fap appl.FAPair
+	fap.FuncName = "FreezeInfo"
+	fap.Args = buf.Bytes()
+	txHeader.Data, err = json.Marshal(fap)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.ContractAddress = contractAddress
+	txHeader.From = user.GetPublicKey()
+	var mrand = mt19937.New()
+	mrand.Seed(time.Now().UnixNano())
+	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
+
+	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
+		uint8(n1 >> 56), uint8(n1>>48) & 0xff, uint8(n1>>40) & 0xff, uint8(n1>>32) & 0xff,
+		uint8(n1>>24) & 0xff, uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
+		uint8(n2 >> 56), uint8(n2>>48) & 0xff, uint8(n2>>40) & 0xff, uint8(n2>>32) & 0xff,
+		uint8(n2>>24) & 0xff, uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
+		uint8(n3 >> 56), uint8(n3>>48) & 0xff, uint8(n3>>40) & 0xff, uint8(n3>>32) & 0xff,
+		uint8(n3>>24) & 0xff, uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
+		uint8(n4 >> 56), uint8(n4>>48) & 0xff, uint8(n4>>40) & 0xff, uint8(n4>>32) & 0xff,
+		uint8(n4>>24) & 0xff, uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+	})
+	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+	// bug: buf.Reset()
+	buf = bytes.NewBuffer(make([]byte, 65535))
+
+	buf.Write(txHeader.From)
+	buf.Write(txHeader.ContractAddress)
+	buf.Write(txHeader.Data)
+	buf.Write(txHeader.Value.Bytes())
+	buf.Write(txHeader.Nonce.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes())
+	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (nc *NSBClient) freezeInfo(
+	w io.Writer,
+	tid uint64,
+) error {
+	var args ISC.ArgsFreezeInfo
+	args.Tid = tid
+	b, err := json.Marshal(args)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(PretiJson(args), b)
+	_, err = w.Write(b)
+	return err
+}
+
+func (nc *NSBClient) UserAck(
+	user Ed25519SignableAccount, contractAddress []byte,
+	signature []byte,
+) ([]byte, error) {
+	var txHeader cmn.TransactionHeader
+	var buf = bytes.NewBuffer(make([]byte, 65535))
+	buf.Reset()
+	fmt.Println(string(buf.Bytes()))
+	err := nc.userAck(buf, signature)
+	if err != nil {
+		return nil, err
+	}
+
+	var fap appl.FAPair
+	fap.FuncName = "UserAck"
+	fap.Args = buf.Bytes()
+	txHeader.Data, err = json.Marshal(fap)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.ContractAddress = contractAddress
+	txHeader.From = user.GetPublicKey()
+	var mrand = mt19937.New()
+	mrand.Seed(time.Now().UnixNano())
+	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
+
+	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
+		uint8(n1 >> 56), uint8(n1>>48) & 0xff, uint8(n1>>40) & 0xff, uint8(n1>>32) & 0xff,
+		uint8(n1>>24) & 0xff, uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
+		uint8(n2 >> 56), uint8(n2>>48) & 0xff, uint8(n2>>40) & 0xff, uint8(n2>>32) & 0xff,
+		uint8(n2>>24) & 0xff, uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
+		uint8(n3 >> 56), uint8(n3>>48) & 0xff, uint8(n3>>40) & 0xff, uint8(n3>>32) & 0xff,
+		uint8(n3>>24) & 0xff, uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
+		uint8(n4 >> 56), uint8(n4>>48) & 0xff, uint8(n4>>40) & 0xff, uint8(n4>>32) & 0xff,
+		uint8(n4>>24) & 0xff, uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+	})
+	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+	// bug: buf.Reset()
+	buf = bytes.NewBuffer(make([]byte, 65535))
+
+	buf.Write(txHeader.From)
+	buf.Write(txHeader.ContractAddress)
+	buf.Write(txHeader.Data)
+	buf.Write(txHeader.Value.Bytes())
+	buf.Write(txHeader.Nonce.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes())
+	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (nc *NSBClient) userAck(
+	w io.Writer,
+	signature []byte,
+) error {
+	var args ISC.ArgsUserAck
+	args.Signature = signature
+	b, err := json.Marshal(args)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(PretiJson(args), b)
+	_, err = w.Write(b)
+	return err
+}
+
+func (nc *NSBClient) InsuranceClaim(
+	user Ed25519SignableAccount, contractAddress []byte,
+	tid, aid uint64,
+) ([]byte, error) {
+	var txHeader cmn.TransactionHeader
+	var buf = bytes.NewBuffer(make([]byte, 65535))
+	buf.Reset()
+	fmt.Println(string(buf.Bytes()))
+	err := nc.insuranceClaim(buf, tid, aid)
+	if err != nil {
+		return nil, err
+	}
+
+	var fap appl.FAPair
+	fap.FuncName = "InsuranceClaim"
+	fap.Args = buf.Bytes()
+	txHeader.Data, err = json.Marshal(fap)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.ContractAddress = contractAddress
+	txHeader.From = user.GetPublicKey()
+	var mrand = mt19937.New()
+	mrand.Seed(time.Now().UnixNano())
+	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
+
+	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
+		uint8(n1 >> 56), uint8(n1>>48) & 0xff, uint8(n1>>40) & 0xff, uint8(n1>>32) & 0xff,
+		uint8(n1>>24) & 0xff, uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
+		uint8(n2 >> 56), uint8(n2>>48) & 0xff, uint8(n2>>40) & 0xff, uint8(n2>>32) & 0xff,
+		uint8(n2>>24) & 0xff, uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
+		uint8(n3 >> 56), uint8(n3>>48) & 0xff, uint8(n3>>40) & 0xff, uint8(n3>>32) & 0xff,
+		uint8(n3>>24) & 0xff, uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
+		uint8(n4 >> 56), uint8(n4>>48) & 0xff, uint8(n4>>40) & 0xff, uint8(n4>>32) & 0xff,
+		uint8(n4>>24) & 0xff, uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+	})
+	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+	// bug: buf.Reset()
+	buf = bytes.NewBuffer(make([]byte, 65535))
+
+	buf.Write(txHeader.From)
+	buf.Write(txHeader.ContractAddress)
+	buf.Write(txHeader.Data)
+	buf.Write(txHeader.Value.Bytes())
+	buf.Write(txHeader.Nonce.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes())
+	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (nc *NSBClient) insuranceClaim(
+	w io.Writer,
+	tid, aid uint64,
+) error {
+	var args ISC.ArgsInsuranceClaim
+	args.Tid = tid
+	args.Aid = aid
+	b, err := json.Marshal(args)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(PretiJson(args), b)
+	_, err = w.Write(b)
+	return err
+}
+
+func (nc *NSBClient) SettleContract(
+	user Ed25519SignableAccount, contractAddress []byte,
+	tid, aid uint64,
+) ([]byte, error) {
+	var txHeader cmn.TransactionHeader
+	var err error
+	var fap appl.FAPair
+	fap.FuncName = "SettleContract"
+	txHeader.Data, err = json.Marshal(fap)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.ContractAddress = contractAddress
+	txHeader.From = user.GetPublicKey()
+	var mrand = mt19937.New()
+	mrand.Seed(time.Now().UnixNano())
+	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
+
+	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
+		uint8(n1 >> 56), uint8(n1>>48) & 0xff, uint8(n1>>40) & 0xff, uint8(n1>>32) & 0xff,
+		uint8(n1>>24) & 0xff, uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
+		uint8(n2 >> 56), uint8(n2>>48) & 0xff, uint8(n2>>40) & 0xff, uint8(n2>>32) & 0xff,
+		uint8(n2>>24) & 0xff, uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
+		uint8(n3 >> 56), uint8(n3>>48) & 0xff, uint8(n3>>40) & 0xff, uint8(n3>>32) & 0xff,
+		uint8(n3>>24) & 0xff, uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
+		uint8(n4 >> 56), uint8(n4>>48) & 0xff, uint8(n4>>40) & 0xff, uint8(n4>>32) & 0xff,
+		uint8(n4>>24) & 0xff, uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+	})
+	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+	// bug: buf.Reset()
+	buf := bytes.NewBuffer(make([]byte, 65535))
+
+	buf.Write(txHeader.From)
+	buf.Write(txHeader.ContractAddress)
+	buf.Write(txHeader.Data)
+	buf.Write(txHeader.Value.Bytes())
+	buf.Write(txHeader.Nonce.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes())
+	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
