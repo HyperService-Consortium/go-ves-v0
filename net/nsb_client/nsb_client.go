@@ -1,13 +1,23 @@
 package nsbcli
 
 import (
+	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	request "github.com/Myriad-Dreamin/go-ves/net/request"
 	"github.com/tidwall/gjson"
+
+	cmn "github.com/HyperServiceOne/NSB/common"
+	ISC "github.com/HyperServiceOne/NSB/contract/isc"
+	tx "github.com/HyperServiceOne/NSB/contract/isc/transaction"
+	nmath "github.com/HyperServiceOne/NSB/math"
+	mt19937 "github.com/Myriad-Dreamin/go-ves/math/mt19937"
 )
 
 const (
@@ -180,6 +190,25 @@ func (nc *NSBClient) GetConsensusParamsInfo(id int64) (*ConsensusParamsInfo, err
 	}
 	return &a, nil
 }
+func (nc *NSBClient) BroadcastTxCommit(body []byte) (*ResultInfo, error) {
+	b, err := nc.handler.Group("/broadcast_tx_commit").GetWithParams(request.Param{
+		"tx": "0x" + hex.EncodeToString(body),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJsonResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a ResultInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
 
 func (nc *NSBClient) GetConsensusState() (*ConsensusStateInfo, error) {
 	b, err := nc.handler.Group("/consensus_state").Get()
@@ -326,4 +355,96 @@ func (nc *NSBClient) GetValidators(id int64) (*ValidatorsInfo, error) {
 		return nil, err
 	}
 	return &a, nil
+}
+
+type type_sig = uint64
+type Ed25519SignableAccount interface {
+	GetPublicKey() []byte
+	Sign([]byte) []byte
+}
+
+func (nc *NSBClient) sendContractTx(
+	transType, contractName []byte,
+	txContent *cmn.TransactionHeader,
+) (*ResultInfo, error) {
+	var b = make([]byte, 0, 65535)
+	var buf = bytes.NewBuffer(b)
+	buf.Write(transType)
+	buf.WriteByte(0x19)
+	buf.Write(contractName)
+	buf.WriteByte(0x18)
+	c, err := json.Marshal(txContent)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(c)
+	fmt.Println(string(c))
+	json.Unmarshal(c, txContent)
+
+	return nc.BroadcastTxCommit(buf.Bytes())
+}
+
+func (nc *NSBClient) CreateISC(
+	user Ed25519SignableAccount,
+	funds []uint32, iscOwners [][]byte,
+	transactionIntents []*tx.TransactionIntent,
+	vesSig []byte,
+) ([]byte, error) {
+	var txHeader cmn.TransactionHeader
+	var buf = bytes.NewBuffer(make([]byte, 65535))
+	buf.Reset()
+	fmt.Println(string(buf.Bytes()))
+	err := nc.createISC(buf, funds, iscOwners, transactionIntents, vesSig)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.Data = buf.Bytes()
+	txHeader.From = user.GetPublicKey()
+	var mrand = mt19937.New()
+	mrand.Seed(time.Now().UnixNano())
+	var n1, n2, n3, n4 = mrand.Uint64(), mrand.Uint64(), mrand.Uint64(), mrand.Uint64()
+
+	txHeader.Nonce = nmath.NewUint256FromBytes([]byte{
+		uint8(n1 >> 24), uint8(n1>>16) & 0xff, uint8(n1>>8) & 0xff, uint8(n1>>0) & 0xff,
+		uint8(n2 >> 24), uint8(n2>>16) & 0xff, uint8(n2>>8) & 0xff, uint8(n2>>0) & 0xff,
+		uint8(n3 >> 24), uint8(n3>>16) & 0xff, uint8(n3>>8) & 0xff, uint8(n3>>0) & 0xff,
+		uint8(n4 >> 24), uint8(n4>>16) & 0xff, uint8(n4>>8) & 0xff, uint8(n4>>0) & 0xff,
+	})
+	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+	// bug: buf.Reset()
+	buf = bytes.NewBuffer(make([]byte, 65535))
+
+	buf.Write(txHeader.From)
+	buf.Write(txHeader.ContractAddress)
+	buf.Write(txHeader.Data)
+	buf.Write(txHeader.Value.Bytes())
+	buf.Write(txHeader.Nonce.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes())
+	ret, err := nc.sendContractTx([]byte("createContract"), []byte("isc"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (nc *NSBClient) createISC(
+	w io.Writer,
+	funds []uint32, iscOwners [][]byte,
+	transactionIntents []*tx.TransactionIntent,
+	vesSig []byte,
+) error {
+	var args ISC.ArgsCreateNewContract
+	args.IscOwners = iscOwners
+	args.Funds = funds
+	args.TransactionIntents = transactionIntents
+	args.VesSig = vesSig
+	b, err := json.Marshal(args)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(PretiJson(args), b)
+	_, err = w.Write(b)
+	return err
 }

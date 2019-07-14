@@ -284,3 +284,24 @@ type FullValidatorInfo struct {
 	VotingPower      string  `json:"voting_power"`
 	ProposerPriority string  `json:"proposer_priority"`
 }
+
+/*************************** result_info ********************************/
+
+type ResultInfo struct {
+	CheckTx   interface{} `json:"check_tx"`
+	DeliverTx DeliverTx   `json:"deliver_tx"`
+	Hash      string      `json:"hash"`
+	Height    string      `json:"height"`
+}
+
+// unknown
+type CheckTx struct {
+	Info string `json:"info"`
+	Log  string `json:"log"`
+	Tags []Tags `json:"tags"`
+}
+type DeliverTx struct {
+	Info string `json:"info"`
+	Log  string `json:"log"`
+	Tags []Tags `json:"tags"`
+}
