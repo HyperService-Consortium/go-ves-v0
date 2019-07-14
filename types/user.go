@@ -27,6 +27,11 @@ type User interface {
 
 type has = bool
 
+type TenSigner interface {
+	GetPublicKey() []byte
+	Sign([]byte) []byte
+}
+
 // the database which used by others
 type UserBase interface {
 	// insert accounts maps from guid to account

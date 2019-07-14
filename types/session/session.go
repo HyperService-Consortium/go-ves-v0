@@ -40,11 +40,11 @@ func randomSession() *SerialSession {
 	}
 }
 
-func (ses SerialSession) TableName() string {
+func (ses *SerialSession) TableName() string {
 	return "ves_session"
 }
 
-func (ses SerialSession) ToKVMap() map[string]interface{} {
+func (ses *SerialSession) ToKVMap() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                ses.ID,
 		"isc_address":       ses.ISCAddress,
@@ -56,23 +56,23 @@ func (ses SerialSession) ToKVMap() map[string]interface{} {
 	}
 }
 
-func (ses SerialSession) GetID() int64 {
+func (ses *SerialSession) GetID() int64 {
 	return ses.ID
 }
 
-func (ses SerialSession) GetGUID() (isc_address []byte) {
+func (ses *SerialSession) GetGUID() (isc_address []byte) {
 	return ses.ISCAddress
 }
 
-func (ses SerialSession) GetObjectPtr() interface{} {
+func (ses *SerialSession) GetObjectPtr() interface{} {
 	return new(SerialSession)
 }
 
-func (ses SerialSession) GetSlicePtr() interface{} {
+func (ses *SerialSession) GetSlicePtr() interface{} {
 	return new([]SerialSession)
 }
 
-func (ses SerialSession) GetAccounts() []types.Account {
+func (ses *SerialSession) GetAccounts() []types.Account {
 
 	// move to adapdator
 	// if ses.Accounts == nil {
@@ -82,7 +82,7 @@ func (ses SerialSession) GetAccounts() []types.Account {
 	return ses.Accounts
 }
 
-func (ses SerialSession) GetTransaction(transaction_id uint32) []byte {
+func (ses *SerialSession) GetTransaction(transaction_id uint32) []byte {
 	// if ses.Transactions == nil {
 	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
 	// }
@@ -93,7 +93,7 @@ func (ses SerialSession) GetTransaction(transaction_id uint32) []byte {
 	return ses.Transactions[transaction_id]
 }
 
-func (ses SerialSession) GetTransactions() (transactions [][]byte) {
+func (ses *SerialSession) GetTransactions() (transactions [][]byte) {
 	// if ses.Transactions == nil {
 	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
 	// }
@@ -101,16 +101,16 @@ func (ses SerialSession) GetTransactions() (transactions [][]byte) {
 	return ses.Transactions
 }
 
-func (ses SerialSession) GetTransactingTransaction() (transaction_id uint32, err error) {
+func (ses *SerialSession) GetTransactingTransaction() (transaction_id uint32, err error) {
 	// Status
 	return ses.UnderTransacting, nil
 }
 
-func (ses SerialSession) GetContent() []byte {
+func (ses *SerialSession) GetContent() []byte {
 	return ses.Content
 }
 
-func (ses SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, string, error) {
+func (ses *SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, string, error) {
 	intents, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
 	if err != nil {
 		return false, err.Error(), nil
@@ -118,6 +118,7 @@ func (ses SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, str
 	fmt.Println(intents, err)
 	ses.Transactions = make([][]byte, 0, len(intents))
 	for _, intent := range intents {
+		fmt.Println("insert", len(ses.Transactions))
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
 		fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
 	}
@@ -128,6 +129,7 @@ func (ses SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, str
 	if err != nil {
 		return false, "", err
 	}
+
 	// TransactionCount uint32          `xorm:"'transaction_count'"`
 	// UnderTransacting uint32          `xorm:"'under_transacting'"`
 	// Status           uint8           `xorm:"'status'"`
@@ -142,7 +144,7 @@ func Verify(signature types.Signature, contentProviding, publicKey []byte) bool 
 		verifier.Verify(signature, publicKey) == true
 }
 
-func (ses SerialSession) AckForInit(
+func (ses *SerialSession) AckForInit(
 	account types.Account,
 	signature types.Signature,
 ) (success_or_not bool, help_info string, err error) {
@@ -166,13 +168,13 @@ func (ses SerialSession) AckForInit(
 	return false, "account not found in this session", nil
 }
 
-func (ses SerialSession) ProcessAttestation(
+func (ses *SerialSession) ProcessAttestation(
 	attestation types.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	return false, "TODO", nil
 }
 
-func (ses SerialSession) SyncFromISC() (err error) {
+func (ses *SerialSession) SyncFromISC() (err error) {
 	return errors.New("TODO")
 }
 
