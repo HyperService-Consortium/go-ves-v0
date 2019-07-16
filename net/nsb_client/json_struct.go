@@ -105,13 +105,15 @@ type BlockResultsInfo struct {
 }
 
 type Results struct {
-	DeliverTxInfo  []*DeliverTxInfo `json:"DeliverTx"`
-	EndBlockInfo   *EndBlockInfo    `json:"EndBlock"`
-	BeginBlockInfo *BeginBlockInfo  `json:"BeginBlock"`
+	DeliverTxInfo  []*DeliverTx    `json:"DeliverTx"`
+	EndBlockInfo   *EndBlockInfo   `json:"EndBlock"`
+	BeginBlockInfo *BeginBlockInfo `json:"BeginBlock"`
 }
 
-type DeliverTxInfo struct {
+type DeliverTx struct {
 	Info string  `json:"info"`
+	Log  string  `json:"log"`
+	Data []byte  `json:"data"`
 	Tags []*Tags `json:"tags"`
 }
 
@@ -298,10 +300,6 @@ type ResultInfo struct {
 type CheckTx struct {
 	Info string `json:"info"`
 	Log  string `json:"log"`
-	Tags []Tags `json:"tags"`
-}
-type DeliverTx struct {
-	Info string `json:"info"`
-	Log  string `json:"log"`
+	Data []byte `json:"data"`
 	Tags []Tags `json:"tags"`
 }

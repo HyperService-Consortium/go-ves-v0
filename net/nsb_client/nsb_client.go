@@ -430,7 +430,7 @@ func (nc *NSBClient) CreateISC(
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return ret.DeliverTx.Data, nil
 }
 
 func (nc *NSBClient) createISC(

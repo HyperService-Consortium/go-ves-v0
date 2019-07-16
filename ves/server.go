@@ -56,11 +56,11 @@ func (server *Server) SessionStart(
 	ctx context.Context,
 	in *uiprpc.SessionStartRequest,
 ) (*uiprpc.SessionStartReply, error) {
-	return service.SessionStartService{
+	return (&service.SessionStartService{
 		VESDB:               server.db,
 		Context:             ctx,
 		SessionStartRequest: in,
-	}.Serve()
+	}).Serve()
 }
 
 func (server *Server) SessionAckForInit(
