@@ -1,5 +1,7 @@
 package types
 
+import uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+
 type KVPair struct {
 	Key   string
 	Value interface{}
@@ -87,7 +89,7 @@ type VESDB interface {
 	DeleteSessionInfo(isc_address) error
 
 	// insert accounts maps from guid to account
-	InsertAccount(user_name, Account) error
+	InsertAccount(user_name, uiptypes.Account) error
 
 	// DeleteAccount(user_name, Account) error
 
@@ -99,11 +101,11 @@ type VESDB interface {
 	FindUser(user_name) (User, error)
 
 	// find accounts which guid is corresponding to user
-	FindAccounts(user_name, chain_id) ([]Account, error)
+	FindAccounts(user_name, uiptypes.ChainId) ([]uiptypes.Account, error)
 
 	// return true if user has this account
-	HasAccount(user_name, Account) (bool, error)
+	HasAccount(user_name, uiptypes.Account) (bool, error)
 
 	// return the user which has this account
-	InvertFind(Account) (user_name, error)
+	InvertFind(uiptypes.Account) (user_name, error)
 }

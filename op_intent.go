@@ -1,13 +1,11 @@
 package main
 
-
 import "fmt"
 
-import "github.com/Myriad-Dreamin/go-py"
+import GoPy "github.com/Myriad-Dreamin/go-py"
 
-import "github.com/Myriad-Dreamin/go-ves/go-uiputils/op-intent"
-import "github.com/Myriad-Dreamin/go-ves/go-uiputils/file-load"
-
+import opintent "github.com/Myriad-Dreamin/go-uip/op-intent"
+import fileload "github.com/Myriad-Dreamin/go-uip/file-load"
 
 func main() {
 	defer GoPy.AtExit()

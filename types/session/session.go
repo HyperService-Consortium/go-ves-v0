@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/rand"
 
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	verifier "github.com/Myriad-Dreamin/go-ves/crypto/verifier"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
@@ -17,19 +18,19 @@ import (
 	const_prefix "github.com/Myriad-Dreamin/go-ves/database/const_prefix"
 	serial_helper "github.com/Myriad-Dreamin/go-ves/serial_helper"
 
-	opintents "github.com/Myriad-Dreamin/go-ves/go-uiputils/op-intent"
+	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
 )
 
 type SerialSession struct {
-	ID               int64           `json:"-" xorm:"pk unique notnull autoincr 'id'"`
-	ISCAddress       []byte          `json:"-" xorm:"notnull 'isc_address'"`
-	Accounts         []types.Account `json:"-" xorm:"-"`
-	Transactions     [][]byte        `json:"transactions" xorm:"-"`
-	TransactionCount uint32          `json:"-" xorm:"'transaction_count'"`
-	UnderTransacting uint32          `json:"-" xorm:"'under_transacting'"`
-	Status           uint8           `json:"-" xorm:"'status'"`
-	Content          []byte          `json:"-" xorm:"'content'"`
-	Acks             []byte          `json:"-" xorm:"'acks'"`
+	ID               int64              `json:"-" xorm:"pk unique notnull autoincr 'id'"`
+	ISCAddress       []byte             `json:"-" xorm:"notnull 'isc_address'"`
+	Accounts         []uiptypes.Account `json:"-" xorm:"-"`
+	Transactions     [][]byte           `json:"transactions" xorm:"-"`
+	TransactionCount uint32             `json:"-" xorm:"'transaction_count'"`
+	UnderTransacting uint32             `json:"-" xorm:"'under_transacting'"`
+	Status           uint8              `json:"-" xorm:"'status'"`
+	Content          []byte             `json:"-" xorm:"'content'"`
+	Acks             []byte             `json:"-" xorm:"'acks'"`
 }
 
 func randomSession() *SerialSession {
@@ -72,7 +73,7 @@ func (ses *SerialSession) GetSlicePtr() interface{} {
 	return new([]SerialSession)
 }
 
-func (ses *SerialSession) GetAccounts() []types.Account {
+func (ses *SerialSession) GetAccounts() []uiptypes.Account {
 
 	// move to adapdator
 	// if ses.Accounts == nil {
@@ -110,7 +111,7 @@ func (ses *SerialSession) GetContent() []byte {
 	return ses.Content
 }
 
-func (ses *SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, string, error) {
+func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
 	intents, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
 	if err != nil {
 		return false, err.Error(), nil
@@ -139,14 +140,14 @@ func (ses *SerialSession) InitFromOpIntents(opIntents types.OpIntents) (bool, st
 	return true, "", nil
 }
 
-func Verify(signature types.Signature, contentProviding, publicKey []byte) bool {
+func Verify(signature uiptypes.Signature, contentProviding, publicKey []byte) bool {
 	return bytes.Equal(contentProviding, signature.GetContent()) &&
 		verifier.Verify(signature, publicKey) == true
 }
 
 func (ses *SerialSession) AckForInit(
-	account types.Account,
-	signature types.Signature,
+	account uiptypes.Account,
+	signature uiptypes.Signature,
 ) (success_or_not bool, help_info string, err error) {
 	var addr = account.GetAddress()
 	for idx, ak := range ses.GetAccounts() {
@@ -169,7 +170,7 @@ func (ses *SerialSession) AckForInit(
 }
 
 func (ses *SerialSession) ProcessAttestation(
-	attestation types.Attestation,
+	attestation uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	return false, "TODO", nil
 }
@@ -217,7 +218,7 @@ func (sb SerialSessionBase) DeleteSessionInfo(
 }
 
 func (sb SerialSessionBase) InsertSessionAccounts(
-	db types.Index, isc_address []byte, accounts []types.Account,
+	db types.Index, isc_address []byte, accounts []uiptypes.Account,
 ) (err error) {
 	var k, v []byte
 	k, err = serial_helper.DecoratePrefix(const_prefix.AccountsPrefix, isc_address)

@@ -6,7 +6,7 @@ import (
 	"io"
 	"testing"
 
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	types "github.com/Myriad-Dreamin/go-uip/types"
 	mtest "github.com/Myriad-Dreamin/mydrest"
 )
 

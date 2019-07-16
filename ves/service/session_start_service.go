@@ -50,7 +50,7 @@ func (s *SerialSessionStartService) SessionStart() ([]byte, error) {
 		return nil, err
 	}
 	if !success {
-		return errors.New(help_info)
+		return nil, errors.New(help_info)
 	}
 	ses.ISCAddress, err = s.RequestNSBForNewSession(ses)
 	if err != nil {

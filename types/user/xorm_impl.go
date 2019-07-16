@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 
@@ -13,7 +14,7 @@ type XORMUserAdapter struct {
 	Address []byte `xorm:"'address'"`
 }
 
-func NewXORMUserAdapter(name string, account types.Account) *XORMUserAdapter {
+func NewXORMUserAdapter(name string, account uiptypes.Account) *XORMUserAdapter {
 	return &XORMUserAdapter{
 		Name:    name,
 		ChainId: account.GetChainId(),
@@ -21,21 +22,21 @@ func NewXORMUserAdapter(name string, account types.Account) *XORMUserAdapter {
 	}
 }
 
-func NewXORMUserAdapterWithOnlyAccount(account types.Account) *XORMUserAdapter {
+func NewXORMUserAdapterWithOnlyAccount(account uiptypes.Account) *XORMUserAdapter {
 	return &XORMUserAdapter{
 		ChainId: account.GetChainId(),
 		Address: account.GetAddress(),
 	}
 }
 
-func NewUserAdapdators(name string, accounts []types.Account) (accs []*XORMUserAdapter) {
+func NewUserAdapdators(name string, accounts []uiptypes.Account) (accs []*XORMUserAdapter) {
 	for _, account := range accounts {
 		accs = append(accs, NewXORMUserAdapter(name, account))
 	}
 	return
 }
 
-func XORMUserAdapterToAccounts(accounts []XORMUserAdapter) (accs []types.Account) {
+func XORMUserAdapterToAccounts(accounts []XORMUserAdapter) (accs []uiptypes.Account) {
 	for _, account := range accounts {
 		accs = append(accs, account)
 	}
@@ -88,7 +89,7 @@ func (ua XORMUserAdapter) ToKVMap() map[string]interface{} {
 type XORMUserBase struct {
 }
 
-func (ub XORMUserBase) InsertAccount(db types.MultiIndex, name string, account types.Account) error {
+func (ub XORMUserBase) InsertAccount(db types.MultiIndex, name string, account uiptypes.Account) error {
 	return db.Insert(NewXORMUserAdapter(name, account))
 }
 
@@ -104,7 +105,7 @@ func (ub XORMUserBase) FindUser(db types.MultiIndex, name string) (user types.Us
 	return UserFromAdapdator(sli.([]XORMUserAdapter)), nil
 }
 
-func (ub XORMUserBase) FindAccounts(db types.MultiIndex, username string, chainType uint64) (accs []types.Account, err error) {
+func (ub XORMUserBase) FindAccounts(db types.MultiIndex, username string, chainType uint64) (accs []uiptypes.Account, err error) {
 	condition := XORMUserAdapter{Name: username, ChainId: chainType}
 	sli, err := db.Select(&condition)
 	if err != nil {
@@ -116,11 +117,11 @@ func (ub XORMUserBase) FindAccounts(db types.MultiIndex, username string, chainT
 	return XORMUserAdapterToAccounts(sli.([]XORMUserAdapter)), nil
 }
 
-func (ub XORMUserBase) HasAccount(db types.MultiIndex, name string, account types.Account) (has bool, err error) {
+func (ub XORMUserBase) HasAccount(db types.MultiIndex, name string, account uiptypes.Account) (has bool, err error) {
 	return db.Get(NewXORMUserAdapter(name, account))
 }
 
-func (ub XORMUserBase) InvertFind(db types.MultiIndex, account types.Account) (name string, err error) {
+func (ub XORMUserBase) InvertFind(db types.MultiIndex, account uiptypes.Account) (name string, err error) {
 	condition := NewXORMUserAdapterWithOnlyAccount(account)
 	sli, err := db.Select(condition)
 	if err != nil {

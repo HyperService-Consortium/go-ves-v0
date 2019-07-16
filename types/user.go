@@ -1,19 +1,8 @@
 package types
 
-type chain_id = uint64
-type address = []byte
+import uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+
 type user_name = string
-
-// an implementation of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc"
-type Account interface {
-	GetChainId() chain_id
-	GetAddress() address
-}
-
-type Signature interface {
-	GetSignatureType() uint32
-	GetContent() []byte
-}
 
 type User interface {
 	// user must has name or other guid
@@ -22,20 +11,15 @@ type User interface {
 	KVObject
 
 	GetName() user_name
-	GetAccounts() []Account
+	GetAccounts() []uiptypes.Account
 }
 
 type has = bool
 
-type TenSigner interface {
-	GetPublicKey() []byte
-	Sign([]byte) []byte
-}
-
 // the database which used by others
 type UserBase interface {
 	// insert accounts maps from guid to account
-	InsertAccount(MultiIndex, user_name, Account) error
+	InsertAccount(MultiIndex, user_name, uiptypes.Account) error
 
 	// DeleteAccount(MultiIndex, user_name, Account) error
 
@@ -47,11 +31,11 @@ type UserBase interface {
 	FindUser(MultiIndex, user_name) (User, error)
 
 	// find accounts which guid is corresponding to user
-	FindAccounts(MultiIndex, user_name, chain_id) ([]Account, error)
+	FindAccounts(MultiIndex, user_name, uiptypes.ChainId) ([]uiptypes.Account, error)
 
 	// return true if user has this account
-	HasAccount(MultiIndex, user_name, Account) (has, error)
+	HasAccount(MultiIndex, user_name, uiptypes.Account) (has, error)
 
 	// return the user which has this account
-	InvertFind(MultiIndex, Account) (user_name, error)
+	InvertFind(MultiIndex, uiptypes.Account) (user_name, error)
 }

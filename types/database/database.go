@@ -3,6 +3,7 @@ package vesdb
 import (
 	"fmt"
 
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 
@@ -49,7 +50,7 @@ func (db *Database) DeleteSessionInfo(isc_address []byte) error {
 	return db.sesdb.DeleteSessionInfo(db.muldb, isc_address)
 }
 
-func (db *Database) InsertAccount(user_name string, account types.Account) error {
+func (db *Database) InsertAccount(user_name string, account uiptypes.Account) error {
 	fmt.Println(db.userdb, db.muldb)
 	return db.userdb.InsertAccount(db.muldb, user_name, account)
 }
@@ -70,14 +71,14 @@ func (db *Database) FindUser(user_name string) (types.User, error) {
 	return db.userdb.FindUser(db.muldb, user_name)
 }
 
-func (db *Database) FindAccounts(user_name string, chain_type uint64) ([]types.Account, error) {
+func (db *Database) FindAccounts(user_name string, chain_type uint64) ([]uiptypes.Account, error) {
 	return db.userdb.FindAccounts(db.muldb, user_name, chain_type)
 }
 
-func (db *Database) HasAccount(user_name string, account types.Account) (bool, error) {
+func (db *Database) HasAccount(user_name string, account uiptypes.Account) (bool, error) {
 	return db.userdb.HasAccount(db.muldb, user_name, account)
 }
 
-func (db *Database) InvertFind(account types.Account) (string, error) {
+func (db *Database) InvertFind(account uiptypes.Account) (string, error) {
 	return db.userdb.InvertFind(db.muldb, account)
 }
