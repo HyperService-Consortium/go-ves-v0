@@ -2,5 +2,6 @@
 .vscode
 */__pycache__/*
 */*/__pycache__/*
+database/index/testdb/*
 go.sum
 go.mod
