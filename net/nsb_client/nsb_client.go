@@ -19,6 +19,8 @@ import (
 	tx "github.com/HyperServiceOne/NSB/contract/isc/transaction"
 	nmath "github.com/HyperServiceOne/NSB/math"
 	mt19937 "github.com/Myriad-Dreamin/go-ves/math/mt19937"
+	bytes_pool "github.com/Myriad-Dreamin/go-ves/net/bytes_pool"
+	jsonrpc_client "github.com/Myriad-Dreamin/go-ves/net/rpc_client"
 )
 
 const (
@@ -31,12 +33,12 @@ func decorateHost(host string) string {
 	if strings.HasPrefix(host, httpPrefix) || strings.HasPrefix(host, httpsPrefix) {
 		return host
 	}
-	return "http://" + host
+	return httpPrefix + host
 }
 
 type NSBClient struct {
 	handler    *request.RequestClient
-	bufferPool *BytesPool
+	bufferPool *bytes_pool.BytesPool
 }
 
 // todo: test invalid json
@@ -56,7 +58,7 @@ func (nc *NSBClient) preloadJsonResponse(bb io.ReadCloser) ([]byte, error) {
 		return nil, errors.New("reject ret that is not jsonrpc: 2.0")
 	}
 	if s := jm.Get("error"); s.Exists() {
-		return nil, fromGJsonResultError(s)
+		return nil, jsonrpc_client.FromGJsonResultError(s)
 	}
 	if s := jm.Get("result"); s.Exists() {
 		if s.Index > 0 {
@@ -69,7 +71,7 @@ func (nc *NSBClient) preloadJsonResponse(bb io.ReadCloser) ([]byte, error) {
 func NewNSBClient(host string) *NSBClient {
 	return &NSBClient{
 		handler:    request.NewRequestClient(decorateHost(host)),
-		bufferPool: NewBytesPool(),
+		bufferPool: bytes_pool.NewBytesPool(maxBytesSize),
 	}
 }
 
