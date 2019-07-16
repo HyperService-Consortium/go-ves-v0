@@ -2,8 +2,6 @@ package eth_client
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
 
 	jsonrpc_client "github.com/Myriad-Dreamin/go-ves/net/rpc-client"
 )
@@ -25,7 +23,7 @@ type eth_params struct {
 	Method  string      `json:"method,omitempty"`
 }
 
-func (eth *EthClient) GetEthAccounts() error {
+func (eth *EthClient) GetEthAccounts() ([]string, error) {
 	b, err := eth.PostRequestWithJsonObj(map[string]interface{}{
 		"jsonrpc": "2.0",
 		"method":  "eth_accounts",
@@ -33,18 +31,16 @@ func (eth *EthClient) GetEthAccounts() error {
 		"id":      1,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	fmt.Println(string(b), reflect.TypeOf(b))
 
 	var x []string
 	err = json.Unmarshal(b, &x)
-	fmt.Println(err, x)
 
-	return err
+	return x, err
 }
 
-func (eth *EthClient) PersonalUnlockAccout(addr string, passphrase string, duration int) error {
+func (eth *EthClient) PersonalUnlockAccout(addr string, passphrase string, duration int) (bool, error) {
 	b, err := eth.PostRequestWithJsonObj(map[string]interface{}{
 		"jsonrpc": "2.0",
 		"method":  "personal_unlockAccount",
@@ -52,9 +48,14 @@ func (eth *EthClient) PersonalUnlockAccout(addr string, passphrase string, durat
 		"id":      64,
 	})
 	if err != nil {
-		return err
+		return false, err
 	}
-	fmt.Println(string(b), reflect.TypeOf(b))
 
-	return err
+	var x bool
+	err = json.Unmarshal(b, &x)
+	if err != nil {
+		return false, err
+	}
+
+	return x, err
 }
