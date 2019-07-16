@@ -42,33 +42,34 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 	}
 	return nsbClient.CreateISC(s.signer, []uint32{0, 0, 0}, owners, nil, s.signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})))
 }
-func (s *SerialSessionStartService) SessionStart() error {
+func (s *SerialSessionStartService) SessionStart() ([]byte, error) {
 	var ses = new(session.SerialSession)
 	success, help_info, err := ses.InitFromOpIntents(s.GetOpintents())
 	if err != nil {
 		// TODO: log
-		return err
+		return nil, err
 	}
 	if !success {
 		return errors.New(help_info)
 	}
 	ses.ISCAddress, err = s.RequestNSBForNewSession(ses)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	s.InsertSessionInfo(ses)
 
 	// s.UpdateTxs
 	// s.UpdateAccs
-	return nil
+	return ses.ISCAddress, nil
 }
 
 func (s *SerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
-	if err := s.SessionStart(); err != nil {
+	if b, err := s.SessionStart(); err != nil {
 		return nil, err
 	} else {
 		return &uiprpc.SessionStartReply{
-			Ok: true,
+			Ok:        true,
+			SessionId: b,
 		}, nil
 	}
 }

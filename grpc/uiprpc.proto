@@ -58,9 +58,9 @@ message Account {
 
 message Attestation {
     uint64 tid = 1;
-    uint64 aid = 1;
-    bytes content = 2;
-    repeated Signature signature = 3;
+    uint64 aid = 2;
+    bytes content = 3;
+    repeated Signature signature = 4;
 }
 
 message UserRegisterRequest {
@@ -78,6 +78,7 @@ message SessionStartRequest {
 
 message SessionStartReply {
     bool ok = 1;
+    bytes session_id = 2;
 }
 
 message SessionAckForInitRequest {
