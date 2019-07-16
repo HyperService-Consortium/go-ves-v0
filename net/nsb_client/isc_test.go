@@ -33,3 +33,46 @@ func TestCreateISC(t *testing.T) {
 	fmt.Println(string(q))
 	fmt.Println(NewNSBClient(host).CreateISC(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []uint32{0, 0}, [][]byte{[]byte{1, 2, 3}, []byte{1, 2, 4}}, []*tx.TransactionIntent{&opintent}, []byte{0}))
 }
+func TestUpdateTxInfo(t *testing.T) {
+
+	ret, err := NewNSBClient(host).UpdateTxInfo(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("toaN1Pyt5tWwJeuouMp7gWi3vw8XYGPBCXHWjwyf6c0="), 1, new(tx.TransactionIntent))
+	if err != nil {
+		t.Error("UPD ERR", err, "\n")
+	} else {
+		fmt.Println("SSSSSSSSSSSSSSSSS", ret)
+	}
+}
+func TestFreezeInfo(t *testing.T) {
+	ret, err := NewNSBClient(host).FreezeInfo(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("toaN1Pyt5tWwJeuouMp7gWi3vw8XYGPBCXHWjwyf6c0="), 1)
+	if err != nil {
+		t.Error("FREEZE ERR", err, "\n")
+	} else {
+		fmt.Println("SSSSSSSSSSSSSSSSS", ret)
+	}
+}
+
+func TestUserAck(t *testing.T) {
+	ret, err := NewNSBClient(host).UserAck(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("toaN1Pyt5tWwJeuouMp7gWi3vw8XYGPBCXHWjwyf6c0="), []byte("SB"))
+	if err != nil {
+		t.Error("USR ACK ERR", err, "\n")
+	} else {
+		fmt.Println("SSSSSSSSSSSSSSSSS", ret)
+	}
+}
+
+func TestInsuranceClaim(t *testing.T) {
+	ret, err := NewNSBClient(host).InsuranceClaim(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("toaN1Pyt5tWwJeuouMp7gWi3vw8XYGPBCXHWjwyf6c0="), 0, 1)
+	if err != nil {
+		t.Error("INSURANCE CLAIM ERR", err, "\n")
+	} else {
+		fmt.Println("SSSSSSSSSSSSSSSSS", ret)
+	}
+}
+func TestSettleContract(t *testing.T) {
+	ret, err := NewNSBClient(host).SettleContract(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("toaN1Pyt5tWwJeuouMp7gWi3vw8XYGPBCXHWjwyf6c0="), 0, 1)
+	if err != nil {
+		t.Error("SETTLE CONTRACT ERR", err, "\n")
+	} else {
+		fmt.Println("SSSSSSSSSSSSSSSSS", ret)
+	}
+}
