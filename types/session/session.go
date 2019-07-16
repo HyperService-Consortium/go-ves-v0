@@ -265,3 +265,42 @@ func (sb SerialSessionBase) FindSessionAccounts(
 // ) (err error) (
 //
 // )
+/***********************************Tx***********************/
+func (sb SerialSessionBase) InsertTransaction(
+	db types.Index, isc_address []byte, transaction_id uint64, transaction []byte,
+) (err error) {
+	var k, tid []byte
+	binary.BigEndian.PutUint64(tid, transaction_id)
+	k, err = serial_helper.DecoratePrefix(tid, isc_address)
+	if err != nil {
+		return
+	}
+	k, err = serial_helper.DecoratePrefix(const_prefix.TransactionsPrefix, k)
+	//TransactionsPrefix = []byte("ts")
+	if err != nil {
+		return
+	}
+	err = db.Set(k, transaction)
+	return
+}
+
+func (sb SerialSessionBase) FindTransaction(
+	db types.Index, isc_address []byte, transaction_id uint64, getter func(uint64, []byte) error,
+) (err error) {
+	var k, v, tid []byte
+	binary.BigEndian.PutUint64(tid, transaction_id)
+	k, err = serial_helper.DecoratePrefix(tid, isc_address)
+	if err != nil {
+		return
+	}
+	k, err = serial_helper.DecoratePrefix(const_prefix.TransactionsPrefix, k)
+	if err != nil {
+		return
+	}
+	v, err = db.Get(k)
+	if err != nil {
+		return
+	}
+	err = getter(uint64(len(v)), v)
+	return
+}
