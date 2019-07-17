@@ -2,6 +2,7 @@ package session
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -9,8 +10,10 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"unsafe"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	account "github.com/Myriad-Dreamin/go-uip/types/account"
 	verifier "github.com/Myriad-Dreamin/go-ves/crypto/verifier"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
@@ -111,6 +114,30 @@ func (ses *SerialSession) GetContent() []byte {
 	return ses.Content
 }
 
+// must be used in single-thread env
+type comparator struct {
+	s      map[string]bool
+	hacker [8]byte
+}
+
+func makeComparator() *comparator {
+	return &comparator{s: make(map[string]bool)}
+}
+
+func (c *comparator) Insert(a uint64, b []byte) bool {
+	h := md5.New()
+	*(*uint64)(unsafe.Pointer(&c.hacker)) = a
+	h.Write(c.hacker[:])
+	h.Write(b)
+	var nb = h.Sum(nil)
+	if _, ok := c.s[string(nb)]; ok {
+		return false
+	} else {
+		c.s[string(nb)] = true
+		return true
+	}
+}
+
 func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
 	intents, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
 	if err != nil {
@@ -118,10 +145,20 @@ func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool,
 	}
 	fmt.Println(intents, err)
 	ses.Transactions = make([][]byte, 0, len(intents))
+
+	ses.Accounts = nil
+	c := makeComparator()
 	for _, intent := range intents {
 		fmt.Println("insert", len(ses.Transactions))
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
 		fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
+
+		if c.Insert(intent.ChainId, intent.Src) {
+			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Src})
+		}
+		if c.Insert(intent.ChainId, intent.Dst) {
+			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Dst})
+		}
 	}
 	ses.TransactionCount = uint32(len(intents))
 	ses.UnderTransacting = 0
@@ -275,8 +312,8 @@ func (sb SerialSessionBase) InsertTransaction(
 	if err != nil {
 		return
 	}
-	k, err = serial_helper.DecoratePrefix(const_prefix.TransactionsPrefix, k)
-	//TransactionsPrefix = []byte("ts")
+	k, err = serial_helper.DecoratePrefix(const_prefix.TransactionPrefix, k)
+	//TransactionPrefix = []byte("ts")
 	if err != nil {
 		return
 	}
@@ -293,7 +330,7 @@ func (sb SerialSessionBase) FindTransaction(
 	if err != nil {
 		return
 	}
-	k, err = serial_helper.DecoratePrefix(const_prefix.TransactionsPrefix, k)
+	k, err = serial_helper.DecoratePrefix(const_prefix.TransactionPrefix, k)
 	if err != nil {
 		return
 	}

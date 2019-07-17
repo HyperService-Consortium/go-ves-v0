@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc"
 	types "github.com/Myriad-Dreamin/go-ves/types"
@@ -21,7 +22,8 @@ var (
 )
 
 type Server struct {
-	db types.VESDB
+	db     types.VESDB
+	signer *signaturer.TendermintNSBSigner
 }
 
 func XORMMigrate(muldb types.MultiIndex) (err error) {
@@ -57,6 +59,7 @@ func (server *Server) SessionStart(
 	in *uiprpc.SessionStartRequest,
 ) (*uiprpc.SessionStartReply, error) {
 	return (&service.SessionStartService{
+		Signer:              server.signer,
 		VESDB:               server.db,
 		Context:             ctx,
 		SessionStartRequest: in,
@@ -104,6 +107,13 @@ func ListenAndServe(port string) error {
 
 	var server = new(Server)
 	server.db = new(vesdb.Database)
+	server.signer = signaturer.NewTendermintNSBSigner([]byte{
+		233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
+		233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
+		233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
+		233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
+	})
+
 	//TODO: SetEnv
 	var muldb *multi_index.XORMMultiIndexImpl
 	muldb, err = multi_index.GetXORMMultiIndex("mysql", "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8")

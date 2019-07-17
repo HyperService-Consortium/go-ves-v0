@@ -1,5 +1,6 @@
 package ConstPrefix
 
 var (
-	AccountsPrefix = []byte("as")
+	AccountsPrefix    = []byte("as")
+	TransactionPrefix = []byte("tx")
 )

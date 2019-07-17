@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc"
 	nsbcli "github.com/Myriad-Dreamin/go-ves/net/nsb_client"
 	types "github.com/Myriad-Dreamin/go-ves/types"
@@ -18,7 +20,7 @@ var nsbClient = nsbcli.NewNSBClient("47.251.2.73:26657")
 type SessionStartService = SerialSessionStartService
 
 type SerialSessionStartService struct {
-	signer types.TenSigner
+	Signer uiptypes.Signer
 	types.VESDB
 	context.Context
 	*uiprpc.SessionStartRequest
@@ -26,8 +28,9 @@ type SerialSessionStartService struct {
 
 func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) ([]byte, error) {
 	var accs = anyb.GetAccounts()
+
 	var owners = make([][]byte, 0, len(accs)+1)
-	owners = append(owners, s.signer.GetPublicKey())
+	owners = append(owners, s.Signer.GetPublicKey())
 	for _, owner := range accs {
 		owners = append(owners, owner.GetAddress())
 	}
@@ -40,7 +43,8 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 		}
 		btxs = append(btxs, b)
 	}
-	return nsbClient.CreateISC(s.signer, []uint32{0, 0, 0}, owners, nil, s.signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})))
+	fmt.Println("accs", owners)
+	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, nil, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})))
 }
 func (s *SerialSessionStartService) SessionStart() ([]byte, error) {
 	var ses = new(session.SerialSession)

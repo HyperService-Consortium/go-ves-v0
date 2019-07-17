@@ -20,7 +20,7 @@ import (
 	nmath "github.com/HyperServiceOne/NSB/math"
 	mt19937 "github.com/Myriad-Dreamin/go-ves/math/mt19937"
 	bytes_pool "github.com/Myriad-Dreamin/go-ves/net/bytes_pool"
-	jsonrpc_client "github.com/Myriad-Dreamin/go-ves/net/rpc_client"
+	jsonrpc_client "github.com/Myriad-Dreamin/go-ves/net/rpc-client"
 )
 
 const (
