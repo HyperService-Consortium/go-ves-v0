@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 

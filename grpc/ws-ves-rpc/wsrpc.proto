@@ -1,0 +1,10 @@
+
+syntax = "proto3";
+
+
+// 1
+message Message {
+    string contents = 1;
+    bytes from = 2;
+    bytes to = 3;
+}

@@ -1,13 +1,8 @@
 package main
 
 import (
-	"log"
-	"net"
-
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 const port = ":23351"
@@ -17,22 +12,26 @@ type Server struct {
 
 func (server *Server) SayHello(
 	ctx context.Context,
-	in *uiprpc.HelloRequest,
-) (*uiprpc.HelloReply, error) {
-	return &uiprpc.HelloReply{Message: "Hello " + in.Name}, nil
+	in *uiprpc.UserRegisterRequest,
+) (*uiprpc.UserRegisterReply, error) {
+	return &uiprpc.UserRegisterReply{Ok: true}, nil
 }
 
 func main() {
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
 
-	s := grpc.NewServer()
-
-	uiprpc.RegisterGreeterServer(s, &Server{})
-	reflection.Register(s)
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
 }
+
+// func main() {
+// 	lis, err := net.Listen("tcp", port)
+// 	if err != nil {
+// 		log.Fatalf("failed to listen: %v", err)
+// 	}
+//
+// 	s := grpc.NewServer()
+//
+// 	uiprpc.RegisterVESServer(s, &Server{})
+// 	reflection.Register(s)
+// 	if err := s.Serve(lis); err != nil {
+// 		log.Fatalf("failed to serve: %v", err)
+// 	}
+// }

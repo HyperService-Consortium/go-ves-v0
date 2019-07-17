@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/context"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
 	nsbcli "github.com/Myriad-Dreamin/go-ves/net/nsb_client"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"

@@ -6,7 +6,7 @@ import (
 
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"

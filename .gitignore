@@ -5,3 +5,4 @@
 database/index/testdb/*
 go.sum
 go.mod
+*.log
