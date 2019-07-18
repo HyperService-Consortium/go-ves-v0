@@ -7,12 +7,14 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/ws-ves-rpc"
+	"github.com/Myriad-Dreamin/go-ves/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 )
@@ -59,6 +61,8 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+
+	vesdb types.VESDB
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -95,6 +99,26 @@ func (c *Client) readPump() {
 			fmt.Println(s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
 			var qwq, err = wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeMessageReply, &s)
 
+			if err != nil {
+				fmt.Println("err: ", qwq)
+				continue
+			}
+			c.hub.broadcast <- qwq.Bytes()
+			wsrpc.GetDefaultSerializer().Put(qwq)
+		case wsrpc.SetNameRequest:
+			var s wsrpc.Message
+			proto.Unmarshal(buf.Bytes(), &s)
+			usr, err := c.vesdb.FindUser(string(s.GetFrom()))
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			cont, err := json.Marshal(usr.GetAccounts())
+			if err != nil {
+				return
+			}
+			s.Contents = string(cont)
+			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.SetNameReply, &s)
 			if err != nil {
 				fmt.Println("err: ", qwq)
 				continue

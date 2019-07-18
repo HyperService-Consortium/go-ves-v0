@@ -103,8 +103,15 @@ func (ws *WSClient) write() {
 		switch string(b) {
 		case "set-name ":
 			ws.setName(buf.Bytes())
-
 			fmt.Println("from =", string(ws.getName()), ws.getName())
+			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.SetNameRequest, &ws.msg)
+			if err != nil {
+				log.Fatal(err)
+				return
+			}
+			ws.conn.WriteMessage(websocket.BinaryMessage, qwq.Bytes())
+			qwq.Reset()
+			wsrpc.GetDefaultSerializer().Put(qwq)
 		case "send-to ":
 			ws.msg.To, err = buf.ReadBytes(' ')
 			if err != nil {
