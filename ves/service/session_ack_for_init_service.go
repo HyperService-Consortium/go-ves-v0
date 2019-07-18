@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -16,11 +17,27 @@ type SessionAckForInitService struct {
 }
 
 func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error) {
-	if err := errors.New("TODO"); err != nil {
-		return nil, err
+	ses, err := s.FindSessionInfo(s.SessionId)
+
+	// todo: get Session Acked from isc
+	// nsbClient.
+
+	if err == nil {
+		var success bool
+		var help_info string
+		success, help_info, err = ses.AckForInit(s.GetUser(), s.GetUserSignature())
+		if err != nil {
+			// todo, log
+			return nil, fmt.Errorf("internal error: %v", err)
+		} else if !success {
+			return nil, errors.New(help_info)
+		} else {
+
+			return &uiprpc.SessionAckForInitReply{
+				Ok: true,
+			}, nil
+		}
 	} else {
-		return &uiprpc.SessionAckForInitReply{
-			Ok: true,
-		}, nil
+		return nil, err
 	}
 }

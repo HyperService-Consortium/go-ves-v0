@@ -1,8 +1,6 @@
 package service
 
 import (
-	"errors"
-
 	"golang.org/x/net/context"
 
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
@@ -16,7 +14,9 @@ type SessionRequireTransactService struct {
 }
 
 func (s SessionRequireTransactService) Serve() (*uiprpc.SessionRequireTransactReply, error) {
-	if err := errors.New("TODO"); err != nil {
+	// todo errors.New("TODO")
+	var err error
+	if err != nil {
 		return nil, err
 	} else {
 		return &uiprpc.SessionRequireTransactReply{
