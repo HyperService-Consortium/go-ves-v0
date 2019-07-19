@@ -13,14 +13,23 @@ message ClientHello {
     bytes name = 1;
 }
 
+message ClientHelloReply {
+    bytes grpc_host = 1;
+    bytes nsb_host = 2;
+}
+
 message RequestComing {
     bytes session_id = 1;
     bytes grpc_host = 2;
     bytes nsb_host = 3;
 }
 
-message RequestGrpcService {
+message RequestGrpcServiceRequest {
     bytes name = 1;
+}
+
+message RequestGrpcServiceReply {
+    bytes grpc_host = 1;
 }
 
 message SessionList {

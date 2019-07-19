@@ -7,7 +7,6 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -30,12 +29,20 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 4 * 1024
 )
 
 var (
 	newline = []byte{'\n'}
 	space   = []byte{' '}
+
+	// nsb ip
+	nsbip = []byte{47, 251, 2, 73, ':', uint8(26657 >> 8), uint8(26657 & 0xff)}
+
+	// grpc ips
+	grpcips = [][]byte{
+		[]byte{127, 0, 0, 1, ':', uint8(23351 >> 8), uint8(23351 & 0xff)},
+	}
 )
 
 var upgrader = websocket.Upgrader{
@@ -53,11 +60,8 @@ type Client struct {
 	// The websocket connection.
 	conn *websocket.Conn
 
-	// owned addresses
-	addresses [][]byte
-
-	// owned name
-	name []byte
+	// owned user
+	user types.User
 
 	// Buffered channel of outbound messages.
 	send chan []byte
@@ -89,9 +93,9 @@ func (c *Client) readPump() {
 		fmt.Println("reading message", string(message))
 
 		var buf = bytes.NewBuffer(message)
-		var message_id uint16
-		binary.Read(buf, binary.BigEndian, &message_id)
-		switch message_id {
+		var messageID uint16
+		binary.Read(buf, binary.BigEndian, &messageID)
+		switch messageID {
 		case wsrpc.CodeMessageRequest:
 
 			var s wsrpc.Message
@@ -100,30 +104,29 @@ func (c *Client) readPump() {
 			var qwq, err = wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeMessageReply, &s)
 
 			if err != nil {
-				fmt.Println("err: ", qwq)
+				log.Println("err: ", qwq)
 				continue
 			}
 			c.hub.broadcast <- qwq.Bytes()
 			wsrpc.GetDefaultSerializer().Put(qwq)
-		case wsrpc.SetNameRequest:
-			var s wsrpc.Message
+		case wsrpc.CodeClientHelloRequest:
+			var s wsrpc.ClientHello
 			proto.Unmarshal(buf.Bytes(), &s)
-			usr, err := c.vesdb.FindUser(string(s.GetFrom()))
+			c.user, err = c.vesdb.FindUser(string(s.GetName()))
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
-			cont, err := json.Marshal(usr.GetAccounts())
+
+			var t wsrpc.ClientHelloReply
+			t.GrpcHost = grpcips[0]
+			t.NsbHost = nsbip
+			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeClientHelloReply, &t)
 			if err != nil {
-				return
-			}
-			s.Contents = string(cont)
-			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.SetNameReply, &s)
-			if err != nil {
-				fmt.Println("err: ", qwq)
+				log.Println("err: ", err)
 				continue
 			}
-			c.hub.broadcast <- qwq.Bytes()
+			c.hub.unicast <- &uniMessage{placeHolderChain, s.GetName(), qwq.Bytes()}
 			wsrpc.GetDefaultSerializer().Put(qwq)
 		default:
 			fmt.Println("aborting message", string(message))
@@ -179,20 +182,4 @@ func (c *Client) writePump() {
 			}
 		}
 	}
-}
-
-// serveWs handles websocket requests from the peer.
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
-	client.hub.register <- client
-
-	// Allow collection of memory referenced by the caller by doing all work in
-	// new goroutines.
-	go client.writePump()
-	go client.readPump()
 }

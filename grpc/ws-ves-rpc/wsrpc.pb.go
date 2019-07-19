@@ -115,6 +115,53 @@ func (m *ClientHello) GetName() []byte {
 	return nil
 }
 
+type ClientHelloReply struct {
+	GrpcHost             []byte   `protobuf:"bytes,1,opt,name=grpc_host,json=grpcHost,proto3" json:"grpc_host,omitempty"`
+	NsbHost              []byte   `protobuf:"bytes,2,opt,name=nsb_host,json=nsbHost,proto3" json:"nsb_host,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ClientHelloReply) Reset()         { *m = ClientHelloReply{} }
+func (m *ClientHelloReply) String() string { return proto.CompactTextString(m) }
+func (*ClientHelloReply) ProtoMessage()    {}
+func (*ClientHelloReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b2e2d651803ed170, []int{2}
+}
+
+func (m *ClientHelloReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ClientHelloReply.Unmarshal(m, b)
+}
+func (m *ClientHelloReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ClientHelloReply.Marshal(b, m, deterministic)
+}
+func (m *ClientHelloReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClientHelloReply.Merge(m, src)
+}
+func (m *ClientHelloReply) XXX_Size() int {
+	return xxx_messageInfo_ClientHelloReply.Size(m)
+}
+func (m *ClientHelloReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClientHelloReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ClientHelloReply proto.InternalMessageInfo
+
+func (m *ClientHelloReply) GetGrpcHost() []byte {
+	if m != nil {
+		return m.GrpcHost
+	}
+	return nil
+}
+
+func (m *ClientHelloReply) GetNsbHost() []byte {
+	if m != nil {
+		return m.NsbHost
+	}
+	return nil
+}
+
 type RequestComing struct {
 	SessionId            []byte   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	GrpcHost             []byte   `protobuf:"bytes,2,opt,name=grpc_host,json=grpcHost,proto3" json:"grpc_host,omitempty"`
@@ -128,7 +175,7 @@ func (m *RequestComing) Reset()         { *m = RequestComing{} }
 func (m *RequestComing) String() string { return proto.CompactTextString(m) }
 func (*RequestComing) ProtoMessage()    {}
 func (*RequestComing) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b2e2d651803ed170, []int{2}
+	return fileDescriptor_b2e2d651803ed170, []int{3}
 }
 
 func (m *RequestComing) XXX_Unmarshal(b []byte) error {
@@ -170,41 +217,80 @@ func (m *RequestComing) GetNsbHost() []byte {
 	return nil
 }
 
-type RequestGrpcService struct {
+type RequestGrpcServiceRequest struct {
 	Name                 []byte   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *RequestGrpcService) Reset()         { *m = RequestGrpcService{} }
-func (m *RequestGrpcService) String() string { return proto.CompactTextString(m) }
-func (*RequestGrpcService) ProtoMessage()    {}
-func (*RequestGrpcService) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b2e2d651803ed170, []int{3}
+func (m *RequestGrpcServiceRequest) Reset()         { *m = RequestGrpcServiceRequest{} }
+func (m *RequestGrpcServiceRequest) String() string { return proto.CompactTextString(m) }
+func (*RequestGrpcServiceRequest) ProtoMessage()    {}
+func (*RequestGrpcServiceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b2e2d651803ed170, []int{4}
 }
 
-func (m *RequestGrpcService) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_RequestGrpcService.Unmarshal(m, b)
+func (m *RequestGrpcServiceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RequestGrpcServiceRequest.Unmarshal(m, b)
 }
-func (m *RequestGrpcService) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_RequestGrpcService.Marshal(b, m, deterministic)
+func (m *RequestGrpcServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RequestGrpcServiceRequest.Marshal(b, m, deterministic)
 }
-func (m *RequestGrpcService) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RequestGrpcService.Merge(m, src)
+func (m *RequestGrpcServiceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RequestGrpcServiceRequest.Merge(m, src)
 }
-func (m *RequestGrpcService) XXX_Size() int {
-	return xxx_messageInfo_RequestGrpcService.Size(m)
+func (m *RequestGrpcServiceRequest) XXX_Size() int {
+	return xxx_messageInfo_RequestGrpcServiceRequest.Size(m)
 }
-func (m *RequestGrpcService) XXX_DiscardUnknown() {
-	xxx_messageInfo_RequestGrpcService.DiscardUnknown(m)
+func (m *RequestGrpcServiceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RequestGrpcServiceRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RequestGrpcService proto.InternalMessageInfo
+var xxx_messageInfo_RequestGrpcServiceRequest proto.InternalMessageInfo
 
-func (m *RequestGrpcService) GetName() []byte {
+func (m *RequestGrpcServiceRequest) GetName() []byte {
 	if m != nil {
 		return m.Name
+	}
+	return nil
+}
+
+type RequestGrpcServiceReply struct {
+	GrpcHost             []byte   `protobuf:"bytes,1,opt,name=grpc_host,json=grpcHost,proto3" json:"grpc_host,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RequestGrpcServiceReply) Reset()         { *m = RequestGrpcServiceReply{} }
+func (m *RequestGrpcServiceReply) String() string { return proto.CompactTextString(m) }
+func (*RequestGrpcServiceReply) ProtoMessage()    {}
+func (*RequestGrpcServiceReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b2e2d651803ed170, []int{5}
+}
+
+func (m *RequestGrpcServiceReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RequestGrpcServiceReply.Unmarshal(m, b)
+}
+func (m *RequestGrpcServiceReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RequestGrpcServiceReply.Marshal(b, m, deterministic)
+}
+func (m *RequestGrpcServiceReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RequestGrpcServiceReply.Merge(m, src)
+}
+func (m *RequestGrpcServiceReply) XXX_Size() int {
+	return xxx_messageInfo_RequestGrpcServiceReply.Size(m)
+}
+func (m *RequestGrpcServiceReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_RequestGrpcServiceReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RequestGrpcServiceReply proto.InternalMessageInfo
+
+func (m *RequestGrpcServiceReply) GetGrpcHost() []byte {
+	if m != nil {
+		return m.GrpcHost
 	}
 	return nil
 }
@@ -221,7 +307,7 @@ func (m *SessionList) Reset()         { *m = SessionList{} }
 func (m *SessionList) String() string { return proto.CompactTextString(m) }
 func (*SessionList) ProtoMessage()    {}
 func (*SessionList) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b2e2d651803ed170, []int{4}
+	return fileDescriptor_b2e2d651803ed170, []int{6}
 }
 
 func (m *SessionList) XXX_Unmarshal(b []byte) error {
@@ -268,7 +354,7 @@ func (m *TransactionList) Reset()         { *m = TransactionList{} }
 func (m *TransactionList) String() string { return proto.CompactTextString(m) }
 func (*TransactionList) ProtoMessage()    {}
 func (*TransactionList) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b2e2d651803ed170, []int{5}
+	return fileDescriptor_b2e2d651803ed170, []int{7}
 }
 
 func (m *TransactionList) XXX_Unmarshal(b []byte) error {
@@ -299,8 +385,10 @@ func (m *TransactionList) GetTransactions() [][]byte {
 func init() {
 	proto.RegisterType((*Message)(nil), "Message")
 	proto.RegisterType((*ClientHello)(nil), "ClientHello")
+	proto.RegisterType((*ClientHelloReply)(nil), "ClientHelloReply")
 	proto.RegisterType((*RequestComing)(nil), "RequestComing")
-	proto.RegisterType((*RequestGrpcService)(nil), "RequestGrpcService")
+	proto.RegisterType((*RequestGrpcServiceRequest)(nil), "RequestGrpcServiceRequest")
+	proto.RegisterType((*RequestGrpcServiceReply)(nil), "RequestGrpcServiceReply")
 	proto.RegisterType((*SessionList)(nil), "SessionList")
 	proto.RegisterType((*TransactionList)(nil), "TransactionList")
 }
@@ -308,23 +396,25 @@ func init() {
 func init() { proto.RegisterFile("wsrpc.proto", fileDescriptor_b2e2d651803ed170) }
 
 var fileDescriptor_b2e2d651803ed170 = []byte{
-	// 279 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x91, 0x41, 0x4f, 0xb3, 0x40,
-	0x10, 0x86, 0xd3, 0xf6, 0xcb, 0x57, 0x18, 0xb0, 0x9a, 0x3d, 0xa1, 0xc6, 0x58, 0x39, 0x71, 0xf2,
-	0x62, 0xfc, 0x05, 0x3d, 0xd8, 0x26, 0xea, 0x81, 0x7a, 0xf0, 0x46, 0x60, 0x19, 0x70, 0x13, 0xd8,
-	0xc5, 0x9d, 0xa9, 0xfe, 0x7d, 0x03, 0x6c, 0x69, 0x4c, 0xbc, 0x0d, 0xcf, 0xb0, 0xef, 0xfb, 0x64,
-	0x17, 0x82, 0x6f, 0xb2, 0x9d, 0xbc, 0xef, 0xac, 0x61, 0x13, 0xef, 0x60, 0xf9, 0x82, 0x44, 0x79,
-	0x8d, 0xe2, 0x0a, 0x3c, 0x69, 0x34, 0xa3, 0x66, 0x8a, 0x66, 0xeb, 0x59, 0xe2, 0xa7, 0xd3, 0xb7,
-	0x10, 0xf0, 0xaf, 0xb2, 0xa6, 0x8d, 0xe6, 0xeb, 0x59, 0x12, 0xa6, 0xc3, 0x2c, 0x56, 0x30, 0x67,
-	0x13, 0x2d, 0x06, 0x32, 0x67, 0x13, 0xdf, 0x41, 0xb0, 0x69, 0x14, 0x6a, 0xde, 0x62, 0xd3, 0x98,
-	0xfe, 0x88, 0xce, 0x5b, 0x1c, 0xa2, 0xc2, 0x74, 0x98, 0xe3, 0x0a, 0xce, 0x52, 0xfc, 0x3c, 0x20,
-	0xf1, 0xc6, 0xb4, 0x4a, 0xd7, 0xe2, 0x06, 0x80, 0x90, 0x48, 0x19, 0x9d, 0xa9, 0xd2, 0xfd, 0xea,
-	0x3b, 0xb2, 0x2b, 0xc5, 0x35, 0xf8, 0xb5, 0xed, 0x64, 0xf6, 0x61, 0x88, 0x5d, 0xb7, 0xd7, 0x83,
-	0xad, 0x21, 0x16, 0x97, 0xe0, 0x69, 0x2a, 0xc6, 0xdd, 0x68, 0xb1, 0xd4, 0x54, 0xf4, 0xab, 0x38,
-	0x01, 0xe1, 0x7a, 0x9e, 0x6c, 0x27, 0xf7, 0x68, 0xbf, 0x94, 0xc4, 0x3f, 0x8d, 0xde, 0x21, 0xd8,
-	0x8f, 0x75, 0xcf, 0x8a, 0x58, 0xdc, 0x42, 0x70, 0xf2, 0xe9, 0xaf, 0x61, 0x91, 0x84, 0x29, 0x4c,
-	0x42, 0x24, 0x12, 0xb8, 0x28, 0xb1, 0xca, 0x0f, 0x0d, 0x67, 0x53, 0xf9, 0x28, 0xb6, 0x72, 0xfc,
-	0xd5, 0x39, 0x3c, 0xc2, 0xf9, 0x9b, 0xcd, 0x35, 0xe5, 0x92, 0x8f, 0xe9, 0x31, 0x84, 0x7c, 0x42,
-	0xc7, 0xf8, 0x5f, 0xac, 0xf8, 0x3f, 0xbc, 0xcb, 0xc3, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x04,
-	0x6f, 0x74, 0xba, 0xa6, 0x01, 0x00, 0x00,
+	// 307 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x41, 0x4f, 0xc2, 0x40,
+	0x10, 0x85, 0x43, 0x31, 0x02, 0xd3, 0x8a, 0x64, 0x2f, 0x82, 0xc6, 0x88, 0x3d, 0xf5, 0xa4, 0x07,
+	0xa3, 0x7f, 0x80, 0x83, 0x60, 0xd4, 0xc3, 0xe2, 0xc1, 0x1b, 0x29, 0xcb, 0x80, 0x9b, 0x94, 0xdd,
+	0xba, 0x33, 0x68, 0xfc, 0xf7, 0xa6, 0x65, 0x01, 0x6b, 0x88, 0xde, 0xa6, 0xdf, 0xcc, 0xbc, 0xd7,
+	0xb7, 0xbb, 0x10, 0x7e, 0x92, 0xcb, 0xd5, 0x55, 0xee, 0x2c, 0xdb, 0x78, 0x04, 0x8d, 0x27, 0x24,
+	0x4a, 0x17, 0x28, 0x4e, 0xa1, 0xa9, 0xac, 0x61, 0x34, 0x4c, 0xdd, 0x5a, 0xbf, 0x96, 0xb4, 0xe4,
+	0xf6, 0x5b, 0x08, 0x38, 0x98, 0x3b, 0xbb, 0xec, 0x06, 0xfd, 0x5a, 0x12, 0xc9, 0xb2, 0x16, 0x6d,
+	0x08, 0xd8, 0x76, 0xeb, 0x25, 0x09, 0xd8, 0xc6, 0x97, 0x10, 0x0e, 0x32, 0x8d, 0x86, 0x87, 0x98,
+	0x65, 0xb6, 0x58, 0x31, 0xe9, 0x12, 0x4b, 0xa9, 0x48, 0x96, 0x75, 0xfc, 0x00, 0x9d, 0x1f, 0x23,
+	0x12, 0xf3, 0xec, 0x4b, 0x9c, 0x41, 0x6b, 0xe1, 0x72, 0x35, 0x79, 0xb3, 0xc4, 0x7e, 0xb8, 0x59,
+	0x80, 0xa1, 0x25, 0x16, 0x3d, 0x68, 0x1a, 0x9a, 0xae, 0x7b, 0x6b, 0xef, 0x86, 0xa1, 0x69, 0xd1,
+	0x8a, 0xe7, 0x70, 0x24, 0xf1, 0x7d, 0x85, 0xc4, 0x03, 0xbb, 0xd4, 0x66, 0x21, 0xce, 0x01, 0x08,
+	0x89, 0xb4, 0x35, 0x13, 0x3d, 0xf3, 0x4a, 0x2d, 0x4f, 0x46, 0xb3, 0xaa, 0x4f, 0xf0, 0x87, 0x4f,
+	0xbd, 0xea, 0x73, 0x0d, 0x3d, 0xef, 0x73, 0xef, 0x72, 0x35, 0x46, 0xf7, 0xa1, 0x15, 0x7a, 0xb2,
+	0x37, 0xe4, 0x1d, 0x9c, 0xec, 0x5b, 0xf8, 0x2f, 0x6b, 0xfc, 0x0a, 0xe1, 0x78, 0xfd, 0xb7, 0x8f,
+	0x9a, 0x58, 0x5c, 0x40, 0xb8, 0x8b, 0x53, 0xdc, 0x48, 0x3d, 0x89, 0x24, 0x6c, 0xf3, 0x90, 0x48,
+	0xa0, 0x33, 0xc3, 0x79, 0xba, 0xca, 0x78, 0xf2, 0xeb, 0x8c, 0xda, 0x9e, 0x3f, 0xfb, 0x08, 0xb7,
+	0x70, 0xfc, 0xe2, 0x52, 0x43, 0xa9, 0xe2, 0x8d, 0x7a, 0x0c, 0x11, 0xef, 0xd0, 0x46, 0xbe, 0xc2,
+	0xa6, 0x87, 0xe5, 0x13, 0xb9, 0xf9, 0x0e, 0x00, 0x00, 0xff, 0xff, 0xa7, 0xc4, 0x44, 0x09, 0x31,
+	0x02, 0x00, 0x00,
 }
