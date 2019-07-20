@@ -65,8 +65,6 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
-
-	vesdb types.VESDB
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -99,20 +97,28 @@ func (c *Client) readPump() {
 		case wsrpc.CodeMessageRequest:
 
 			var s wsrpc.Message
-			proto.Unmarshal(buf.Bytes(), &s)
+			err = proto.Unmarshal(buf.Bytes(), &s)
+			if err != nil {
+				log.Println("err:", err)
+			}
 			fmt.Println(s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
 			var qwq, err = wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeMessageReply, &s)
 
 			if err != nil {
-				log.Println("err: ", qwq)
+				log.Println("err:", qwq)
 				continue
 			}
 			c.hub.broadcast <- qwq.Bytes()
 			wsrpc.GetDefaultSerializer().Put(qwq)
 		case wsrpc.CodeClientHelloRequest:
 			var s wsrpc.ClientHello
-			proto.Unmarshal(buf.Bytes(), &s)
-			c.user, err = c.vesdb.FindUser(string(s.GetName()))
+			err = proto.Unmarshal(buf.Bytes(), &s)
+			if err != nil {
+				log.Println("err:", err)
+			}
+
+			c.user, err = c.hub.server.vesdb.FindUser(string(s.GetName()))
+
 			if err != nil {
 				log.Println(err)
 				continue
@@ -123,11 +129,23 @@ func (c *Client) readPump() {
 			t.NsbHost = nsbip
 			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeClientHelloReply, &t)
 			if err != nil {
-				log.Println("err: ", err)
+				log.Println("err:", err)
 				continue
 			}
 			c.hub.unicast <- &uniMessage{placeHolderChain, s.GetName(), qwq.Bytes()}
 			wsrpc.GetDefaultSerializer().Put(qwq)
+		case wsrpc.CodeUserRegisterRequest:
+			var s wsrpc.UserRegisterRequest
+			err = proto.Unmarshal(buf.Bytes(), &s)
+			if err != nil {
+				log.Println("err:", err)
+			}
+
+			err = c.hub.server.vesdb.InsertAccount(s.GetUserName(), s.GetAccount())
+			if err != nil {
+				log.Println("err:", err)
+				continue
+			}
 		default:
 			fmt.Println("aborting message", string(message))
 			// abort

@@ -18,10 +18,14 @@ message ClientHelloReply {
     bytes nsb_host = 2;
 }
 
-message RequestComing {
+message RequestComingRequest {
     bytes session_id = 1;
     bytes grpc_host = 2;
     bytes nsb_host = 3;
+}
+
+message RequestComingReply {
+    bool ok = 1;
 }
 
 message RequestGrpcServiceRequest {
@@ -32,12 +36,44 @@ message RequestGrpcServiceReply {
     bytes grpc_host = 1;
 }
 
-message SessionList {
-    repeated bytes session_ids = 1;
-    bytes default_nsb_host = 2;
+message RequestNsbServiceRequest {
+    bytes name = 1;
 }
 
-message TransactionList {
+message RequestNsbServiceReply {
+    bytes nsb_host = 1;
+}
+
+message SessionListRequest {
+}
+
+message SessionListReply {
+    repeated bytes session_ids = 1;
+    repeated bytes grpc_host = 2;
+    bytes default_nsb_host = 3;
+}
+
+message TransactionListRequest {
+}
+
+message TransactionListReply {
     // with help info
     repeated bytes transactions = 1;
+    repeated bytes grpc_host = 2;
+    bytes default_nsb_host = 3;
+}
+
+message Account {
+    uint64 chain_id = 1;
+    bytes address = 2;
+}
+
+message UserRegisterRequest {
+    Account account = 1;
+    string user_name = 2;
+}
+
+message UserRegisterReply {
+    bool ok = 1;
+    uint64 characteristic_flag = 2;
 }

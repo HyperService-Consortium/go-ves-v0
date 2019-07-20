@@ -32,3 +32,11 @@ func (ldx *LevelDBIndex) Batch(ks, vs [][]byte) error {
 	}
 	return ldx.db.Write(batch, nil)
 }
+
+func GetIndex(filePath string) (*LevelDBIndex, error) {
+	db, err := leveldb.OpenFile(filePath, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &LevelDBIndex{db: db}, nil
+}

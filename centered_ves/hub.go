@@ -45,6 +45,8 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *Client
+
+	server *Server
 }
 
 func newHub() *Hub {

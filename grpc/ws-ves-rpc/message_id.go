@@ -11,20 +11,29 @@ const (
 	// CodeMessageReply is from server to client
 	CodeMessageReply
 
-	// CodeClientHelloRequest is from server to client
+	// CodeClientHelloRequest is from client to server
 	CodeClientHelloRequest
 
-	// CodeClientHelloReply is from client to server
+	// CodeClientHelloReply is from server to client
 	CodeClientHelloReply
 
-	// CodeRequestComing is from server to client
-	CodeRequestComing
+	// CodeRequestComingRequest is from server to client
+	CodeRequestComingRequest
+
+	// CodeRequestComingReply is from client to server
+	CodeRequestComingReply
 
 	// CodeRequestGrpcServiceRequest is from client to server
 	CodeRequestGrpcServiceRequest
 
 	// CodeRequestGrpcServiceReply is from server to client
 	CodeRequestGrpcServiceReply
+
+	// CodeRequestNsbServiceRequest is from client to server
+	CodeRequestNsbServiceRequest
+
+	// CodeRequestNsbServiceReply is from server to client
+	CodeRequestNsbServiceReply
 
 	// CodeSessionListRequest is from client to server
 	CodeSessionListRequest
@@ -37,4 +46,10 @@ const (
 
 	// CodeTransactionListReply is from server to client
 	CodeTransactionListReply
+
+	// CodeUserRegisterRequest is from client to server
+	CodeUserRegisterRequest
+
+	// CodeUserRegisterReply is from server to client
+	CodeUserRegisterReply
 )
