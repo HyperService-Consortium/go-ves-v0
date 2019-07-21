@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -14,7 +15,9 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 	"unsafe"
 
@@ -23,40 +26,76 @@ import (
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/ws-ves-rpc"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
+	"google.golang.org/grpc"
 
 	filedb "github.com/Myriad-Dreamin/go-ves/database/filedb"
 )
 
+const (
+	dataPrefix = "./data"
+)
+
+// ECCKey is the private key object in memory
 type ECCKey struct {
 	PrivateKey []byte `json:"private_key"`
 	ChainID    uint64 `json:"chain_id"`
 }
 
+// ECCKeyAlias is the private key object in json
 type ECCKeyAlias struct {
 	PrivateKey string `json:"private_key"`
 	ChainID    uint64 `json:"chain_id"`
 	Alias      string `json:"alias"`
 }
 
+// EthAccount is the account object in memory
 type EthAccount struct {
 	Address    string `json:"address"`
 	ChainID    uint64 `json:"chain_id"`
 	PassPhrase string `json:"pass_phrase"`
 }
 
+// EthAccountAlias is the account object in json
 type EthAccountAlias struct {
 	EthAccount
 	Alias string `json:"alias"`
 }
 
+// ECCKeys is the object saved in files
 type ECCKeys struct {
 	Keys  []*ECCKey
 	Alias map[string]ECCKey
 }
 
+// EthAccounts is the object saved in files
 type EthAccounts struct {
 	Accs  []*EthAccount
 	Alias map[string]EthAccount
+}
+
+type handler struct {
+	funcs []func()
+}
+
+func (h *handler) register(atexit func()) {
+	h.funcs = append(h.funcs, atexit)
+}
+
+func (h *handler) atExit() {
+	osQuitSignalChan := make(chan os.Signal)
+	signal.Notify(osQuitSignalChan, os.Kill, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT,
+		syscall.SIGKILL, syscall.SIGILL, syscall.SIGTERM,
+	)
+	for {
+		select {
+		case osc := <-osQuitSignalChan:
+			log.Println("handlering:", osc)
+			for _, f := range h.funcs {
+				f()
+			}
+			return
+		}
+	}
 }
 
 // VesClient is the web socket client interactive with veses
@@ -65,7 +104,8 @@ type VesClient struct {
 
 	name []byte
 
-	cb chan *bytes.Buffer
+	cb   chan *bytes.Buffer
+	quit chan bool
 
 	shortSendMessage          *wsrpc.Message
 	shortReplyMessage         *wsrpc.Message
@@ -96,47 +136,77 @@ type VesClient struct {
 	grpcip string
 }
 
-func NewVesClient(dbpath string) (*VesClient, error) {
-	if fdb, err := filedb.NewFileDB(dbpath); err != nil {
-		return nil, err
-	} else {
-		return (&VesClient{
-			fdb: fdb,
-			cb:  make(chan *bytes.Buffer, 1),
-		}).predo()
+// NewVesClient return a pointer of VesClinet
+func NewVesClient() (vc *VesClient, err error) {
+	vc = &VesClient{
+		cb:   make(chan *bytes.Buffer, 1),
+		quit: make(chan bool, 1),
 	}
+	return
 }
 
-func (vc *VesClient) predo() (*VesClient, error) {
+func (vc *VesClient) load(dbpath string) error {
+	var err, err2 error
 	filedb.Register(&ECCKeys{})
 	filedb.Register(&EthAccounts{})
-	ev, err := vc.fdb.ReadWithPath("keys")
-	if err != nil {
-		return nil, err
+	if vc.fdb, err = filedb.NewFileDB(dbpath); err != nil {
+		return err
 	}
+	var ev *filedb.ReadEvent
+	ev, err = vc.fdb.ReadWithPath("/keys.dat")
+	if err != nil {
+		goto bad_load_keys
+	}
+	vc.keys = new(ECCKeys)
+	vc.keys.Alias = make(map[string]ECCKey)
 	err = ev.Decode(vc.keys)
 	if err != nil {
-		return nil, err
+		goto bad_load_keys
 	}
 	err = ev.Settle()
 	if err != nil {
-		return nil, err
+		goto bad_load_keys
+	}
+bad_load_keys:
+	if err == io.EOF {
+		err = nil
 	}
 
-	ev, err = vc.fdb.ReadWithPath("accs")
-	if err != nil {
-		return nil, err
+	ev, err2 = vc.fdb.ReadWithPath("/accs.dat")
+	if err2 != nil {
+		goto bad_load_accs
 	}
-	err = ev.Decode(vc.accs)
-	if err != nil {
-		return nil, err
+	vc.accs = new(EthAccounts)
+	vc.accs.Alias = make(map[string]EthAccount)
+	err2 = ev.Decode(&vc.accs)
+	if err2 != nil {
+		goto bad_load_accs
 	}
-	err = ev.Settle()
-	if err != nil {
-		return nil, err
+	err2 = ev.Settle()
+	if err2 != nil {
+		goto bad_load_accs
 	}
 
-	return vc, nil
+	return err
+bad_load_accs:
+	if err2 == io.EOF {
+		err2 = err
+	} else {
+		if err != nil {
+			err2 = fmt.Errorf("error loading keys: %v, error loading accs: %v", err, err2)
+		}
+	}
+	return err2
+}
+
+func (vc *VesClient) save() {
+	var err error
+	if err = vc.updateKeys(); err != nil {
+		log.Println(err)
+	}
+	if err = vc.updateAccs(); err != nil {
+		log.Println(err)
+	}
 }
 
 func (vc *VesClient) setName(b []byte) {
@@ -170,11 +240,11 @@ func (vc *VesClient) updateFileObj(name string, obj interface{}) error {
 }
 
 func (vc *VesClient) updateKeys() error {
-	return vc.updateFileObj("keys", vc.keys)
+	return vc.updateFileObj("/keys.dat", vc.keys)
 }
 
 func (vc *VesClient) updateAccs() error {
-	return vc.updateFileObj("accs", vc.accs)
+	return vc.updateFileObj("/accs.dat", vc.accs)
 }
 
 func (vc *VesClient) getClientHello() *wsrpc.ClientHello {
@@ -323,11 +393,11 @@ func (vc *VesClient) postMessage(code wsrpc.MessageType, msg proto.Message) erro
 
 func (vc *VesClient) write() {
 	var (
-		reader                                         = bufio.NewReader(os.Stdin)
-		cmdBytes, toBytes, filePath, alias, fileBuffer []byte
-		buf                                            *bytes.Buffer
+		reader                             = bufio.NewReader(os.Stdin)
+		cmdBytes, toBytes, filePath, alias []byte
+		fileBuffer                         = make([]byte, 65536)
+		buf                                *bytes.Buffer
 	)
-	fileBuffer = make([]byte, 65536)
 	for {
 		strBytes, _, err := reader.ReadLine()
 		if err != nil {
@@ -362,7 +432,6 @@ func (vc *VesClient) write() {
 				fmt.Println(err)
 				continue
 			}
-
 			if err = vc.sendMessage(
 				bytes.TrimSpace(toBytes),
 				bytes.TrimSpace(buf.Bytes()),
@@ -423,6 +492,37 @@ func (vc *VesClient) write() {
 				fmt.Println(err)
 				continue
 			}
+		case "keys":
+			fmt.Println("privatekeys -> publickeys:")
+			for alias, key := range vc.keys.Alias {
+				fmt.Println(
+					"alias:", alias,
+					"public key:", hex.EncodeToString(signaturer.NewTendermintNSBSigner(key.PrivateKey).GetPublicKey()),
+					"chain id:", key.ChainID,
+				)
+			}
+			fmt.Println("ethAccounts:")
+			for alias, acc := range vc.accs.Alias {
+				fmt.Println(
+					"alias:", alias,
+					"public address:", acc.Address,
+					"chain id:", acc.ChainID,
+				)
+			}
+		case "send-op-intents":
+			filePath, err = buf.ReadBytes(' ')
+			if err != nil && err != io.EOF {
+				fmt.Println(err)
+				continue
+			}
+
+			if err = vc.sendOpIntents(
+				bytes.TrimSpace(filePath),
+				fileBuffer,
+			); err != nil {
+				fmt.Println(err)
+				continue
+			}
 		}
 
 	}
@@ -433,11 +533,10 @@ func (vc *VesClient) registerKey(filePath, fileBuffer []byte) error {
 	if err != nil {
 		return err
 	}
-
 	var n int
 	n, err = io.ReadFull(file, fileBuffer)
 	file.Close()
-	if err != nil {
+	if err != nil && err != io.ErrUnexpectedEOF {
 		return err
 	}
 	var ks = make([]*ECCKeyAlias, 0)
@@ -485,7 +584,7 @@ func (vc *VesClient) configEth(filePath, fileBuffer []byte) error {
 	var n int
 	n, err = io.ReadFull(file, fileBuffer)
 	file.Close()
-	if err != nil {
+	if err != nil && err != io.ErrUnexpectedEOF {
 		return err
 	}
 	var as = make([]*EthAccountAlias, 0)
@@ -540,30 +639,31 @@ func (vc *VesClient) sendEthAlias(alias []byte) error {
 		if err != nil {
 			return err
 		}
-		for {
-			select {
-			case msgBuf := <-vc.cb:
-				var messageID uint16
-				binary.Read(msgBuf, binary.BigEndian, &messageID)
-				if messageID != wsrpc.CodeUserRegisterReply {
-					continue
-				}
-				var s = vc.getUserRegisterReply()
-				err = proto.Unmarshal(msgBuf.Bytes(), s)
-				if err != nil {
-					// ignoring
-					// todo: add hidden log
-					continue
-				}
-				//todo: checkCharacteristicFlag
-				if !s.GetOk() {
-					return errors.New("register user failed")
-				}
-				return nil
-			case <-time.After(time.Second * 5):
-				return errors.New("timeout")
-			}
-		}
+		return nil
+		// for {
+		// 	select {
+		// 	case msgBuf := <-vc.cb:
+		// 		var messageID uint16
+		// 		binary.Read(msgBuf, binary.BigEndian, &messageID)
+		// 		if messageID != wsrpc.CodeUserRegisterReply {
+		// 			continue
+		// 		}
+		// 		var s = vc.getUserRegisterReply()
+		// 		err = proto.Unmarshal(msgBuf.Bytes(), s)
+		// 		if err != nil {
+		// 			// ignoring
+		// 			// todo: add hidden log
+		// 			continue
+		// 		}
+		// 		//todo: checkCharacteristicFlag
+		// 		if !s.GetOk() {
+		// 			return errors.New("register user failed")
+		// 		}
+		// 		return nil
+		// 	case <-time.After(time.Second * 5):
+		// 		return errors.New("timeout")
+		// 	}
+		// }
 	}
 	return errors.New("not found")
 }
@@ -573,13 +673,69 @@ func (vc *VesClient) sendAlias(alias []byte) error {
 		userRegister := vc.getUserRegisterRequest()
 
 		signer := signaturer.NewTendermintNSBSigner(key.PrivateKey)
-
+		if signer == nil {
+			return errors.New("ilegal private key")
+		}
 		userRegister.Account = &wsrpc.Account{Address: signer.GetPublicKey(), ChainId: key.ChainID}
 		userRegister.UserName = *(*string)(unsafe.Pointer(&vc.name))
 
 		return vc.postMessage(wsrpc.CodeUserRegisterRequest, userRegister)
 	}
 	return errors.New("not found")
+}
+
+const (
+	//m_port   = ":23351"
+	mAddress = "127.0.0.1:23351"
+)
+
+func (vc *VesClient) sendOpIntents(filepath, fileBuffer []byte) error {
+	type obj map[string]interface{}
+	var opintent = obj{
+		"name":    "Op1",
+		"op_type": "Payment",
+		"src": obj{
+			"domain":    2,
+			"user_name": "a1",
+		},
+		"dst": obj{
+			"domain":    1,
+			"user_name": "a2",
+		},
+		"amount": "0x2e0",
+		"unit":   "wei",
+	}
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(mAddress, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := uiprpc.NewVESClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	var b []byte
+	b, err = json.Marshal(opintent)
+	if err != nil {
+		log.Fatalf("Marshal failed: %v", err)
+	}
+	fmt.Println(string(b))
+	r, err := c.SessionStart(
+		ctx,
+		&uiprpc.SessionStartRequest{
+			Opintents: &uiprpc.OpIntents{
+				Dependencies: nil,
+				Contents: [][]byte{
+					b,
+				},
+			},
+		})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+	fmt.Printf("Session Start: %v, %v\n", r.GetOk(), hex.EncodeToString(r.GetSessionId()))
+	return nil
 }
 
 func (vc *VesClient) sayClientHello(name []byte) error {
@@ -594,6 +750,8 @@ func (vc *VesClient) sendMessage(to, msg []byte) error {
 	shortSendMessage.From = vc.name
 	shortSendMessage.To = to
 	shortSendMessage.Contents = string(msg)
+
+	fmt.Println(to, msg)
 
 	return vc.postMessage(wsrpc.CodeMessageRequest, shortSendMessage)
 }
@@ -674,23 +832,50 @@ func decodeIP(ip []byte) (string, error) {
 }
 
 func main() {
+
+	log.SetFlags(log.Lshortfile | log.Ltime | log.Ldate)
 	var (
 		dialer        *websocket.Dialer
 		addr          = flag.String("addr", "localhost:23452", "http service address")
-		u             = url.URL{Scheme: "vc", Host: *addr, Path: "/"}
-		vcClient, err = NewVesClient("./data")
+		u             = url.URL{Scheme: "ws", Host: *addr, Path: "/"}
+		phandler      = new(handler)
+		vcClient, err = NewVesClient()
 	)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	fmt.Println("input your name:")
+
+	vcClient.name, _, err = bufio.NewReader(os.Stdin).ReadLine()
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	if err = vcClient.load(dataPrefix + "/" + string(vcClient.name)); err != nil {
+		log.Println(err)
+		return
+	}
+	phandler.register(vcClient.save)
 
 	vcClient.conn, _, err = dialer.Dial(u.String(), nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	go phandler.atExit()
+	go vcClient.read()
+
+	vcClient.sayClientHello(vcClient.name)
 
 	go vcClient.write()
-	go vcClient.read()
+
+	phandler.register(func() { vcClient.quit <- true })
+	// close
+	select {
+	case <-vcClient.quit:
+		return
+	}
 }

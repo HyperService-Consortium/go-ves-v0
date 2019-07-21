@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package centered_ves
 
 import (
 	"bytes"
@@ -65,6 +65,9 @@ type Client struct {
 
 	// Buffered channel of outbound messages.
 	send chan []byte
+
+	// client hello sended
+	helloed chan bool
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -118,10 +121,10 @@ func (c *Client) readPump() {
 			}
 
 			c.user, err = c.hub.server.vesdb.FindUser(string(s.GetName()))
-
+			fmt.Println(c.user, err)
 			if err != nil {
 				log.Println(err)
-				continue
+				return
 			}
 
 			var t wsrpc.ClientHelloReply
@@ -132,6 +135,7 @@ func (c *Client) readPump() {
 				log.Println("err:", err)
 				continue
 			}
+			c.helloed <- true
 			c.hub.unicast <- &uniMessage{placeHolderChain, s.GetName(), qwq.Bytes()}
 			wsrpc.GetDefaultSerializer().Put(qwq)
 		case wsrpc.CodeUserRegisterRequest:
@@ -142,6 +146,7 @@ func (c *Client) readPump() {
 			}
 
 			err = c.hub.server.vesdb.InsertAccount(s.GetUserName(), s.GetAccount())
+
 			if err != nil {
 				log.Println("err:", err)
 				continue

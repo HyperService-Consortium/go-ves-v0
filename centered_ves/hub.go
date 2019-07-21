@@ -2,11 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package centered_ves
 
 import (
+	"fmt"
 	"log"
+	"time"
 	"unsafe"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -64,6 +68,20 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
+			fmt.Println("hello...")
+			select {
+			case <-client.helloed:
+				fmt.Println("hello...")
+			case <-time.After(5 * time.Second):
+				message := websocket.FormatCloseMessage(
+					websocket.ClosePolicyViolation,
+					"client hello please",
+				)
+				client.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(2))
+				client.conn.Close()
+				return
+			}
+
 			h.clients[client] = true
 			for _, address := range client.user.GetAccounts() {
 				var a = address.GetAddress()
@@ -96,6 +114,7 @@ func (h *Hub) run() {
 			}
 		case message := <-h.broadcast:
 			for client := range h.clients {
+				fmt.Println("msg...", client.user, message)
 				select {
 				case client.send <- message:
 				default:

@@ -1,8 +1,11 @@
 package ves
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"net"
+	"time"
 
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
@@ -24,6 +27,7 @@ var (
 type Server struct {
 	db     types.VESDB
 	signer *signaturer.TendermintNSBSigner
+	cves   uiprpc.CenteredVESClient
 }
 
 func XORMMigrate(muldb types.MultiIndex) (err error) {
@@ -92,11 +96,32 @@ func (server *Server) AttestationReceive(
 	ctx context.Context,
 	in *uiprpc.AttestationReceiveRequest,
 ) (*uiprpc.AttestationReceiveReply, error) {
-	return service.AttestationReceiveService{
+	return (&service.AttestationReceiveService{
 		VESDB:                     server.db,
 		Context:                   ctx,
 		AttestationReceiveRequest: in,
-	}.Serve()
+	}).Serve()
+}
+
+func (server *Server) requestSendSessionInfo(sessionID []byte, requestingAccount []*uiprpc.Account) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	r, err := server.cves.InternalRequestComing(
+		ctx,
+		&uiprpc.InternalRequestComingRequest{
+			SessionId: sessionID,
+			Host:      []byte("todo"),
+			Accounts: func() []*uiprpc.Account {
+				return nil
+			}(),
+		})
+	if err != nil {
+		return fmt.Errorf("could not request: %v", err)
+	}
+	if !r.GetOk() {
+		return errors.New("internal failed")
+	}
+	return nil
 }
 
 func ListenAndServe(port string) error {
@@ -113,6 +138,13 @@ func ListenAndServe(port string) error {
 		233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
 		233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
 	})
+
+	conn, err := grpc.Dial(m_address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	server.cves = uiprpc.NewCenteredVESClient(conn)
 
 	//TODO: SetEnv
 	var muldb *multi_index.XORMMultiIndexImpl

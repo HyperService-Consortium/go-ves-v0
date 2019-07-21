@@ -33,7 +33,7 @@ func (bufpool *BufferPool) Put(buf interface{}) {
 	if buf, ok := buf.(*bytes.Buffer); ok {
 		if buf.Cap() >= bufpool.maxBufferSize {
 			buf.Reset()
-			bufpool.Put(buf)
+			bufpool.Pool.Put(buf)
 		}
 	}
 }

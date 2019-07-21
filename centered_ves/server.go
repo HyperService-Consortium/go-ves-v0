@@ -2,25 +2,22 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package main
+package centered_ves
 
 import (
-	"flag"
+	"context"
 	"fmt"
-	"log"
+	"net"
 	"net/http"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	index "github.com/Myriad-Dreamin/go-ves/database/index"
-	multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/ws-ves-rpc"
+	log "github.com/Myriad-Dreamin/go-ves/log"
 	"github.com/Myriad-Dreamin/go-ves/types"
-	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
-	"github.com/Myriad-Dreamin/go-ves/types/session"
-	"github.com/Myriad-Dreamin/go-ves/types/user"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
-
-var addr = flag.String("port", ":23452", "http service address")
 
 // func serveHome(w http.ResponseWriter, r *http.Request) {
 // 	log.Println(r.URL)
@@ -39,24 +36,44 @@ var addr = flag.String("port", ":23452", "http service address")
 // it is not in the standard of uip
 type Server struct {
 	*http.Server
-	hub   *Hub
-	vesdb types.VESDB
+	hub     *Hub
+	vesdb   types.VESDB
+	rpcport string
 }
 
 // NewServer return a pointer of Server
-func NewServer(addr string, db types.VESDB) (srv *Server) {
+func NewServer(rpcport, addr string, db types.VESDB) (srv *Server) {
 	srv = &Server{Server: new(http.Server)}
 	srv.hub = newHub()
 	srv.hub.server = srv
 	srv.vesdb = db
 	srv.Handler = http.NewServeMux()
 	srv.Addr = addr
+	srv.rpcport = rpcport
+	return
+}
+
+func (srv *Server) ListenAndServeRpc(port string) {
+	lis, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Println(fmt.Errorf("failed to listen: %v", err))
+	}
+
+	s := grpc.NewServer()
+	uiprpc.RegisterCenteredVESServer(s, srv)
+	reflection.Register(s)
+
+	fmt.Printf("prepare to serve rpc on %v\n", port)
+	if err := s.Serve(lis); err != nil {
+		log.Println(fmt.Errorf("failed to serve: %v", err))
+	}
 	return
 }
 
 // Start the service of centered ves
 func (srv *Server) Start() error {
 	go srv.hub.run()
+	go srv.ListenAndServeRpc(srv.rpcport)
 	srv.Handler.(*http.ServeMux).HandleFunc("/", srv.serveWs)
 	return srv.ListenAndServe()
 }
@@ -68,13 +85,32 @@ func (srv *Server) serveWs(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: srv.hub, conn: conn, send: make(chan []byte, 256)}
+
+	log.Printf("new ws: %v\n", r.RemoteAddr)
+	client := &Client{hub: srv.hub, helloed: make(chan bool, 1), conn: conn, send: make(chan []byte, 256)}
 	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.
 	go client.writePump()
 	go client.readPump()
+}
+
+func (srv *Server) InternalRequestComing(
+	ctx context.Context,
+	in *uiprpc.InternalRequestComingRequest,
+) (*uiprpc.InternalRequestComingReply, error) {
+	if err := srv.RequestComing(func() (accs []uiptypes.Account) {
+		for _, acc := range in.GetAccounts() {
+			accs = append(accs, acc)
+		}
+		return accs
+	}(), in.GetSessionId(), in.GetHost()); err != nil {
+		return nil, err
+	}
+	return &uiprpc.InternalRequestComingReply{
+		Ok: true,
+	}, nil
 }
 
 // RequestComing do the service of retransmitting message of new session event
@@ -88,65 +124,15 @@ func (srv *Server) RequestComing(accounts []uiptypes.Account, iscAddress, grpcHo
 }
 
 func (srv *Server) requestComing(chainID uint64, address, iscAddress, grpcHost []byte) error {
-	var msg wsrpc.RequestComing
+	var msg wsrpc.RequestComingRequest
 	msg.NsbHost = nsbip
 	msg.GrpcHost = grpcHost
 	msg.SessionId = iscAddress
-	qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeRequestComing, &msg)
+	qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeRequestComingRequest, &msg)
 	if err != nil {
 		return err
 	}
 	srv.hub.unicast <- &uniMessage{chainID, address, qwq.Bytes()}
 	wsrpc.GetDefaultSerializer().Put(qwq)
 	return nil
-}
-
-func XORMMigrate(muldb types.MultiIndex) (err error) {
-	var xorm_muldb = muldb.(*multi_index.XORMMultiIndexImpl)
-	err = xorm_muldb.Register(&user.XORMUserAdapter{})
-	if err != nil {
-		return
-	}
-	err = xorm_muldb.Register(&session.SerialSession{})
-	if err != nil {
-		return
-	}
-	return nil
-}
-
-func makeDB() types.VESDB {
-
-	var db = new(vesdb.Database)
-	var err error
-
-	//TODO: SetEnv
-	var muldb *multi_index.XORMMultiIndexImpl
-	muldb, err = multi_index.GetXORMMultiIndex("mysql", "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8")
-	if err != nil {
-		panic(fmt.Errorf("failed to get muldb: %v", err))
-	}
-	err = XORMMigrate(muldb)
-	if err != nil {
-		panic(fmt.Errorf("failed to migrate: %v", err))
-	}
-
-	var sindb *index.LevelDBIndex
-	sindb, err = index.GetIndex("./index_data")
-	if err != nil {
-		panic(fmt.Errorf("failed to get sindb: %v", err))
-	}
-
-	db.SetIndex(sindb)
-	db.SetMultiIndex(muldb)
-
-	db.SetUserBase(new(user.XORMUserBase))
-	db.SetSessionBase(new(session.SerialSessionBase))
-	return db
-}
-
-func main() {
-	flag.Parse()
-	if err := NewServer(*addr, makeDB()).Start(); err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
 }

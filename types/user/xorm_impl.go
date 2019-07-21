@@ -43,12 +43,14 @@ func XORMUserAdapterToAccounts(accounts []XORMUserAdapter) (accs []uiptypes.Acco
 	return
 }
 
-func UserFromAdapdator(accounts []XORMUserAdapter) (user *User) {
+func UserFromAdapdator(name string, accounts []XORMUserAdapter) (user *User) {
 	if accounts == nil {
-		return nil
+		return &User{
+			Name: name,
+		}
 	}
 	return &User{
-		Name:     accounts[0].Name,
+		Name:     name,
 		Accounts: XORMUserAdapterToAccounts(accounts),
 	}
 }
@@ -102,7 +104,7 @@ func (ub XORMUserBase) FindUser(db types.MultiIndex, name string) (user types.Us
 	if sli == nil {
 		return nil, errors.New("not found")
 	}
-	return UserFromAdapdator(sli.([]XORMUserAdapter)), nil
+	return UserFromAdapdator(name, sli.([]XORMUserAdapter)), nil
 }
 
 func (ub XORMUserBase) FindAccounts(db types.MultiIndex, username string, chainType uint64) (accs []uiptypes.Account, err error) {

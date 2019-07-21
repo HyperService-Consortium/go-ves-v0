@@ -12,12 +12,26 @@ import (
 var (
 	salt     []byte
 	dataPath = "./data"
-	saltPath = dataPath + "/salt.data"
+	saltPath = dataPath + "/salt.dat"
 	perm     = os.FileMode(0755)
 )
 
+func readFile(path string) ([]byte, error) {
+	file, err := os.OpenFile(path, os.O_RDONLY|os.O_CREATE, 0755)
+	if err != nil {
+		return nil, err
+	}
+	var a []byte
+	a, err = ioutil.ReadAll(file)
+	file.Close()
+	if err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+
 func preloadSalt() []byte {
-	s, err := ioutil.ReadFile(saltPath)
+	s, err := readFile(saltPath)
 	if err != nil {
 		panic(err)
 	}
@@ -47,14 +61,26 @@ func Register(v interface{}) {
 }
 
 func NewFileDB(path string) (*FileDB, error) {
-	if _, err := os.Stat(dataPath); os.IsNotExist(err) {
-		if err = os.MkdirAll(dataPath, perm); err != nil {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err = os.MkdirAll(path, perm); err != nil {
 			return nil, err
 		}
-	} else {
+	} else if err != nil {
 		return nil, err
 	}
 	return &FileDB{dbpath: path}, nil
+}
+
+func (fdb *FileDB) ReStatDir(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err = os.MkdirAll(path, perm); err != nil {
+			return err
+		}
+	} else if err != nil {
+		return err
+	}
+	fdb.dbpath = path
+	return nil
 }
 
 type ReadEvent struct {
@@ -64,7 +90,7 @@ type ReadEvent struct {
 
 func (fdb *FileDB) ReadWithPath(name string) (e *ReadEvent, err error) {
 	e = new(ReadEvent)
-	e.file, err = os.Open(fdb.dbpath + name)
+	e.file, err = os.OpenFile(fdb.dbpath+name, os.O_RDONLY|os.O_CREATE, 0755)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +100,7 @@ func (fdb *FileDB) ReadWithPath(name string) (e *ReadEvent, err error) {
 
 func ReadWithPath(name string) (e *ReadEvent, err error) {
 	e = new(ReadEvent)
-	e.file, err = os.Open(pobj.dbpath + name)
+	e.file, err = os.OpenFile(pobj.dbpath+name, os.O_RDONLY|os.O_CREATE, 0755)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +123,7 @@ type WriteEvent struct {
 
 func (fdb *FileDB) WriteWithPath(name string) (e *WriteEvent, err error) {
 	e = new(WriteEvent)
-	e.file, err = os.Create(fdb.dbpath + name)
+	e.file, err = os.OpenFile(fdb.dbpath+name, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +156,7 @@ func init() {
 		if err = os.MkdirAll(dataPath, perm); err != nil {
 			panic(err)
 		}
-	} else {
+	} else if err != nil {
 		panic(err)
 	}
 	salt = preloadSalt()
