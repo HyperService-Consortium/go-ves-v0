@@ -1,1 +1,0 @@
-protoc -I . wsrpc.proto --go_out=plugins=grpc:.

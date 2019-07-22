@@ -4,6 +4,20 @@ import uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 
 type isc_address = []byte
 
+type NSBInterface interface {
+	SaveAttestation(isc_address, uiptypes.Attestation) error
+	InsuranceClaim(isc_address, uiptypes.Attestation) error
+}
+
+type destination = uint64
+type payload = []byte
+type on_chain_transaction = []byte
+type cb_info = []byte
+type BNInterface interface {
+	RouteRaw(destination, payload) (cb_info, error)
+	Route(destination, on_chain_transaction) (cb_info, error)
+}
+
 type success_or_not = bool
 type help_info = string
 type Session interface {
@@ -12,17 +26,20 @@ type Session interface {
 	// session is a kv-object
 	KVObject
 
+	SetSigner(uiptypes.Signer)
+
 	GetGUID() isc_address
 	GetAccounts() []uiptypes.Account
 	GetTransaction(transaction_local_id) transaction
 	GetTransactions() []transaction
 
+	GetAckCount() uint32
 	GetTransactingTransaction() (transaction_local_id, error)
 
 	// error reports Internal errors, help_info reports Logic errors
 	InitFromOpIntents(uiptypes.OpIntents) (success_or_not, help_info, error)
 	AckForInit(uiptypes.Account, uiptypes.Signature) (success_or_not, help_info, error)
-	ProcessAttestation(uiptypes.Attestation) (success_or_not, help_info, error)
+	ProcessAttestation(NSBInterface, BNInterface, uiptypes.Attestation) (success_or_not, help_info, error)
 
 	SyncFromISC() error
 }
@@ -31,12 +48,12 @@ type Session interface {
 type SessionBase interface {
 
 	// insert accounts maps from guid to account
-	InsertSessionInfo(MultiIndex, Session) error
+	InsertSessionInfo(MultiIndex, Index, Session) error
 
 	// find accounts which guid is corresponding to user
-	FindSessionInfo(MultiIndex, isc_address) (Session, error)
+	FindSessionInfo(MultiIndex, Index, isc_address) (Session, error)
 
-	UpdateSessionInfo(MultiIndex, Session) error
+	UpdateSessionInfo(MultiIndex, Index, Session) error
 
-	DeleteSessionInfo(MultiIndex, isc_address) error
+	DeleteSessionInfo(MultiIndex, Index, isc_address) error
 }

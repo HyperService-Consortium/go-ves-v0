@@ -1,16 +1,24 @@
 package service
 
 import (
+	"encoding/base64"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 
 type SessionAckForInitService struct {
+	CVes uiprpc.CenteredVESClient
+	uiptypes.Signer
 	types.VESDB
 	context.Context
 	*uiprpc.SessionAckForInitRequest
@@ -18,10 +26,9 @@ type SessionAckForInitService struct {
 
 func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error) {
 	ses, err := s.FindSessionInfo(s.SessionId)
-
 	// todo: get Session Acked from isc
 	// nsbClient.
-
+	fmt.Println("session acking... ", hex.EncodeToString(s.GetUser().GetAddress()))
 	if err == nil {
 		var success bool
 		var help_info string
@@ -32,7 +39,61 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 		} else if !success {
 			return nil, errors.New(help_info)
 		} else {
+			fmt.Println(ses.GetAckCount(), uint32(len(ses.GetAccounts())))
+			if ses.GetAckCount() == uint32(len(ses.GetAccounts())) {
 
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+				defer cancel()
+				txb := ses.GetTransaction(0)
+				var kvs map[string]interface{}
+				err := json.Unmarshal(txb, &kvs)
+				if err != nil {
+					return nil, err
+				}
+				var accs []*uipbase.Account
+				txb, err = base64.StdEncoding.DecodeString(kvs["src"].(string))
+				if err != nil {
+					return nil, err
+				}
+				accs = append(accs, &uipbase.Account{
+					Address: txb,
+					ChainId: kvs["chain_id"].(uint64),
+				})
+				txb, err = base64.StdEncoding.DecodeString(kvs["dst"].(string))
+				if err != nil {
+					return nil, err
+				}
+				accs = append(accs, &uipbase.Account{
+					Address: txb,
+					ChainId: kvs["chain_id"].(uint64),
+				})
+				r, err := s.CVes.InternalRequestComing(ctx, &uiprpc.InternalRequestComingRequest{
+					SessionId: ses.GetGUID(),
+					Host:      []byte{127, 0, 0, 1, ((23351) >> 8 & 0xff), 23351 & 0xff},
+					Accounts:  accs,
+				})
+				fmt.Println("reply?", r, err)
+				if err != nil {
+					return nil, err
+				}
+
+				/*
+					atte := &uipbase.Attestation{
+						Content: ses.GetTransaction(0),
+						Signatures: []*uipbase.Signature{
+							&uipbase.Signature{
+								Content:       s.Sign(ses.GetTransaction(0)),
+								SignatureType: 123456,
+							},
+						},
+					}
+				*/
+			}
+			err = s.VESDB.UpdateSessionInfo(ses)
+			if err != nil {
+				fmt.Println("uperr", err)
+				return nil, err
+			}
 			return &uiprpc.SessionAckForInitReply{
 				Ok: true,
 			}, nil

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 

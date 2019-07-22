@@ -59,3 +59,7 @@ func (eth *EthClient) PersonalUnlockAccout(addr string, passphrase string, durat
 
 	return x, err
 }
+
+func Do(url string, jsonBody []byte) ([]byte, error) {
+	return jsonrpc_client.Do(url, jsonBody)
+}

@@ -3,7 +3,7 @@ package service
 import (
 	"golang.org/x/net/context"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 

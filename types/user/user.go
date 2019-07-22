@@ -4,7 +4,7 @@ import (
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 )
 
-// an implementation of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
+// an implementation of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 
 type User struct {
 	ID       int64              `xorm:"pk autoincr 'id'"`

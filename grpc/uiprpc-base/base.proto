@@ -1,0 +1,36 @@
+
+syntax = "proto3";
+
+package uiprpc.base;
+
+option go_package = "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base";
+
+message OpIntents {
+    repeated bytes contents = 1;
+    repeated bytes dependencies = 2;
+}
+
+message Transaction {
+    uint64 chain_id = 1;
+    bytes src = 2;
+    bytes dst = 3;
+    bytes domain = 4;
+    bytes meta = 5;
+}
+
+message Signature {
+    uint32 signature_type = 1;
+    bytes content = 2;
+}
+
+message Account {
+    uint64 chain_id = 1;
+    bytes address = 2;
+}
+
+message Attestation {
+    uint64 tid = 1;
+    uint64 aid = 2;
+    bytes content = 3;
+    repeated Signature signatures = 4;
+}

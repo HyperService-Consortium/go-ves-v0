@@ -11,8 +11,8 @@ centered_ves/index_data/CURRENT.bak
 centered_ves/index_data/LOCK
 centered_ves/index_data/LOG
 centered_ves/index_data/MANIFEST-000043
-net/centered_ves_server/index_data/CURRENT
-net/centered_ves_server/index_data/CURRENT.bak
-net/centered_ves_server/index_data/LOCK
-net/centered_ves_server/index_data/LOG
-net/centered_ves_server/index_data/MANIFEST-000003
+bin/centered-ves-server/index_data/*
+bin/ves-client/data/ 
+bin/ves-server/data/
+types/session/testdb/
+ves/data/

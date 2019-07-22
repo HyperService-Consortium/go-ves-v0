@@ -2,11 +2,13 @@ package nsbcli
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"strings"
 	"time"
 
@@ -390,13 +392,63 @@ func (nc *NSBClient) sendContractTx(
 func (nc *NSBClient) CreateISC(
 	user Ed25519SignableAccount,
 	funds []uint32, iscOwners [][]byte,
-	transactionIntents []*tx.TransactionIntent,
+	bytesTransactionIntents [][]byte,
 	vesSig []byte,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
 	var buf = bytes.NewBuffer(make([]byte, 65535))
 	buf.Reset()
 	fmt.Println(string(buf.Bytes()))
+	var transactionIntents []*tx.TransactionIntent
+	var txm map[string]interface{}
+	for idx, txb := range bytesTransactionIntents {
+		err := json.Unmarshal(txb, &txm)
+		if err != nil {
+			return nil, err
+		}
+		var txi = new(tx.TransactionIntent)
+		if txm["src"] == nil && txm["from"] == nil {
+			return nil, errors.New("nil src")
+		}
+		if txm["src"] != nil {
+			txi.Fr, err = base64.StdEncoding.DecodeString(txm["src"].(string))
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			txi.Fr, err = base64.StdEncoding.DecodeString(txm["from"].(string))
+			if err != nil {
+				return nil, err
+			}
+		}
+		if txm["dst"] != nil {
+			txi.To, err = base64.StdEncoding.DecodeString(txm["dst"].(string))
+			if err != nil {
+				return nil, err
+			}
+		} else if txm["from"] != nil {
+			txi.To, err = base64.StdEncoding.DecodeString(txm["from"].(string))
+			if err != nil {
+				return nil, err
+			}
+		}
+		if txm["meta"] != nil {
+			txi.Meta, err = base64.StdEncoding.DecodeString(txm["meta"].(string))
+			if err != nil {
+				return nil, err
+			}
+		}
+		txi.Seq = nmath.NewUint256FromBigInt(big.NewInt(int64(idx)))
+		if txm["amt"] != nil {
+			b, _ := hex.DecodeString(txm["amt"].(string))
+			txi.Amt = nmath.NewUint256FromBytes(b)
+		} else {
+			txi.Amt = nmath.NewUint256FromBytes([]byte{0})
+		}
+		transactionIntents = append(transactionIntents, txi)
+		fmt.Println("encoding", txm)
+	}
+
 	err := nc.createISC(buf, funds, iscOwners, transactionIntents, vesSig)
 	if err != nil {
 		return nil, err
@@ -670,14 +722,14 @@ func (nc *NSBClient) userAck(
 func (nc *NSBClient) InsuranceClaim(
 	user Ed25519SignableAccount, contractAddress []byte,
 	tid, aid uint64,
-) ([]byte, error) {
+) error {
 	var txHeader cmn.TransactionHeader
 	var buf = bytes.NewBuffer(make([]byte, 65535))
 	buf.Reset()
 	fmt.Println(string(buf.Bytes()))
 	err := nc.insuranceClaim(buf, tid, aid)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var fap appl.FAPair
@@ -685,7 +737,7 @@ func (nc *NSBClient) InsuranceClaim(
 	fap.Args = buf.Bytes()
 	txHeader.Data, err = json.Marshal(fap)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	txHeader.ContractAddress = contractAddress
 	txHeader.From = user.GetPublicKey()
@@ -716,9 +768,9 @@ func (nc *NSBClient) InsuranceClaim(
 	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
 	fmt.Println(PretiJson(ret), err)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return nil, nil
+	return nil
 }
 
 func (nc *NSBClient) insuranceClaim(

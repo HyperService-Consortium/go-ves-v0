@@ -20,7 +20,7 @@ type mA struct {
 func (a *mA) GetChainId() uint64 { return a.x }
 func (a *mA) GetAddress() []byte { return a.y }
 
-func TestSerialize(t *testing.T) {
+func TestSerializeAccountInterface(t *testing.T) {
 	a := &mA{1, []byte{6, 6}}
 
 	qwq, err := SerializeAccountInterface(a)
@@ -115,4 +115,20 @@ func TestThreeAccounts(t *testing.T) {
 	n, c.x, c.y, err = UnserializeAccountInterface(qwq)
 	fmt.Println(n, len(qwq), c)
 	s.AssertEqual(t, err, io.EOF)
+}
+
+func TestSerializeAttestationContent(t *testing.T) {
+
+	qwq, err := SerializeAttestationContent(233, 1, []byte("raw transaction"))
+	s.AssertNoErr(t, err)
+	var a uint64
+	var b uint8
+	var c []byte
+	a, b, c, err = UnserializeAttestationContent(qwq)
+	s.AssertNoErr(t, err)
+	fmt.Println(a, b, string(c))
+
+	s.AssertEqual(t, a, uint64(233))
+	s.AssertEqual(t, b, uint8(1))
+	s.AssertTrue(t, bytes.Equal(c, []byte("raw transaction")))
 }

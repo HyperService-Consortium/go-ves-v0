@@ -1,0 +1,134 @@
+
+syntax = "proto3";
+
+package wsrpc;
+
+option go_package = "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc";
+
+import "base.proto";
+
+// 1
+message Message {
+    string contents = 1;
+    bytes from = 2;
+    bytes to = 3;
+}
+
+message ClientHello {
+    bytes name = 1;
+}
+
+message ClientHelloReply {
+    bytes grpc_host = 1;
+    bytes nsb_host = 2;
+}
+
+message RequestComingRequest {
+    bytes session_id = 1;
+    uiprpc.base.Account account = 2;
+    bytes grpc_host = 3;
+    bytes nsb_host = 4;
+}
+
+message RequestComingReply {
+    bool ok = 1;
+}
+
+message RequestGrpcServiceRequest {
+    bytes name = 1;
+}
+
+message RequestGrpcServiceReply {
+    bytes grpc_host = 1;
+}
+
+message RequestNsbServiceRequest {
+    bytes name = 1;
+}
+
+message RequestNsbServiceReply {
+    bytes nsb_host = 1;
+}
+
+message SessionListRequest {
+}
+
+message SessionListReply {
+    repeated bytes session_ids = 1;
+    bytes grpc_host = 2;
+    bytes default_nsb_host = 3;
+}
+
+message TransactionListRequest {
+}
+
+message TransactionListReply {
+    // with help info
+    repeated bytes transactions = 1;
+    bytes grpc_host = 2;
+    bytes default_nsb_host = 3;
+}
+
+message UserRegisterRequest {
+    uiprpc.base.Account account = 1;
+    string user_name = 2;
+}
+
+message UserRegisterReply {
+    bool ok = 1;
+    uint64 characteristic_flag = 2;
+}
+
+// temporarily define dapp server
+// service DApp {
+//     rpc SessionFinished (SessionFinishedRequest) returns (SessionFinishedReply);
+//     rpc SessionRequestForInit (SessionRequestForInitRequest) returns (SessionRequestForInitReply);
+//
+//     rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+//     rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+// }
+
+
+
+message SessionFinishedRequest {
+    // isc_address
+    bytes session_id = 1;
+    uint32 isc_state = 2;
+}
+
+message SessionFinishedReply {
+    bool ok = 1;
+}
+
+message SessionRequestForInitRequest {
+    // isc_address
+    bytes session_id = 1;
+    uint32 isc_state = 2;
+}
+
+message SessionRequestForInitReply {
+    repeated bytes opintents = 1;
+    repeated bytes dependencies = 2;
+}
+
+message SessionRequireTransactRequest {
+    // isc_address
+    bytes session_id = 1;
+    bytes grpc_host = 2;
+    uiprpc.base.Transaction tx = 3;
+}
+
+message SessionRequireTransactReply {
+    bool ok = 1;
+}
+
+message AttestationReceiveRequest {
+    // isc_address
+    bytes session_id = 1;
+    bytes grpc_host = 2;
+    uiprpc.base.Attestation atte = 3;
+}
+
+message AttestationReceiveReply {
+    bool ok = 1;
+}

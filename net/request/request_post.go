@@ -19,8 +19,8 @@ func post(s string, v ...interface{}) (io.ReadCloser, error) {
 	return resp.Response().Body, nil
 }
 
-func PostWithBody() {
-
+func PostWithBody(url string, obj []byte) (io.ReadCloser, error) {
+	return post(url, req.BodyJSON(obj))
 }
 
 func (jc *RequestClient) PostWithJsonObj(obj interface{}) (io.ReadCloser, error) {

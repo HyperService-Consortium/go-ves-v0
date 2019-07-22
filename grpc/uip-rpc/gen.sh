@@ -1,1 +1,0 @@
-protoc -I . uiprpc.proto --go_out=plugins=grpc:.

@@ -76,3 +76,13 @@ func (nc *JsonRpcClient) PostRequestWithJsonObj(jsonObj interface{}) ([]byte, er
 	}
 	return nc.preloadJsonResponse(b)
 }
+
+var staticJsonRpcClient = &JsonRpcClient{bufferPool: bytes_pool.NewBytesPool(maxBytesSize)}
+
+func Do(url string, jsonBody []byte) ([]byte, error) {
+	b, err := request.PostWithBody(url, jsonBody)
+	if err != nil {
+		return nil, err
+	}
+	return staticJsonRpcClient.preloadJsonResponse(b)
+}

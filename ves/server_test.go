@@ -5,7 +5,8 @@ import (
 	"log"
 	"time"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -13,13 +14,14 @@ import (
 )
 
 const (
-	m_port    = ":23351"
-	m_address = "127.0.0.1:23351"
+	m_port        = ":23351"
+	m_address     = "127.0.0.1:23351"
+	centerAddress = "127.0.0.1:23452"
 )
 
 func TestUserRegister(t *testing.T) {
 	go func() {
-		if err := ListenAndServe(m_port); err != nil {
+		if err := ListenAndServe(m_port, centerAddress); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -36,7 +38,7 @@ func TestUserRegister(t *testing.T) {
 	defer cancel()
 	r, err := c.UserRegister(
 		ctx,
-		&uiprpc.UserRegisterRequest{Account: &uiprpc.Account{
+		&uiprpc.UserRegisterRequest{Account: &uipbase.Account{
 			ChainId: 1,
 			Address: []byte{1},
 		},

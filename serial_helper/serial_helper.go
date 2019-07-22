@@ -45,10 +45,10 @@ func SerializeAccountsInterface(accounts []types.Account) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func UnserializeAccountInterface(b []byte) (n int64, chain_type uint64, address []byte, err error) {
+func UnserializeAccountInterface(b []byte) (n int64, chainID uint64, address []byte, err error) {
 	var buf = bytes.NewBuffer(b)
 	var ilen int64
-	err = binary.Read(buf, binary.LittleEndian, &chain_type)
+	err = binary.Read(buf, binary.LittleEndian, &chainID)
 	if err != nil {
 		return
 	}
@@ -68,6 +68,37 @@ func UnserializeAccountInterface(b []byte) (n int64, chain_type uint64, address 
 		return
 	}
 	n += 16
+	return
+}
+
+func SerializeAttestationContent(chainID uint64, tag uint8, payload []byte) ([]byte, error) {
+	var buf = new(bytes.Buffer)
+	err := binary.Write(buf, binary.LittleEndian, chainID)
+	if err != nil {
+		return nil, err
+	}
+	err = binary.Write(buf, binary.LittleEndian, tag)
+	if err != nil {
+		return nil, err
+	}
+	_, err = buf.Write(payload)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func UnserializeAttestationContent(content []byte) (chainID uint64, tag uint8, payload []byte, err error) {
+	var buf = bytes.NewBuffer(content)
+	err = binary.Read(buf, binary.LittleEndian, &chainID)
+	if err != nil {
+		return
+	}
+	err = binary.Read(buf, binary.LittleEndian, &tag)
+	if err != nil {
+		return
+	}
+	payload = buf.Bytes()
 	return
 }
 

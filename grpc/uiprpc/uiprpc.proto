@@ -1,0 +1,94 @@
+
+syntax = "proto3";
+
+package uiprpc;
+
+option go_package = "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc";
+
+import "base.proto";
+
+service VES {
+    rpc UserRegister (UserRegisterRequest) returns (UserRegisterReply);
+
+    rpc SessionStart (SessionStartRequest) returns (SessionStartReply);
+    rpc SessionAckForInit (SessionAckForInitRequest) returns (SessionAckForInitReply);
+
+    rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+    rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+}
+
+service CenteredVES {
+    rpc InternalRequestComing (InternalRequestComingRequest) returns (InternalRequestComingReply);
+}
+
+// service CenteredVES {
+//     rpc SessionFinishedList (SessionFinishedListRequest) returns (SessionFinishedListReply);
+//     rpc SessionRequestList (SessionRequestListRequest) returns (SessionRequestListReply);
+//     rpc SessionRequireTransactList (SessionRequireTransactListRequest) returns (SessionRequireTransactListReply);
+//     rpc AttestationList (AttestationListRequest) returns (AttestationListReply);
+//
+//     rpc SessionFinished (SessionFinishedRequest) returns (SessionFinishedReply);
+//     rpc SessionRequestForInit (SessionRequestForInitRequest) returns (SessionRequestForInitReply);
+//
+//     rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+//     rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+// }
+
+message UserRegisterRequest {
+    uiprpc.base.Account account = 1;
+    string user_name = 2;
+}
+
+message UserRegisterReply {
+    bool ok = 1;
+}
+
+message SessionStartRequest {
+    uiprpc.base.OpIntents opintents = 1;
+}
+
+message SessionStartReply {
+    bool ok = 1;
+    bytes session_id = 2;
+}
+
+message SessionAckForInitRequest {
+    // isc_address
+    bytes session_id = 1;
+    uiprpc.base.Account user = 2;
+    uiprpc.base.Signature user_signature = 3;
+}
+
+message SessionAckForInitReply {
+    bool ok = 1;
+}
+
+message SessionRequireTransactRequest {
+    // isc_address
+    bytes session_id = 1;
+    uiprpc.base.Transaction tx = 2;
+}
+
+message SessionRequireTransactReply {
+    bool ok = 1;
+}
+
+message AttestationReceiveRequest {
+    // isc_address
+    bytes session_id = 1;
+    uiprpc.base.Attestation atte = 2;
+}
+
+message AttestationReceiveReply {
+    bool ok = 1;
+}
+
+message InternalRequestComingRequest {
+    bytes session_id = 1;
+    bytes host = 2;
+    repeated uiprpc.base.Account accounts = 3;
+}
+
+message InternalRequestComingReply {
+    bool ok = 1;
+}

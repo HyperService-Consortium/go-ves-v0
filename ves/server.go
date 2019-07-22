@@ -8,8 +8,10 @@ import (
 	"time"
 
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
+	index "github.com/Myriad-Dreamin/go-ves/database/index"
 	multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"
@@ -17,6 +19,7 @@ import (
 	service "github.com/Myriad-Dreamin/go-ves/ves/service"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -28,7 +31,17 @@ type Server struct {
 	db     types.VESDB
 	signer *signaturer.TendermintNSBSigner
 	cves   uiprpc.CenteredVESClient
+	// mutex sync.Mutex
+	// mup  map[uint16]bool
 }
+
+// func (s *Server) locmup(mupper uint16) {
+// 	if !s.mup[mupper] {
+// 		s.mutex.Lock()
+// 		s.mup[mupper] = true
+// 		s.mutex.Unlock()
+// 	}
+// }
 
 func XORMMigrate(muldb types.MultiIndex) (err error) {
 	var xorm_muldb = muldb.(*multi_index.XORMMultiIndexImpl)
@@ -64,6 +77,7 @@ func (server *Server) SessionStart(
 ) (*uiprpc.SessionStartReply, error) {
 	return (&service.SessionStartService{
 		Signer:              server.signer,
+		CVes:                server.cves,
 		VESDB:               server.db,
 		Context:             ctx,
 		SessionStartRequest: in,
@@ -75,6 +89,7 @@ func (server *Server) SessionAckForInit(
 	in *uiprpc.SessionAckForInitRequest,
 ) (*uiprpc.SessionAckForInitReply, error) {
 	return service.SessionAckForInitService{
+		CVes:                     server.cves,
 		VESDB:                    server.db,
 		Context:                  ctx,
 		SessionAckForInitRequest: in,
@@ -103,7 +118,7 @@ func (server *Server) AttestationReceive(
 	}).Serve()
 }
 
-func (server *Server) requestSendSessionInfo(sessionID []byte, requestingAccount []*uiprpc.Account) error {
+func (server *Server) requestSendSessionInfo(sessionID []byte, requestingAccount []*uipbase.Account) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	r, err := server.cves.InternalRequestComing(
@@ -111,7 +126,7 @@ func (server *Server) requestSendSessionInfo(sessionID []byte, requestingAccount
 		&uiprpc.InternalRequestComingRequest{
 			SessionId: sessionID,
 			Host:      []byte("todo"),
-			Accounts: func() []*uiprpc.Account {
+			Accounts: func() []*uipbase.Account {
 				return nil
 			}(),
 		})
@@ -124,7 +139,7 @@ func (server *Server) requestSendSessionInfo(sessionID []byte, requestingAccount
 	return nil
 }
 
-func ListenAndServe(port string) error {
+func ListenAndServe(port, centerAddress string) error {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
@@ -139,9 +154,11 @@ func ListenAndServe(port string) error {
 		233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
 	})
 
-	conn, err := grpc.Dial(m_address, grpc.WithInsecure())
+	conn, err := grpc.Dial(centerAddress, grpc.WithInsecure(), grpc.WithKeepaliveParams(keepalive.ClientParameters{}))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
+	} else {
+		fmt.Println(",,,")
 	}
 	defer conn.Close()
 	server.cves = uiprpc.NewCenteredVESClient(conn)
@@ -152,15 +169,21 @@ func ListenAndServe(port string) error {
 	if err != nil {
 		return fmt.Errorf("failed to get muldb: %v", err)
 	}
+	var sindb *index.LevelDBIndex
+	sindb, err = index.GetIndex("./data")
+	if err != nil {
+		return fmt.Errorf("failed to get sindb: %v", err)
+	}
 	err = server.migrate(muldb, migrate_function)
 	if err != nil {
 		return fmt.Errorf("failed to migrate: %v", err)
 	}
 
 	server.db.SetMultiIndex(muldb)
+	server.db.SetIndex(sindb)
 
 	server.db.SetUserBase(new(user.XORMUserBase))
-	server.db.SetSessionBase(new(session.SerialSessionBase))
+	server.db.SetSessionBase(session.NewSerialSessionBase())
 
 	s := grpc.NewServer()
 

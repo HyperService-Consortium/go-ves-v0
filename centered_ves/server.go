@@ -6,13 +6,15 @@ package centered_ves
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"net"
 	"net/http"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uip-rpc"
-	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/ws-ves-rpc"
+	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
+	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
 	log "github.com/Myriad-Dreamin/go-ves/log"
 	"github.com/Myriad-Dreamin/go-ves/types"
 	"google.golang.org/grpc"
@@ -116,23 +118,28 @@ func (srv *Server) InternalRequestComing(
 // RequestComing do the service of retransmitting message of new session event
 func (srv *Server) RequestComing(accounts []uiptypes.Account, iscAddress, grpcHost []byte) (err error) {
 	for _, acc := range accounts {
-		if err = srv.requestComing(acc.GetChainId(), acc.GetAddress(), iscAddress, grpcHost); err != nil {
+		fmt.Println("hex", acc.GetChainId(), hex.EncodeToString(acc.GetAddress()))
+		if err = srv.requestComing(acc, iscAddress, grpcHost); err != nil {
 			return
 		}
 	}
 	return nil
 }
 
-func (srv *Server) requestComing(chainID uint64, address, iscAddress, grpcHost []byte) error {
+func (srv *Server) requestComing(acc uiptypes.Account, iscAddress, grpcHost []byte) error {
 	var msg wsrpc.RequestComingRequest
 	msg.NsbHost = nsbip
 	msg.GrpcHost = grpcHost
 	msg.SessionId = iscAddress
+	msg.Account = &uipbase.Account{
+		Address: acc.GetAddress(),
+		ChainId: acc.GetChainId(),
+	}
 	qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeRequestComingRequest, &msg)
 	if err != nil {
 		return err
 	}
-	srv.hub.unicast <- &uniMessage{chainID, address, qwq.Bytes()}
+	srv.hub.unicast <- &uniMessage{acc.GetChainId(), acc.GetAddress(), qwq.Bytes()}
 	wsrpc.GetDefaultSerializer().Put(qwq)
 	return nil
 }

@@ -5,6 +5,7 @@
 package centered_ves
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"time"
@@ -89,6 +90,7 @@ func (h *Hub) run() {
 					address.GetChainId(),
 					*(*string)(unsafe.Pointer(&a)),
 				}] = client
+				fmt.Println("maps", address.GetChainId(), hex.EncodeToString(address.GetAddress()), "->", client.user.GetName())
 			}
 			var a = client.user.GetName()
 			h.reverseClients[clientKey{
@@ -139,6 +141,7 @@ func (h *Hub) run() {
 				message.chainID,
 				*(*string)(unsafe.Pointer(&message.aim)),
 			}]; ok {
+				fmt.Println("hexx", message.chainID, hex.EncodeToString(message.aim))
 				select {
 				case client.send <- message.message:
 				default:

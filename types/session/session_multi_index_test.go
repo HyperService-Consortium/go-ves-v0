@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	index "github.com/Myriad-Dreamin/go-ves/database/index"
 	xorm_multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
 	mtest "github.com/Myriad-Dreamin/mydrest"
 )
@@ -11,6 +12,7 @@ import (
 type TestHelper struct {
 	mtest.TestHelper
 	res   *xorm_multi_index.XORMMultiIndexImpl
+	ser   *index.LevelDBIndex
 	logic *SerialSessionBase
 }
 
@@ -23,7 +25,8 @@ func SetUpHelper() {
 	s.res, err = xorm_multi_index.GetXORMMultiIndex("mysql", path)
 	s.OutAssertNoErr(err)
 	err = s.res.Register(&SerialSession{})
-	fmt.Println(err)
+	s.OutAssertNoErr(err)
+	s.ser, err = index.GetIndex("./testdb")
 	s.OutAssertNoErr(err)
 	s.logic = new(SerialSessionBase)
 }
@@ -60,18 +63,18 @@ func TestLogic(t *testing.T) {
 	tt2 := randomSession()
 	fmt.Println(tt1)
 	fmt.Println(tt2)
-	err = s.logic.InsertSessionInfo(s.res, tt1)
+	err = s.logic.InsertSessionInfo(s.res, s.ser, tt1)
 	s.AssertNoErr(t, err)
-	err = s.logic.InsertSessionInfo(s.res, tt2)
+	err = s.logic.InsertSessionInfo(s.res, s.ser, tt2)
 	s.AssertNoErr(t, err)
-	fmt.Println(s.logic.FindSessionInfo(s.res, tt1.GetGUID()))
-	fmt.Println(s.logic.FindSessionInfo(s.res, tt2.GetGUID()))
-	err = s.logic.DeleteSessionInfo(s.res, tt1.GetGUID())
+	fmt.Println(s.logic.FindSessionInfo(s.res, s.ser, tt1.GetGUID()))
+	fmt.Println(s.logic.FindSessionInfo(s.res, s.ser, tt2.GetGUID()))
+	err = s.logic.DeleteSessionInfo(s.res, s.ser, tt1.GetGUID())
 	s.AssertNoErr(t, err)
-	err = s.logic.DeleteSessionInfo(s.res, tt2.GetGUID())
+	err = s.logic.DeleteSessionInfo(s.res, s.ser, tt2.GetGUID())
 	s.AssertNoErr(t, err)
-	fmt.Println(s.logic.FindSessionInfo(s.res, tt1.GetGUID()))
-	fmt.Println(s.logic.FindSessionInfo(s.res, tt2.GetGUID()))
+	fmt.Println(s.logic.FindSessionInfo(s.res, s.ser, tt1.GetGUID()))
+	fmt.Println(s.logic.FindSessionInfo(s.res, s.ser, tt2.GetGUID()))
 }
 
 // func TestMoreLogic(t *testing.T) {

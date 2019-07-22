@@ -35,19 +35,19 @@ func (db *Database) SetUserBase(logicDB types.UserBase) bool {
 }
 
 func (db *Database) InsertSessionInfo(session types.Session) error {
-	return db.sesdb.InsertSessionInfo(db.muldb, session)
+	return db.sesdb.InsertSessionInfo(db.muldb, db.sindb, session)
 }
 
 func (db *Database) FindSessionInfo(isc_address []byte) (types.Session, error) {
-	return db.sesdb.FindSessionInfo(db.muldb, isc_address)
+	return db.sesdb.FindSessionInfo(db.muldb, db.sindb, isc_address)
 }
 
 func (db *Database) UpdateSessionInfo(session types.Session) error {
-	return db.sesdb.UpdateSessionInfo(db.muldb, session)
+	return db.sesdb.UpdateSessionInfo(db.muldb, db.sindb, session)
 }
 
 func (db *Database) DeleteSessionInfo(isc_address []byte) error {
-	return db.sesdb.DeleteSessionInfo(db.muldb, isc_address)
+	return db.sesdb.DeleteSessionInfo(db.muldb, db.sindb, isc_address)
 }
 
 func (db *Database) InsertAccount(user_name string, account uiptypes.Account) error {

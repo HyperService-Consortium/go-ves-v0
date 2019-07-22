@@ -2,6 +2,7 @@ package xorm_multi_index
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/Myriad-Dreamin/go-ves/types"
@@ -72,15 +73,17 @@ func (this *XORMMultiIndexImpl) MultiDelete(obj types.KVObject) (err error) {
 	return
 }
 func (this *XORMMultiIndexImpl) Modify(oldObj types.KVObject, newValue types.KVMap) error {
-	has, err := this.db.Get(oldObj)
-	if err != nil {
-		return err
-	}
-	if !has {
-		return errorObjectNotFound
-	}
-	_, err = this.db.Table(oldObj).Id(oldObj.GetID()).Update(newValue)
-	// fmt.Println("MODI SUCC", affected)
+	fmt.Println(this.db.Table(oldObj))
+	fmt.Println(this.db.Table(oldObj).ID(oldObj.GetID()))
+	// has, err := this.db.Table(oldObj).ID(oldObj.GetID()).Get(oldObj)
+	// if err != nil {
+	// 	return err
+	// }
+	// if !has {
+	// 	return errorObjectNotFound
+	// }
+	affected, err := this.db.Table(oldObj).ID(oldObj.GetID()).Update(newValue)
+	fmt.Println("MODI SUCC", affected, oldObj)
 	return err
 }
 func (this *XORMMultiIndexImpl) MultiModify(condition types.KVObject, newValue types.KVMap) error {
@@ -89,7 +92,7 @@ func (this *XORMMultiIndexImpl) MultiModify(condition types.KVObject, newValue t
 		return err
 	}
 	for _, obj := range sli.([]types.KVObject) {
-		_, err := this.db.Table(condition).Id(obj.GetID()).Update(newValue)
+		_, err := this.db.Table(condition).ID(obj.GetID()).Update(newValue)
 		if err != nil {
 			return err
 		}

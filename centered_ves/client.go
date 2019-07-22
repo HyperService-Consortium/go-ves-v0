@@ -7,12 +7,13 @@ package centered_ves
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
-	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/ws-ves-rpc"
+	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
 	"github.com/Myriad-Dreamin/go-ves/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -145,6 +146,7 @@ func (c *Client) readPump() {
 				log.Println("err:", err)
 			}
 
+			fmt.Println("hexx registering", hex.EncodeToString(s.GetAccount().GetAddress()))
 			err = c.hub.server.vesdb.InsertAccount(s.GetUserName(), s.GetAccount())
 
 			if err != nil {
