@@ -2,7 +2,6 @@ package session
 
 import (
 	"bytes"
-	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -10,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"unsafe"
+	"sync"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
@@ -23,37 +22,38 @@ import (
 	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
 )
 
-const (
-	host = "47.251.2.73:26657"
-)
+type MultiThreadSerialSession struct {
+	ID               int64  `json:"-" xorm:"pk unique notnull autoincr 'id'"`
+	ISCAddress       []byte `json:"-" xorm:"notnull 'isc_address'"`
+	TransactionCount uint32 `json:"-" xorm:"'transaction_count'"`
+	UnderTransacting uint32 `json:"-" xorm:"'under_transacting'"`
+	Status           uint8  `json:"-" xorm:"'status'"`
+	Content          []byte `json:"-" xorm:"'content'"`
 
-type SerialSession struct {
-	ID               int64              `json:"-" xorm:"pk unique notnull autoincr 'id'"`
-	ISCAddress       []byte             `json:"-" xorm:"notnull 'isc_address'"`
-	Accounts         []uiptypes.Account `json:"-" xorm:"-"`
-	Transactions     [][]byte           `json:"transactions" xorm:"-"`
-	TransactionCount uint32             `json:"-" xorm:"'transaction_count'"`
-	UnderTransacting uint32             `json:"-" xorm:"'under_transacting'"`
-	Status           uint8              `json:"-" xorm:"'status'"`
-	Content          []byte             `json:"-" xorm:"'content'"`
-	Acks             []byte             `json:"-" xorm:"'acks'"`
-	AckCount         uint32             `json:"-" xorm:"'ack_count'"`
-	Signer           uiptypes.Signer    `json:"-" xorm:"-"`
+	// index
+	Accounts     []uiptypes.Account `json:"-" xorm:"-"`
+	Transactions [][]byte           `json:"transactions" xorm:"-"`
+
+	// Acks     []byte `json:"-" xorm:"'-'"`
+	// AckCount uint32 `json:"-" xorm:"'-'"`
+
+	// handler
+	Signer uiptypes.Signer `json:"-" xorm:"-"`
 }
 
-func randomSession() *SerialSession {
+func randomMultiThreadSerialSession() *MultiThreadSerialSession {
 	var buf = make([]byte, 20)
 	binary.PutVarint(buf, rand.Int63())
-	return &SerialSession{
+	return &MultiThreadSerialSession{
 		ISCAddress: buf,
 	}
 }
 
-func (ses *SerialSession) TableName() string {
+func (ses *MultiThreadSerialSession) TableName() string {
 	return "ves_session"
 }
 
-func (ses *SerialSession) ToKVMap() map[string]interface{} {
+func (ses *MultiThreadSerialSession) ToKVMap() map[string]interface{} {
 	return map[string]interface{}{
 		"id":                ses.ID,
 		"isc_address":       ses.ISCAddress,
@@ -66,23 +66,23 @@ func (ses *SerialSession) ToKVMap() map[string]interface{} {
 	}
 }
 
-func (ses *SerialSession) GetID() int64 {
+func (ses *MultiThreadSerialSession) GetID() int64 {
 	return ses.ID
 }
 
-func (ses *SerialSession) GetGUID() (isc_address []byte) {
+func (ses *MultiThreadSerialSession) GetGUID() (isc_address []byte) {
 	return ses.ISCAddress
 }
 
-func (ses *SerialSession) GetObjectPtr() interface{} {
-	return new(SerialSession)
+func (ses *MultiThreadSerialSession) GetObjectPtr() interface{} {
+	return new(MultiThreadSerialSession)
 }
 
-func (ses *SerialSession) GetSlicePtr() interface{} {
-	return new([]SerialSession)
+func (ses *MultiThreadSerialSession) GetSlicePtr() interface{} {
+	return new([]MultiThreadSerialSession)
 }
 
-func (ses *SerialSession) GetAccounts() []uiptypes.Account {
+func (ses *MultiThreadSerialSession) GetAccounts() []uiptypes.Account {
 
 	// move to adapdator
 	// if ses.Accounts == nil {
@@ -92,11 +92,11 @@ func (ses *SerialSession) GetAccounts() []uiptypes.Account {
 	return ses.Accounts
 }
 
-func (ses *SerialSession) GetAckCount() uint32 {
+func (ses *MultiThreadSerialSession) GetAckCount() uint32 {
 	return ses.AckCount
 }
 
-func (ses *SerialSession) GetTransaction(transaction_id uint32) []byte {
+func (ses *MultiThreadSerialSession) GetTransaction(transaction_id uint32) []byte {
 	// if ses.Transactions == nil {
 	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
 	// }
@@ -107,7 +107,7 @@ func (ses *SerialSession) GetTransaction(transaction_id uint32) []byte {
 	return ses.Transactions[transaction_id]
 }
 
-func (ses *SerialSession) GetTransactions() (transactions [][]byte) {
+func (ses *MultiThreadSerialSession) GetTransactions() (transactions [][]byte) {
 	// if ses.Transactions == nil {
 	// 	ses.Transactions = make([][]byte, ses.TransactionCount)
 	// }
@@ -115,44 +115,20 @@ func (ses *SerialSession) GetTransactions() (transactions [][]byte) {
 	return ses.Transactions
 }
 
-func (ses *SerialSession) GetTransactingTransaction() (transaction_id uint32, err error) {
+func (ses *MultiThreadSerialSession) GetTransactingTransaction() (transaction_id uint32, err error) {
 	// Status
 	return ses.UnderTransacting, nil
 }
 
-func (ses *SerialSession) GetContent() []byte {
+func (ses *MultiThreadSerialSession) GetContent() []byte {
 	return ses.Content
 }
 
-// must be used in single-thread env
-type comparator struct {
-	s      map[string]bool
-	hacker [8]byte
-}
-
-func makeComparator() *comparator {
-	return &comparator{s: make(map[string]bool)}
-}
-
-func (c *comparator) Insert(a uint64, b []byte) bool {
-	h := md5.New()
-	*(*uint64)(unsafe.Pointer(&c.hacker)) = a
-	h.Write(c.hacker[:])
-	h.Write(b)
-	var nb = h.Sum(nil)
-	if _, ok := c.s[string(nb)]; ok {
-		return false
-	} else {
-		c.s[string(nb)] = true
-		return true
-	}
-}
-
-func (ses *SerialSession) SetSigner(signer uiptypes.Signer) {
+func (ses *MultiThreadSerialSession) SetSigner(signer uiptypes.Signer) {
 	ses.Signer = signer
 }
 
-func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
+func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
 	intents, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
 	if err != nil {
 		return false, err.Error(), nil
@@ -192,22 +168,28 @@ func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool,
 	return true, "", nil
 }
 
-func Verify(signature uiptypes.Signature, contentProviding, publicKey []byte) bool {
-	return true
-	// return bytes.Equal(contentProviding, signature.GetContent()) &&
-	// 	verifier.Verify(signature, publicKey) == true
+type ackS struct {
+	sync.Mutex
 }
 
-func (ses *SerialSession) AckForInit(
+var ack = new(ackS)
+
+func (ack *ackS) SetAck() {
+	ack.Lock()
+	defer ack.Unkock()
+
+}
+
+func (ses *MultiThreadSerialSession) AckForInit(
 	account uiptypes.Account,
 	signature uiptypes.Signature,
 ) (success_or_not bool, help_info string, err error) {
 	var addr = account.GetAddress()
-	fmt.Println(ses.Acks, len(ses.Acks))
+	// fmt.Println(ses.Acks, len(ses.Acks))
 	for idx, ak := range ses.GetAccounts() {
 		fmt.Println("comparing", hex.EncodeToString(ak.GetAddress()), hex.EncodeToString(addr))
 		if bytes.Equal(ak.GetAddress(), addr) {
-			if !bitmap.InLength(ses.Acks, idx) {
+			if !ack.InLength(ses.Acks, idx) {
 				return false, "", errors.New("wrong Acks bytes set..")
 			}
 			if bitmap.Get(ses.Acks, idx) {
@@ -228,42 +210,7 @@ func (ses *SerialSession) AckForInit(
 	return false, "account not found in this session", nil
 }
 
-type IterateAttestation struct {
-	uiptypes.Attestation
-	sigs []uiptypes.Signature
-}
-
-func (atte *IterateAttestation) GetSignatures() []uiptypes.Signature {
-	return atte.sigs
-}
-
-func iter(atte uiptypes.Attestation, signer uiptypes.Signer) uiptypes.Attestation {
-	return &IterateAttestation{atte, append(atte.GetSignatures(), &temSignature{
-		sigtype: todo,
-		content: signer.Sign(atte.GetSignatures()[len(atte.GetSignatures())-1].GetContent()),
-	})}
-}
-
-const todo = 12333
-
-type temSignature struct {
-	content []byte
-	sigtype uint32
-}
-
-func (t *temSignature) GetContent() []byte {
-	return t.content
-}
-
-func (t *temSignature) GetSignatureType() uint32 {
-	return t.sigtype
-}
-
-func isRawTransaction(tag uint8) bool {
-	return (tag & 0x1) == 0x1
-}
-
-func (ses *SerialSession) ProcessAttestation(
+func (ses *MultiThreadSerialSession) ProcessAttestation(
 	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
@@ -338,22 +285,42 @@ func (ses *SerialSession) ProcessAttestation(
 	}
 }
 
-func (ses *SerialSession) SyncFromISC() (err error) {
+func (ses *MultiThreadSerialSession) SyncFromISC() (err error) {
 	return errors.New("TODO")
 }
 
+type insertSessionInfoRequest struct {
+	db      types.MultiIndex
+	idb     types.Index
+	session types.Session
+	next    *insertSessionInfoRequest
+}
+
 // the database which used by others
-type SerialSessionBase struct {
-	sesref map[uint32]*SerialSession
+type MultiThreadSerialSessionBase struct {
+	insertRequest map[uint64]*insertSessionInfoRequest
+	releaseInsert chan uint64
 }
 
-func NewSerialSessionBase() *SerialSessionBase {
-	return &SerialSessionBase{
-		sesref: make(map[uint32]*SerialSession),
-	}
+func NewMultiThreadSerialSessionBase() *MultiThreadSerialSessionBase {
+	return &MultiThreadSerialSessionBase{}
 }
 
-func (sb *SerialSessionBase) InsertSessionInfo(
+// func RequestsStart() {
+//     for{
+//         select {
+//         }
+//     }
+// }
+//
+
+func (sb *MultiThreadSerialSessionBase) InsertSessionInfo(
+	db types.MultiIndex, idb types.Index, session types.Session,
+) error {
+	return db.Insert(session.(*MultiThreadSerialSession))
+}
+
+func (sb *MultiThreadSerialSessionBase) insertSessionInfo(
 	db types.MultiIndex, idb types.Index, session types.Session,
 ) error {
 	err := sb.InsertSessionAccounts(idb, session.GetGUID(), session.GetAccounts())
@@ -366,18 +333,18 @@ func (sb *SerialSessionBase) InsertSessionInfo(
 			return err
 		}
 	}
-	return db.Insert(session.(*SerialSession))
+	return db.Insert(session.(*MultiThreadSerialSession))
 }
 
-func (sb *SerialSessionBase) FindSessionInfo(
+func (sb *MultiThreadSerialSessionBase) FindSessionInfo(
 	db types.MultiIndex, idb types.Index, isc_address []byte,
 ) (session types.Session, err error) {
 	var sessions interface{}
-	sessions, err = db.Select(&SerialSession{ISCAddress: isc_address})
+	sessions, err = db.Select(&MultiThreadSerialSession{ISCAddress: isc_address})
 	if err != nil {
 		return
 	}
-	f := sessions.([]SerialSession)
+	f := sessions.([]MultiThreadSerialSession)
 	if f == nil {
 		return nil, errors.New("not found")
 	}
@@ -398,20 +365,20 @@ func (sb *SerialSessionBase) FindSessionInfo(
 	return
 }
 
-func (sb *SerialSessionBase) UpdateSessionInfo(
+func (sb *MultiThreadSerialSessionBase) UpdateSessionInfo(
 	db types.MultiIndex, idb types.Index, session types.Session,
 ) (err error) {
 	fmt.Println("updateid", session.GetID())
 	return db.Modify(session, session.ToKVMap())
 }
 
-func (sb *SerialSessionBase) DeleteSessionInfo(
+func (sb *MultiThreadSerialSessionBase) DeleteSessionInfo(
 	db types.MultiIndex, idb types.Index, isc_address []byte,
 ) (err error) {
-	return db.Delete(&SerialSession{ISCAddress: isc_address})
+	return db.Delete(&MultiThreadSerialSession{ISCAddress: isc_address})
 }
 
-func (sb *SerialSessionBase) InsertSessionAccounts(
+func (sb *MultiThreadSerialSessionBase) InsertSessionAccounts(
 	db types.Index, isc_address []byte, accounts []uiptypes.Account,
 ) (err error) {
 	var k, v []byte
@@ -427,7 +394,7 @@ func (sb *SerialSessionBase) InsertSessionAccounts(
 	return
 }
 
-func (sb *SerialSessionBase) FindSessionAccounts(
+func (sb *MultiThreadSerialSessionBase) FindSessionAccounts(
 	db types.Index, isc_address []byte, getter func(uint64, []byte) error,
 ) (err error) {
 	var k, v []byte
@@ -454,13 +421,13 @@ func (sb *SerialSessionBase) FindSessionAccounts(
 	}
 }
 
-// func (sb *SerialSessionBase) InsertTransaction(
+// func (sb *MultiThreadSerialSessionBase) InsertTransaction(
 // 	db types.Index, transaction_id uint64, Transaction []byte
 // ) (err error) (
 //
 // )
 /***********************************Tx***********************/
-func (sb *SerialSessionBase) InsertTransaction(
+func (sb *MultiThreadSerialSessionBase) InsertTransaction(
 	db types.Index, isc_address []byte, transaction_id uint64, transaction []byte,
 ) (err error) {
 	var k []byte
@@ -482,7 +449,7 @@ func (sb *SerialSessionBase) InsertTransaction(
 	return
 }
 
-func (sb *SerialSessionBase) FindTransaction(
+func (sb *MultiThreadSerialSessionBase) FindTransaction(
 	db types.Index, isc_address []byte, transaction_id uint64, getter func([]byte) error,
 ) (err error) {
 	var k, v []byte
