@@ -49,7 +49,7 @@ func XORMMigrate(muldb types.MultiIndex) (err error) {
 	if err != nil {
 		return
 	}
-	err = xorm_muldb.Register(&session.SerialSession{})
+	err = xorm_muldb.Register(&session.MultiThreadSerialSession{})
 	if err != nil {
 		return
 	}
@@ -183,7 +183,7 @@ func ListenAndServe(port, centerAddress string) error {
 	server.db.SetIndex(sindb)
 
 	server.db.SetUserBase(new(user.XORMUserBase))
-	server.db.SetSessionBase(session.NewSerialSessionBase())
+	server.db.SetSessionBase(session.NewMultiThreadSerialSessionBase())
 
 	s := grpc.NewServer()
 

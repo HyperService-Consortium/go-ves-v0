@@ -344,13 +344,10 @@ func (ses *SerialSession) SyncFromISC() (err error) {
 
 // the database which used by others
 type SerialSessionBase struct {
-	sesref map[uint32]*SerialSession
 }
 
 func NewSerialSessionBase() *SerialSessionBase {
-	return &SerialSessionBase{
-		sesref: make(map[uint32]*SerialSession),
-	}
+	return &SerialSessionBase{}
 }
 
 func (sb *SerialSessionBase) InsertSessionInfo(

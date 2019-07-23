@@ -9,14 +9,14 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"sync"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
-	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping"
+	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping/redis-bitmap"
 	const_prefix "github.com/Myriad-Dreamin/go-ves/database/const_prefix"
+	redispool "github.com/Myriad-Dreamin/go-ves/database/redis"
 	serial_helper "github.com/Myriad-Dreamin/go-ves/serial_helper"
 
 	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
@@ -50,7 +50,7 @@ func randomMultiThreadSerialSession() *MultiThreadSerialSession {
 }
 
 func (ses *MultiThreadSerialSession) TableName() string {
-	return "ves_session"
+	return "mves_session"
 }
 
 func (ses *MultiThreadSerialSession) ToKVMap() map[string]interface{} {
@@ -61,8 +61,8 @@ func (ses *MultiThreadSerialSession) ToKVMap() map[string]interface{} {
 		"under_transacting": ses.UnderTransacting,
 		"status":            ses.Status,
 		"content":           ses.Content,
-		"acks":              ses.Acks,
-		"ack_count":         ses.AckCount,
+		// "acks":              ses.Acks,
+		// "ack_count":         ses.AckCount,
 	}
 }
 
@@ -93,7 +93,12 @@ func (ses *MultiThreadSerialSession) GetAccounts() []uiptypes.Account {
 }
 
 func (ses *MultiThreadSerialSession) GetAckCount() uint32 {
-	return ses.AckCount
+	count, err := bitmap.GetBitMap(ses.GetGUID(), redispool.RedisCacheClient.Pool.Get()).Count()
+	if err != nil {
+		fmt.Println("debugging of get ackcount", err)
+		return 0
+	}
+	return uint32(count)
 }
 
 func (ses *MultiThreadSerialSession) GetTransaction(transaction_id uint32) []byte {
@@ -153,7 +158,7 @@ func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpInte
 	ses.TransactionCount = uint32(len(intents))
 	ses.UnderTransacting = 0
 	ses.Status = 0
-	ses.Acks = make([]byte, (len(ses.Accounts)+7)>>3)
+	// ses.Acks = make([]byte, (len(ses.Accounts)+7)>>3)
 	ses.Content, err = json.Marshal(ses)
 	if err != nil {
 		return false, "", err
@@ -168,41 +173,44 @@ func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpInte
 	return true, "", nil
 }
 
-type ackS struct {
-	sync.Mutex
-}
-
-var ack = new(ackS)
-
-func (ack *ackS) SetAck() {
-	ack.Lock()
-	defer ack.Unkock()
-
+func (ses *MultiThreadSerialSession) AfterInitGUID() error {
+	return bitmap.PutBitMapLength(ses.ISCAddress, int64(len(ses.Accounts)), redispool.RedisCacheClient.Pool.Get())
 }
 
 func (ses *MultiThreadSerialSession) AckForInit(
 	account uiptypes.Account,
 	signature uiptypes.Signature,
 ) (success_or_not bool, help_info string, err error) {
-	var addr = account.GetAddress()
+	var addr, acks = account.GetAddress(), bitmap.GetBitMap(ses.ISCAddress, redispool.RedisCacheClient.Pool.Get())
 	// fmt.Println(ses.Acks, len(ses.Acks))
 	for idx, ak := range ses.GetAccounts() {
 		fmt.Println("comparing", hex.EncodeToString(ak.GetAddress()), hex.EncodeToString(addr))
 		if bytes.Equal(ak.GetAddress(), addr) {
-			if !ack.InLength(ses.Acks, idx) {
+			if ok, err := acks.InLength(int64(idx)); err != nil {
+				return false, "", fmt.Errorf("internal error: getting length %v", err)
+			} else if !ok {
 				return false, "", errors.New("wrong Acks bytes set..")
 			}
-			if bitmap.Get(ses.Acks, idx) {
+			if setted, err := acks.Get(int64(idx)); err != nil {
+				return false, "", fmt.Errorf("internal error: getting bit %v", err)
+			} else if setted {
 				return false, "have acked", nil
 			}
 			if !Verify(signature, ses.GetContent(), account.GetAddress()) {
 				return false, "verify signature error...", nil
 			}
-			bitmap.Set(ses.Acks, idx)
-			ses.AckCount++
-			// if ses.AckCount == uint32(len(ses.Accounts)) {
-			//
-			// }
+
+			if lastbit, err := acks.Set(int64(idx)); err != nil {
+				return false, "", fmt.Errorf("internal error: setting bit %v", err)
+			} else if lastbit {
+				return false, "conflict set at the same time", nil
+			}
+
+			if count, err := acks.Count(); err != nil {
+				return false, "", fmt.Errorf("internal error: counting bit %v", err)
+			} else if count == int64(len(ses.Accounts)) {
+				fmt.Println("session setup finished")
+			}
 			// todo: NSB
 			return true, "", nil
 		}
@@ -289,17 +297,8 @@ func (ses *MultiThreadSerialSession) SyncFromISC() (err error) {
 	return errors.New("TODO")
 }
 
-type insertSessionInfoRequest struct {
-	db      types.MultiIndex
-	idb     types.Index
-	session types.Session
-	next    *insertSessionInfoRequest
-}
-
 // the database which used by others
 type MultiThreadSerialSessionBase struct {
-	insertRequest map[uint64]*insertSessionInfoRequest
-	releaseInsert chan uint64
 }
 
 func NewMultiThreadSerialSessionBase() *MultiThreadSerialSessionBase {
@@ -315,12 +314,6 @@ func NewMultiThreadSerialSessionBase() *MultiThreadSerialSessionBase {
 //
 
 func (sb *MultiThreadSerialSessionBase) InsertSessionInfo(
-	db types.MultiIndex, idb types.Index, session types.Session,
-) error {
-	return db.Insert(session.(*MultiThreadSerialSession))
-}
-
-func (sb *MultiThreadSerialSessionBase) insertSessionInfo(
 	db types.MultiIndex, idb types.Index, session types.Session,
 ) error {
 	err := sb.InsertSessionAccounts(idb, session.GetGUID(), session.GetAccounts())
