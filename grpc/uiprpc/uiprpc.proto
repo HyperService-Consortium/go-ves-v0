@@ -16,6 +16,7 @@ service VES {
     rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
     rpc SessionRequireRawTransact (SessionRequireRawTransactRequest) returns (SessionRequireRawTransactReply);
     rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+    rpc InformAttestation (AttestationReceiveRequest) returns (AttestationReceiveReply);
 }
 
 service CenteredVES {

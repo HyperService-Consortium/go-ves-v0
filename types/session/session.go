@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"unsafe"
 
+	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
 	log "github.com/Myriad-Dreamin/go-ves/log"
@@ -263,40 +264,106 @@ func isRawTransaction(tag uint8) bool {
 	return (tag & 0x1) == 0x1
 }
 
-func (ses *SerialSession) ProcessAttestation(
+func (ses *MultiThreadSerialSession) NotifyAttestation(
 	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
-	type Type = uint64
-
-	const (
-		Unknown Type = 0 + iota
-		Initing
-		Inited
-		Instantiating
-		Instantiated
-		Open
-		Opened
-		Closed
-	)
-
-	tid, sigs := atte.GetTid(), atte.GetSignatures()
+	tid := atte.GetTid()
 
 	if tid != uint64(ses.UnderTransacting) {
 		return false, "this transaction is not undertransacting", nil
 	}
 
-	switch uint64(len(sigs)) + Instantiating - 1 {
+	switch atte.GetAid() {
 	// case Unknown:
 	// 	return nil, errors.New("transaction is of the status unknown")
 	// case Initing:
 	// 	return nil, errors.New("transaction is of the status initing")
 	// case Inited:
 	// 	return nil, errors.New("transaction is of the status inited")
-	case Instantiating:
+	case TxState.Instantiating:
+		// err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+		return true, "", nil
+	case TxState.Instantiated:
+		// chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
+		//
+		// if err != nil {
+		// 	return false, err.Error(), nil
+		// }
+
+		// type = s.GetAtte().GetContent()
+		// content = type.Content
+		// s.BroadcastTxCommit(content)
+		// if isRawTransaction(tag) {
+		// 	cb, err := bn.RouteRaw(chainID, payload)
+		// 	log.Infof("cbing %v", cb)
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// } else {
+		// 	cb, err := bn.Route(chainID, payload)
+		// 	log.Infof("cbing %v", cb)
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// }
+
+		// err = nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+
+		return true, "", nil
+	case TxState.Open:
+		// err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+		return true, "", nil
+	case TxState.Opened:
+		// err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+		return true, "", nil
+	case TxState.Closed:
+		ses.UnderTransacting++
+		if ses.UnderTransacting == ses.TransactionCount {
+			err = nsb.SettleContract(ses.ISCAddress)
+			if err != nil {
+				return false, "", err
+			}
+		}
+		return true, "", nil
+	default:
+		return false, "", errors.New("unknown aid types")
+	}
+}
+
+func (ses *SerialSession) ProcessAttestation(
+	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
+) (success_or_not bool, help_info string, err error) {
+
+	tid := atte.GetTid()
+
+	if tid != uint64(ses.UnderTransacting) {
+		return false, "this transaction is not undertransacting", nil
+	}
+
+	switch atte.GetAid() {
+	// case Unknown:
+	// 	return nil, errors.New("transaction is of the status unknown")
+	// case Initing:
+	// 	return nil, errors.New("transaction is of the status initing")
+	// case Inited:
+	// 	return nil, errors.New("transaction is of the status inited")
+	case TxState.Instantiating:
 		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
 		return true, "", nil
-	case Instantiated:
+	case TxState.Instantiated:
 		chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
 
 		if err != nil {
@@ -323,14 +390,14 @@ func (ses *SerialSession) ProcessAttestation(
 		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
 
 		return true, "", nil
-	case Open:
+	case TxState.Open:
 		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
 		return true, "", nil
-	case Opened:
+	case TxState.Opened:
 		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
 		ses.UnderTransacting++
 		return true, "", nil
-	case Closed:
+	case TxState.Closed:
 		ses.UnderTransacting++
 		return true, "", nil
 	default:

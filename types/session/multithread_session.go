@@ -220,6 +220,85 @@ func (ses *MultiThreadSerialSession) AckForInit(
 	return false, "account not found in this session", nil
 }
 
+func (ses *SerialSession) NotifyAttestation(
+	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
+) (success_or_not bool, help_info string, err error) {
+	// todo
+	tid := atte.GetTid()
+
+	if tid != uint64(ses.UnderTransacting) {
+		return false, "this transaction is not undertransacting", nil
+	}
+
+	switch atte.GetAid() {
+	// case Unknown:
+	// 	return nil, errors.New("transaction is of the status unknown")
+	// case Initing:
+	// 	return nil, errors.New("transaction is of the status initing")
+	// case Inited:
+	// 	return nil, errors.New("transaction is of the status inited")
+	case TxState.Instantiating:
+		// err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+		return true, "", nil
+	case TxState.Instantiated:
+		// chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
+		//
+		// if err != nil {
+		// 	return false, err.Error(), nil
+		// }
+
+		// type = s.GetAtte().GetContent()
+		// content = type.Content
+		// s.BroadcastTxCommit(content)
+		// if isRawTransaction(tag) {
+		// 	cb, err := bn.RouteRaw(chainID, payload)
+		// 	log.Infof("cbing %v", cb)
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// } else {
+		// 	cb, err := bn.Route(chainID, payload)
+		// 	log.Infof("cbing %v", cb)
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// }
+
+		// err = nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+
+		return true, "", nil
+	case TxState.Open:
+		// err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+		return true, "", nil
+	case TxState.Opened:
+		// err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		// if err != nil {
+		// 	return false, "", err
+		// }
+		return true, "", nil
+	case TxState.Closed:
+		ses.UnderTransacting++
+		if ses.UnderTransacting == ses.TransactionCount {
+			err = nsb.SettleContract(ses.ISCAddress)
+			if err != nil {
+				return false, "", err
+			}
+		}
+		return true, "", nil
+	default:
+		return false, "", errors.New("unknown aid types")
+	}
+}
+
 func (ses *MultiThreadSerialSession) ProcessAttestation(
 	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {

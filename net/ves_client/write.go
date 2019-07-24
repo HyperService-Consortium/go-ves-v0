@@ -22,11 +22,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	//m_port   = ":23351"
-	mAddress = "127.0.0.1:23351"
-)
-
 func (vc *VesClient) write() {
 	var (
 		reader                             = bufio.NewReader(os.Stdin)

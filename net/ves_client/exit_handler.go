@@ -1,10 +1,11 @@
 package vesclient
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	log "github.com/Myriad-Dreamin/go-ves/log"
 )
 
 type handler struct {
@@ -23,7 +24,7 @@ func (h *handler) atExit() {
 	for {
 		select {
 		case osc := <-osQuitSignalChan:
-			log.Println("handlering:", osc)
+			log.Infoln("handlering:", osc)
 			for _, f := range h.funcs {
 				f()
 			}

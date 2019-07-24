@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 
+	log "github.com/Myriad-Dreamin/go-ves/log"
 	"github.com/gorilla/websocket"
 )
 

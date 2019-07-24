@@ -20,11 +20,6 @@ import (
 	nsbclient "github.com/Myriad-Dreamin/go-ves/net/nsb_client"
 )
 
-const (
-	host       = "47.251.2.73:26657"
-	dataPrefix = "./data"
-)
-
 // VesClient is the web socket client interactive with veses
 type VesClient struct {
 	rwMutex sync.RWMutex
@@ -342,17 +337,19 @@ func (vc *VesClient) getSessionFinishedReply() *wsrpc.SessionFinishedReply {
 // }
 
 func (vc *VesClient) getSendAttestationReceiveRequest() *wsrpc.AttestationReceiveRequest {
-	if vc.attestationReceiveRequestSend == nil {
-		vc.attestationReceiveRequestSend = new(wsrpc.AttestationReceiveRequest)
-	}
-	return vc.attestationReceiveRequestSend
+	// if vc.attestationReceiveRequestSend == nil {
+	// 	vc.attestationReceiveRequestSend = new(wsrpc.AttestationReceiveRequest)
+	// }
+	// return vc.attestationReceiveRequestSend
+	return new(wsrpc.AttestationReceiveRequest)
 }
 
 func (vc *VesClient) getReceiveAttestationReceiveRequest() *wsrpc.AttestationReceiveRequest {
-	if vc.attestationReceiveRequestReceive == nil {
-		vc.attestationReceiveRequestReceive = new(wsrpc.AttestationReceiveRequest)
-	}
-	return vc.attestationReceiveRequestReceive
+	// if vc.attestationReceiveRequestReceive == nil {
+	// 	vc.attestationReceiveRequestReceive = new(wsrpc.AttestationReceiveRequest)
+	// }
+	// return vc.attestationReceiveRequestReceive
+	return new(wsrpc.AttestationReceiveRequest)
 }
 
 func (vc *VesClient) getAttestationReceiveReply() *wsrpc.AttestationReceiveReply {

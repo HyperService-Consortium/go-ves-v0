@@ -40,6 +40,7 @@ type Session interface {
 	// error reports Internal errors, help_info reports Logic errors
 	InitFromOpIntents(uiptypes.OpIntents) (success_or_not, help_info, error)
 	AckForInit(uiptypes.Account, uiptypes.Signature) (success_or_not, help_info, error)
+	NotifyAttestation(NSBInterface, BNInterface, uiptypes.Attestation) (success_or_not, help_info, error)
 	ProcessAttestation(NSBInterface, BNInterface, uiptypes.Attestation) (success_or_not, help_info, error)
 
 	SyncFromISC() error
