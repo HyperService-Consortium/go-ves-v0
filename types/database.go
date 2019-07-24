@@ -88,6 +88,8 @@ type VESDB interface {
 
 	DeleteSessionInfo(isc_address) error
 
+	FindTransaction(isc_address, transaction_id, getter) error
+
 	// insert accounts maps from guid to account
 	InsertAccount(user_name, uiptypes.Account) error
 

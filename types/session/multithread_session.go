@@ -3,23 +3,22 @@ package session
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"math/rand"
 
+	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
+	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
-	types "github.com/Myriad-Dreamin/go-ves/types"
-
 	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping/redis-bitmap"
 	const_prefix "github.com/Myriad-Dreamin/go-ves/database/const_prefix"
 	redispool "github.com/Myriad-Dreamin/go-ves/database/redis"
+	log "github.com/Myriad-Dreamin/go-ves/log"
 	serial_helper "github.com/Myriad-Dreamin/go-ves/serial_helper"
-
-	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
+	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 
 type MultiThreadSerialSession struct {
@@ -95,7 +94,7 @@ func (ses *MultiThreadSerialSession) GetAccounts() []uiptypes.Account {
 func (ses *MultiThreadSerialSession) GetAckCount() uint32 {
 	count, err := bitmap.GetBitMap(ses.GetGUID(), redispool.RedisCacheClient.Pool.Get()).Count()
 	if err != nil {
-		fmt.Println("debugging of get ackcount", err)
+		log.Debugln("debugging of get ackcount", err)
 		return 0
 	}
 	return uint32(count)
@@ -138,15 +137,13 @@ func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpInte
 	if err != nil {
 		return false, err.Error(), nil
 	}
-	fmt.Println(intents, err)
 	ses.Transactions = make([][]byte, 0, len(intents))
 
 	ses.Accounts = nil
 	c := makeComparator()
+	ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: 3, Address: ses.Signer.GetPublicKey()})
 	for _, intent := range intents {
-		fmt.Println("insert", len(ses.Transactions))
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
-		fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
 
 		if c.Insert(intent.ChainId, intent.Src) {
 			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Src})
@@ -183,8 +180,13 @@ func (ses *MultiThreadSerialSession) AckForInit(
 ) (success_or_not bool, help_info string, err error) {
 	var addr, acks = account.GetAddress(), bitmap.GetBitMap(ses.ISCAddress, redispool.RedisCacheClient.Pool.Get())
 	// fmt.Println(ses.Acks, len(ses.Acks))
+	log.Printf("acked:")
+	log.Println(acks.Count())
+	log.Printf("ack:")
+	log.Println(acks.Length())
+	log.Printf("wanting:")
+	log.Println(len(ses.GetAccounts()))
 	for idx, ak := range ses.GetAccounts() {
-		fmt.Println("comparing", hex.EncodeToString(ak.GetAddress()), hex.EncodeToString(addr))
 		if bytes.Equal(ak.GetAddress(), addr) {
 			if ok, err := acks.InLength(int64(idx)); err != nil {
 				return false, "", fmt.Errorf("internal error: getting length %v", err)
@@ -209,7 +211,7 @@ func (ses *MultiThreadSerialSession) AckForInit(
 			if count, err := acks.Count(); err != nil {
 				return false, "", fmt.Errorf("internal error: counting bit %v", err)
 			} else if count == int64(len(ses.Accounts)) {
-				fmt.Println("session setup finished")
+				log.Infoln("session setup finished")
 			}
 			// todo: NSB
 			return true, "", nil
@@ -222,36 +224,27 @@ func (ses *MultiThreadSerialSession) ProcessAttestation(
 	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
-	type Type = uint64
 
-	const (
-		Unknown Type = 0 + iota
-		Initing
-		Inited
-		Instantiating
-		Instantiated
-		Open
-		Opened
-		Closed
-	)
-
-	tid, sigs := atte.GetTid(), atte.GetSignatures()
+	tid := atte.GetTid()
 
 	if tid != uint64(ses.UnderTransacting) {
 		return false, "this transaction is not undertransacting", nil
 	}
 
-	switch uint64(len(sigs)) + Instantiating - 1 {
+	switch atte.GetAid() {
 	// case Unknown:
 	// 	return nil, errors.New("transaction is of the status unknown")
 	// case Initing:
 	// 	return nil, errors.New("transaction is of the status initing")
 	// case Inited:
 	// 	return nil, errors.New("transaction is of the status inited")
-	case Instantiating:
-		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+	case TxState.Instantiating:
+		err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		if err != nil {
+			return false, "", err
+		}
 		return true, "", nil
-	case Instantiated:
+	case TxState.Instantiated:
 		chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
 
 		if err != nil {
@@ -263,30 +256,44 @@ func (ses *MultiThreadSerialSession) ProcessAttestation(
 		// s.BroadcastTxCommit(content)
 		if isRawTransaction(tag) {
 			cb, err := bn.RouteRaw(chainID, payload)
-			fmt.Println("cbing ", string(cb))
+			log.Infof("cbing %v", cb)
 			if err != nil {
 				return false, err.Error(), nil
 			}
 		} else {
 			cb, err := bn.Route(chainID, payload)
-			fmt.Println("cbing ", string(cb))
+			log.Infof("cbing %v", cb)
 			if err != nil {
 				return false, err.Error(), nil
 			}
 		}
 
-		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		err = nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		if err != nil {
+			return false, "", err
+		}
 
 		return true, "", nil
-	case Open:
-		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+	case TxState.Open:
+		err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		if err != nil {
+			return false, "", err
+		}
 		return true, "", nil
-	case Opened:
-		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
-		ses.UnderTransacting++
+	case TxState.Opened:
+		err := nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
+		if err != nil {
+			return false, "", err
+		}
 		return true, "", nil
-	case Closed:
+	case TxState.Closed:
 		ses.UnderTransacting++
+		if ses.UnderTransacting == ses.TransactionCount {
+			err = nsb.SettleContract(ses.ISCAddress)
+			if err != nil {
+				return false, "", err
+			}
+		}
 		return true, "", nil
 	default:
 		return false, "", errors.New("unknown aid types")
@@ -343,25 +350,21 @@ func (sb *MultiThreadSerialSessionBase) FindSessionInfo(
 	}
 	sb.FindSessionAccounts(idb, isc_address, func(arg1 uint64, arg2 []byte) error {
 		f[0].Accounts = append(f[0].Accounts, &account.PureAccount{ChainId: arg1, Address: arg2})
-		fmt.Println("finded", hex.EncodeToString(arg2))
 		return nil
 	})
-	for idx := uint64(f[0].TransactionCount); idx != 0; idx-- {
-		sb.FindTransaction(idb, isc_address, idx, func(arg []byte) error {
+	for idx := uint32(0); idx < f[0].TransactionCount; idx++ {
+		sb.FindTransaction(idb, isc_address, uint64(idx), func(arg []byte) error {
 			f[0].Transactions = append(f[0].Transactions, arg)
-			fmt.Println("finded tx", len(arg))
 			return nil
 		})
 	}
 	session = &f[0]
-	fmt.Println("getid", session.GetID())
 	return
 }
 
 func (sb *MultiThreadSerialSessionBase) UpdateSessionInfo(
 	db types.MultiIndex, idb types.Index, session types.Session,
 ) (err error) {
-	fmt.Println("updateid", session.GetID())
 	return db.Modify(session, session.ToKVMap())
 }
 

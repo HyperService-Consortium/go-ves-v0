@@ -292,11 +292,10 @@ func (m *SessionAckForInitReply) GetOk() bool {
 
 type SessionRequireTransactRequest struct {
 	// isc_address
-	SessionId            []byte                   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Tx                   *uiprpc_base.Transaction `protobuf:"bytes,2,opt,name=tx,proto3" json:"tx,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
-	XXX_unrecognized     []byte                   `json:"-"`
-	XXX_sizecache        int32                    `json:"-"`
+	SessionId            []byte   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *SessionRequireTransactRequest) Reset()         { *m = SessionRequireTransactRequest{} }
@@ -331,18 +330,11 @@ func (m *SessionRequireTransactRequest) GetSessionId() []byte {
 	return nil
 }
 
-func (m *SessionRequireTransactRequest) GetTx() *uiprpc_base.Transaction {
-	if m != nil {
-		return m.Tx
-	}
-	return nil
-}
-
 type SessionRequireTransactReply struct {
-	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Tx                   *uiprpc_base.Transaction `protobuf:"bytes,2,opt,name=tx,proto3" json:"tx,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
+	XXX_unrecognized     []byte                   `json:"-"`
+	XXX_sizecache        int32                    `json:"-"`
 }
 
 func (m *SessionRequireTransactReply) Reset()         { *m = SessionRequireTransactReply{} }
@@ -370,11 +362,114 @@ func (m *SessionRequireTransactReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SessionRequireTransactReply proto.InternalMessageInfo
 
-func (m *SessionRequireTransactReply) GetOk() bool {
+func (m *SessionRequireTransactReply) GetTx() *uiprpc_base.Transaction {
 	if m != nil {
-		return m.Ok
+		return m.Tx
 	}
-	return false
+	return nil
+}
+
+type SessionRequireRawTransactRequest struct {
+	// isc_address
+	SessionId            []byte   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SessionRequireRawTransactRequest) Reset()         { *m = SessionRequireRawTransactRequest{} }
+func (m *SessionRequireRawTransactRequest) String() string { return proto.CompactTextString(m) }
+func (*SessionRequireRawTransactRequest) ProtoMessage()    {}
+func (*SessionRequireRawTransactRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65695cb26327d0ea, []int{8}
+}
+
+func (m *SessionRequireRawTransactRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SessionRequireRawTransactRequest.Unmarshal(m, b)
+}
+func (m *SessionRequireRawTransactRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SessionRequireRawTransactRequest.Marshal(b, m, deterministic)
+}
+func (m *SessionRequireRawTransactRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SessionRequireRawTransactRequest.Merge(m, src)
+}
+func (m *SessionRequireRawTransactRequest) XXX_Size() int {
+	return xxx_messageInfo_SessionRequireRawTransactRequest.Size(m)
+}
+func (m *SessionRequireRawTransactRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SessionRequireRawTransactRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SessionRequireRawTransactRequest proto.InternalMessageInfo
+
+func (m *SessionRequireRawTransactRequest) GetSessionId() []byte {
+	if m != nil {
+		return m.SessionId
+	}
+	return nil
+}
+
+type SessionRequireRawTransactReply struct {
+	RawTransaction       []byte               `protobuf:"bytes,1,opt,name=raw_transaction,json=rawTransaction,proto3" json:"raw_transaction,omitempty"`
+	Tid                  uint64               `protobuf:"varint,2,opt,name=tid,proto3" json:"tid,omitempty"`
+	Src                  *uiprpc_base.Account `protobuf:"bytes,3,opt,name=src,proto3" json:"src,omitempty"`
+	Dst                  *uiprpc_base.Account `protobuf:"bytes,4,opt,name=dst,proto3" json:"dst,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *SessionRequireRawTransactReply) Reset()         { *m = SessionRequireRawTransactReply{} }
+func (m *SessionRequireRawTransactReply) String() string { return proto.CompactTextString(m) }
+func (*SessionRequireRawTransactReply) ProtoMessage()    {}
+func (*SessionRequireRawTransactReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65695cb26327d0ea, []int{9}
+}
+
+func (m *SessionRequireRawTransactReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SessionRequireRawTransactReply.Unmarshal(m, b)
+}
+func (m *SessionRequireRawTransactReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SessionRequireRawTransactReply.Marshal(b, m, deterministic)
+}
+func (m *SessionRequireRawTransactReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SessionRequireRawTransactReply.Merge(m, src)
+}
+func (m *SessionRequireRawTransactReply) XXX_Size() int {
+	return xxx_messageInfo_SessionRequireRawTransactReply.Size(m)
+}
+func (m *SessionRequireRawTransactReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_SessionRequireRawTransactReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SessionRequireRawTransactReply proto.InternalMessageInfo
+
+func (m *SessionRequireRawTransactReply) GetRawTransaction() []byte {
+	if m != nil {
+		return m.RawTransaction
+	}
+	return nil
+}
+
+func (m *SessionRequireRawTransactReply) GetTid() uint64 {
+	if m != nil {
+		return m.Tid
+	}
+	return 0
+}
+
+func (m *SessionRequireRawTransactReply) GetSrc() *uiprpc_base.Account {
+	if m != nil {
+		return m.Src
+	}
+	return nil
+}
+
+func (m *SessionRequireRawTransactReply) GetDst() *uiprpc_base.Account {
+	if m != nil {
+		return m.Dst
+	}
+	return nil
 }
 
 type AttestationReceiveRequest struct {
@@ -390,7 +485,7 @@ func (m *AttestationReceiveRequest) Reset()         { *m = AttestationReceiveReq
 func (m *AttestationReceiveRequest) String() string { return proto.CompactTextString(m) }
 func (*AttestationReceiveRequest) ProtoMessage()    {}
 func (*AttestationReceiveRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65695cb26327d0ea, []int{8}
+	return fileDescriptor_65695cb26327d0ea, []int{10}
 }
 
 func (m *AttestationReceiveRequest) XXX_Unmarshal(b []byte) error {
@@ -436,7 +531,7 @@ func (m *AttestationReceiveReply) Reset()         { *m = AttestationReceiveReply
 func (m *AttestationReceiveReply) String() string { return proto.CompactTextString(m) }
 func (*AttestationReceiveReply) ProtoMessage()    {}
 func (*AttestationReceiveReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65695cb26327d0ea, []int{9}
+	return fileDescriptor_65695cb26327d0ea, []int{11}
 }
 
 func (m *AttestationReceiveReply) XXX_Unmarshal(b []byte) error {
@@ -477,7 +572,7 @@ func (m *InternalRequestComingRequest) Reset()         { *m = InternalRequestCom
 func (m *InternalRequestComingRequest) String() string { return proto.CompactTextString(m) }
 func (*InternalRequestComingRequest) ProtoMessage()    {}
 func (*InternalRequestComingRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65695cb26327d0ea, []int{10}
+	return fileDescriptor_65695cb26327d0ea, []int{12}
 }
 
 func (m *InternalRequestComingRequest) XXX_Unmarshal(b []byte) error {
@@ -530,7 +625,7 @@ func (m *InternalRequestComingReply) Reset()         { *m = InternalRequestComin
 func (m *InternalRequestComingReply) String() string { return proto.CompactTextString(m) }
 func (*InternalRequestComingReply) ProtoMessage()    {}
 func (*InternalRequestComingReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65695cb26327d0ea, []int{11}
+	return fileDescriptor_65695cb26327d0ea, []int{13}
 }
 
 func (m *InternalRequestComingReply) XXX_Unmarshal(b []byte) error {
@@ -558,6 +653,109 @@ func (m *InternalRequestComingReply) GetOk() bool {
 	return false
 }
 
+type InternalCloseSessionRequest struct {
+	// isc_address
+	SessionId            []byte                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	NsbHost              []byte                 `protobuf:"bytes,2,opt,name=nsb_host,json=nsbHost,proto3" json:"nsb_host,omitempty"`
+	GrpcHost             []byte                 `protobuf:"bytes,3,opt,name=grpc_host,json=grpcHost,proto3" json:"grpc_host,omitempty"`
+	Accounts             []*uiprpc_base.Account `protobuf:"bytes,4,rep,name=accounts,proto3" json:"accounts,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *InternalCloseSessionRequest) Reset()         { *m = InternalCloseSessionRequest{} }
+func (m *InternalCloseSessionRequest) String() string { return proto.CompactTextString(m) }
+func (*InternalCloseSessionRequest) ProtoMessage()    {}
+func (*InternalCloseSessionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65695cb26327d0ea, []int{14}
+}
+
+func (m *InternalCloseSessionRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_InternalCloseSessionRequest.Unmarshal(m, b)
+}
+func (m *InternalCloseSessionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_InternalCloseSessionRequest.Marshal(b, m, deterministic)
+}
+func (m *InternalCloseSessionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InternalCloseSessionRequest.Merge(m, src)
+}
+func (m *InternalCloseSessionRequest) XXX_Size() int {
+	return xxx_messageInfo_InternalCloseSessionRequest.Size(m)
+}
+func (m *InternalCloseSessionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_InternalCloseSessionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InternalCloseSessionRequest proto.InternalMessageInfo
+
+func (m *InternalCloseSessionRequest) GetSessionId() []byte {
+	if m != nil {
+		return m.SessionId
+	}
+	return nil
+}
+
+func (m *InternalCloseSessionRequest) GetNsbHost() []byte {
+	if m != nil {
+		return m.NsbHost
+	}
+	return nil
+}
+
+func (m *InternalCloseSessionRequest) GetGrpcHost() []byte {
+	if m != nil {
+		return m.GrpcHost
+	}
+	return nil
+}
+
+func (m *InternalCloseSessionRequest) GetAccounts() []*uiprpc_base.Account {
+	if m != nil {
+		return m.Accounts
+	}
+	return nil
+}
+
+type InternalCloseSessionReply struct {
+	Ok                   bool     `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *InternalCloseSessionReply) Reset()         { *m = InternalCloseSessionReply{} }
+func (m *InternalCloseSessionReply) String() string { return proto.CompactTextString(m) }
+func (*InternalCloseSessionReply) ProtoMessage()    {}
+func (*InternalCloseSessionReply) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65695cb26327d0ea, []int{15}
+}
+
+func (m *InternalCloseSessionReply) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_InternalCloseSessionReply.Unmarshal(m, b)
+}
+func (m *InternalCloseSessionReply) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_InternalCloseSessionReply.Marshal(b, m, deterministic)
+}
+func (m *InternalCloseSessionReply) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InternalCloseSessionReply.Merge(m, src)
+}
+func (m *InternalCloseSessionReply) XXX_Size() int {
+	return xxx_messageInfo_InternalCloseSessionReply.Size(m)
+}
+func (m *InternalCloseSessionReply) XXX_DiscardUnknown() {
+	xxx_messageInfo_InternalCloseSessionReply.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InternalCloseSessionReply proto.InternalMessageInfo
+
+func (m *InternalCloseSessionReply) GetOk() bool {
+	if m != nil {
+		return m.Ok
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*UserRegisterRequest)(nil), "uiprpc.UserRegisterRequest")
 	proto.RegisterType((*UserRegisterReply)(nil), "uiprpc.UserRegisterReply")
@@ -567,52 +765,67 @@ func init() {
 	proto.RegisterType((*SessionAckForInitReply)(nil), "uiprpc.SessionAckForInitReply")
 	proto.RegisterType((*SessionRequireTransactRequest)(nil), "uiprpc.SessionRequireTransactRequest")
 	proto.RegisterType((*SessionRequireTransactReply)(nil), "uiprpc.SessionRequireTransactReply")
+	proto.RegisterType((*SessionRequireRawTransactRequest)(nil), "uiprpc.SessionRequireRawTransactRequest")
+	proto.RegisterType((*SessionRequireRawTransactReply)(nil), "uiprpc.SessionRequireRawTransactReply")
 	proto.RegisterType((*AttestationReceiveRequest)(nil), "uiprpc.AttestationReceiveRequest")
 	proto.RegisterType((*AttestationReceiveReply)(nil), "uiprpc.AttestationReceiveReply")
 	proto.RegisterType((*InternalRequestComingRequest)(nil), "uiprpc.InternalRequestComingRequest")
 	proto.RegisterType((*InternalRequestComingReply)(nil), "uiprpc.InternalRequestComingReply")
+	proto.RegisterType((*InternalCloseSessionRequest)(nil), "uiprpc.InternalCloseSessionRequest")
+	proto.RegisterType((*InternalCloseSessionReply)(nil), "uiprpc.InternalCloseSessionReply")
 }
 
 func init() { proto.RegisterFile("uiprpc.proto", fileDescriptor_65695cb26327d0ea) }
 
 var fileDescriptor_65695cb26327d0ea = []byte{
-	// 575 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0x5d, 0x6f, 0x12, 0x41,
-	0x14, 0xcd, 0x02, 0xa9, 0x70, 0x8b, 0x4d, 0x3a, 0xd5, 0xba, 0x5d, 0xac, 0xe2, 0x56, 0x13, 0x4c,
-	0xf8, 0x30, 0xe8, 0xab, 0x0f, 0xb4, 0x4a, 0x42, 0x8c, 0x9a, 0x2c, 0xd6, 0x18, 0x5f, 0x9a, 0x61,
-	0x99, 0x2c, 0x13, 0x60, 0x66, 0x9d, 0x99, 0x6d, 0xca, 0xb3, 0xff, 0xc4, 0x67, 0x7f, 0x64, 0x33,
-	0xfb, 0xc1, 0xe7, 0x40, 0x79, 0x82, 0x99, 0x39, 0xf7, 0xdc, 0x73, 0x67, 0xce, 0xc9, 0x42, 0x39,
-	0xa2, 0xa1, 0x08, 0xfd, 0x66, 0x28, 0xb8, 0xe2, 0xe8, 0x20, 0x59, 0x39, 0x30, 0xc0, 0x92, 0x24,
-	0x7b, 0xee, 0x00, 0x4e, 0xae, 0x25, 0x11, 0x1e, 0x09, 0xa8, 0x54, 0xfa, 0xf7, 0x4f, 0x44, 0xa4,
-	0x42, 0x4d, 0x78, 0x84, 0x7d, 0x9f, 0x47, 0x4c, 0xd9, 0x56, 0xd5, 0xaa, 0x1d, 0xb6, 0x9f, 0x34,
-	0x53, 0xaa, 0xb8, 0xb6, 0x93, 0x9c, 0x79, 0x19, 0x08, 0x55, 0xa0, 0x14, 0x49, 0x22, 0x6e, 0x18,
-	0x9e, 0x12, 0x3b, 0x57, 0xb5, 0x6a, 0x25, 0xaf, 0xa8, 0x37, 0xbe, 0xe1, 0x29, 0x71, 0x2f, 0xe0,
-	0x78, 0xb5, 0x47, 0x38, 0x99, 0xa1, 0x23, 0xc8, 0xf1, 0x71, 0x4c, 0x5e, 0xf4, 0x72, 0x7c, 0xec,
-	0x7e, 0x81, 0x93, 0x3e, 0x91, 0x92, 0x72, 0xd6, 0x57, 0x58, 0xa8, 0x4c, 0xc8, 0x07, 0x28, 0xf1,
-	0x90, 0x32, 0x45, 0x98, 0x92, 0xa9, 0x94, 0xd3, 0x15, 0x29, 0xdf, 0xc3, 0x5e, 0x72, 0xea, 0x2d,
-	0x80, 0xee, 0x25, 0x1c, 0xaf, 0x92, 0x19, 0x3a, 0xa2, 0x73, 0x00, 0x99, 0x80, 0x6e, 0xe8, 0x30,
-	0x16, 0x5d, 0xf6, 0x4a, 0xe9, 0x4e, 0x6f, 0xe8, 0xfe, 0xb3, 0xc0, 0x4e, 0x49, 0x3a, 0xfe, 0xb8,
-	0xcb, 0x45, 0x8f, 0xd1, 0xb9, 0xac, 0xd5, 0x5a, 0x6b, 0xad, 0x16, 0xd5, 0xa0, 0xa0, 0xa7, 0x8f,
-	0x49, 0xb7, 0xdd, 0x5d, 0x8c, 0x40, 0x1f, 0xe1, 0x28, 0xbe, 0x38, 0x49, 0x03, 0x86, 0x55, 0x24,
-	0x88, 0x9d, 0x37, 0x0c, 0xd9, 0xcf, 0x4e, 0xbd, 0xc7, 0x1a, 0x3d, 0x5f, 0xba, 0x35, 0x38, 0x35,
-	0x68, 0x34, 0xdd, 0xef, 0x08, 0xce, 0x53, 0xa4, 0x9e, 0x81, 0x0a, 0xf2, 0x43, 0x60, 0x26, 0xb1,
-	0xbf, 0xff, 0x48, 0x39, 0x75, 0x97, 0x0e, 0x64, 0xaf, 0x88, 0xcb, 0x88, 0x34, 0x75, 0x4e, 0xdd,
-	0xb9, 0x0d, 0xa8, 0x6c, 0xeb, 0x64, 0x16, 0x76, 0xd6, 0x51, 0x8a, 0x48, 0x85, 0x63, 0x06, 0xe2,
-	0x13, 0x7a, 0x4b, 0xf6, 0x14, 0x55, 0x87, 0x02, 0x56, 0x8a, 0x18, 0x65, 0x2d, 0x93, 0xc6, 0x28,
-	0xf7, 0x2d, 0x3c, 0x33, 0x75, 0x32, 0x89, 0xfa, 0x6b, 0xc1, 0x73, 0xed, 0x2b, 0xc1, 0xf0, 0x24,
-	0xd5, 0x72, 0xc5, 0xa7, 0x94, 0x05, 0x7b, 0x0a, 0x43, 0x50, 0x18, 0x71, 0xa9, 0x52, 0x57, 0xc5,
-	0xff, 0xd1, 0x3b, 0x28, 0xa6, 0x71, 0x91, 0x76, 0xbe, 0x9a, 0xdf, 0x6a, 0x8c, 0x39, 0xca, 0xad,
-	0x83, 0xb3, 0x45, 0x84, 0x41, 0x73, 0xfb, 0x7f, 0x1e, 0xf2, 0x3f, 0x3f, 0xf7, 0x51, 0x17, 0xca,
-	0xcb, 0x71, 0x43, 0x95, 0xac, 0x8b, 0x21, 0xe8, 0xce, 0x99, 0xf9, 0x50, 0xf3, 0x77, 0xa1, 0xbc,
-	0x1c, 0xa2, 0x05, 0x8f, 0x21, 0xa7, 0x0b, 0x9e, 0xcd, 0xdc, 0x5d, 0xcf, 0xc3, 0xb8, 0xf0, 0x28,
-	0xaa, 0xae, 0xe1, 0x37, 0x22, 0xe6, 0xbc, 0xd8, 0x81, 0xd0, 0xb4, 0xc3, 0xb9, 0xf5, 0xd7, 0x6c,
-	0x86, 0xde, 0xac, 0x55, 0x9a, 0x0d, 0xef, 0x5c, 0x3c, 0x04, 0xd3, 0x5d, 0x7e, 0x01, 0xda, 0xf4,
-	0x0c, 0x7a, 0x95, 0x95, 0x6e, 0x75, 0xae, 0xf3, 0x72, 0x17, 0x24, 0x9c, 0xcc, 0xda, 0x21, 0x1c,
-	0x5e, 0x11, 0xfd, 0xba, 0x64, 0xa8, 0x5f, 0x0d, 0xc3, 0x53, 0xe3, 0x5b, 0xa3, 0xd7, 0x19, 0xd1,
-	0x2e, 0x3f, 0x3a, 0xee, 0x03, 0xa8, 0x70, 0x32, 0xbb, 0x6c, 0xfe, 0xae, 0x07, 0x54, 0x8d, 0xa2,
-	0x41, 0xd3, 0xe7, 0xd3, 0xd6, 0xd7, 0x99, 0xa0, 0x78, 0xd8, 0xf8, 0x24, 0x08, 0x9e, 0x52, 0xd6,
-	0x0a, 0x78, 0xe3, 0x96, 0xc8, 0x56, 0x20, 0x42, 0xbf, 0x95, 0x50, 0x0d, 0x0e, 0xe2, 0x4f, 0xc4,
-	0xfb, 0xfb, 0x00, 0x00, 0x00, 0xff, 0xff, 0x9c, 0x15, 0xa9, 0x8e, 0x46, 0x06, 0x00, 0x00,
+	// 752 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x5d, 0x6f, 0x12, 0x41,
+	0x14, 0xcd, 0x02, 0x69, 0xe1, 0x16, 0xab, 0x9d, 0xd6, 0x0a, 0x8b, 0xad, 0x74, 0xab, 0x15, 0x63,
+	0x0b, 0xa6, 0xfa, 0xaa, 0x09, 0xad, 0xd6, 0x36, 0x46, 0x4d, 0x16, 0x6b, 0x8c, 0x0f, 0x92, 0x61,
+	0x77, 0xa4, 0x93, 0xc2, 0xcc, 0x3a, 0x33, 0xb4, 0xe5, 0xd9, 0x9f, 0xe1, 0x9b, 0x0f, 0xbe, 0xf8,
+	0x07, 0xfc, 0x79, 0x66, 0x96, 0x5d, 0x3e, 0x07, 0x8a, 0x89, 0x4f, 0xec, 0xce, 0x3d, 0xf7, 0xdc,
+	0x73, 0xef, 0xce, 0x3d, 0x01, 0xb2, 0x1d, 0x1a, 0x88, 0xc0, 0x2b, 0x07, 0x82, 0x2b, 0x8e, 0x16,
+	0x7a, 0x6f, 0x36, 0x34, 0xb0, 0x24, 0xbd, 0x33, 0xa7, 0x01, 0xab, 0xa7, 0x92, 0x08, 0x97, 0x34,
+	0xa9, 0x54, 0xfa, 0xf7, 0x5b, 0x87, 0x48, 0x85, 0xca, 0xb0, 0x88, 0x3d, 0x8f, 0x77, 0x98, 0xca,
+	0x59, 0x45, 0xab, 0xb4, 0xb4, 0xbf, 0x56, 0x8e, 0xa8, 0xc2, 0xdc, 0x6a, 0x2f, 0xe6, 0xc6, 0x20,
+	0x54, 0x80, 0x4c, 0x47, 0x12, 0x51, 0x67, 0xb8, 0x4d, 0x72, 0x89, 0xa2, 0x55, 0xca, 0xb8, 0x69,
+	0x7d, 0xf0, 0x0e, 0xb7, 0x89, 0xb3, 0x0d, 0x2b, 0xa3, 0x35, 0x82, 0x56, 0x17, 0x2d, 0x43, 0x82,
+	0x9f, 0x87, 0xe4, 0x69, 0x37, 0xc1, 0xcf, 0x9d, 0x37, 0xb0, 0x5a, 0x23, 0x52, 0x52, 0xce, 0x6a,
+	0x0a, 0x0b, 0x15, 0x0b, 0x79, 0x06, 0x19, 0x1e, 0x50, 0xa6, 0x08, 0x53, 0x32, 0x92, 0xb2, 0x3e,
+	0x22, 0xe5, 0x7d, 0x70, 0xd2, 0x8b, 0xba, 0x03, 0xa0, 0x73, 0x00, 0x2b, 0xa3, 0x64, 0x86, 0x8a,
+	0x68, 0x03, 0x40, 0xf6, 0x40, 0x75, 0xea, 0x87, 0xa2, 0xb3, 0x6e, 0x26, 0x3a, 0x39, 0xf1, 0x9d,
+	0x9f, 0x16, 0xe4, 0x22, 0x92, 0xaa, 0x77, 0x7e, 0xc4, 0xc5, 0x09, 0xa3, 0x7d, 0x59, 0xa3, 0xb9,
+	0xd6, 0x58, 0x2e, 0x2a, 0x41, 0x4a, 0x77, 0x1f, 0x92, 0x4e, 0x9b, 0x5d, 0x88, 0x40, 0xcf, 0x61,
+	0x39, 0x1c, 0x9c, 0xa4, 0x4d, 0x86, 0x55, 0x47, 0x90, 0x5c, 0xd2, 0xd0, 0x64, 0x2d, 0x8e, 0xba,
+	0x37, 0x34, 0xba, 0xff, 0xea, 0x94, 0x60, 0xdd, 0xa0, 0xd1, 0x34, 0xdf, 0x17, 0xb0, 0x11, 0x21,
+	0x75, 0x0f, 0x54, 0x90, 0x0f, 0x02, 0x33, 0x89, 0xbd, 0x39, 0x5b, 0x72, 0x5e, 0x43, 0x61, 0x5a,
+	0xbe, 0x2e, 0x57, 0x82, 0x84, 0xba, 0x8a, 0xfa, 0xcd, 0x8d, 0x68, 0x8f, 0x71, 0x3a, 0x33, 0xa1,
+	0xae, 0x9c, 0x2a, 0x14, 0x47, 0x89, 0x5c, 0x7c, 0xf9, 0x8f, 0x5a, 0x7e, 0x5b, 0xb0, 0x39, 0x83,
+	0x43, 0xeb, 0x79, 0x08, 0x37, 0x05, 0xbe, 0xac, 0xab, 0x41, 0xf1, 0x88, 0x66, 0x59, 0x0c, 0xa0,
+	0x94, 0x33, 0x74, 0x0b, 0x92, 0x2a, 0xfa, 0xfc, 0x29, 0x57, 0x3f, 0xa2, 0x1d, 0x48, 0x4a, 0xe1,
+	0x45, 0xdf, 0xc1, 0xfc, 0xed, 0x34, 0x40, 0xe3, 0x7c, 0xa9, 0x72, 0xa9, 0x59, 0x38, 0x5f, 0x2a,
+	0xe7, 0x0c, 0xf2, 0x55, 0xa5, 0x88, 0x54, 0x38, 0x9c, 0x01, 0xf1, 0x08, 0xbd, 0x20, 0x73, 0x5e,
+	0xa4, 0x5d, 0x48, 0x61, 0xa5, 0x88, 0x71, 0xb0, 0xc3, 0xa4, 0x21, 0xca, 0x79, 0x04, 0x77, 0x4c,
+	0x95, 0x4c, 0xd7, 0xe1, 0xbb, 0x05, 0x77, 0xf5, 0xe2, 0x08, 0x86, 0x5b, 0x91, 0x96, 0x43, 0xde,
+	0xa6, 0xac, 0x39, 0xa7, 0x30, 0x04, 0xa9, 0x33, 0x2e, 0x55, 0xb4, 0x36, 0xe1, 0x33, 0x7a, 0x02,
+	0xe9, 0xc8, 0x0f, 0x64, 0x2e, 0x59, 0x4c, 0x4e, 0x9d, 0x4a, 0x1f, 0xe5, 0xec, 0x82, 0x3d, 0x45,
+	0x84, 0x49, 0xf3, 0x2f, 0x0b, 0x0a, 0x31, 0xfc, 0xb0, 0xc5, 0x25, 0x19, 0xba, 0x03, 0x73, 0x48,
+	0xce, 0x43, 0x9a, 0xc9, 0x46, 0x7d, 0x48, 0xf6, 0x22, 0x93, 0x8d, 0x63, 0xad, 0xbc, 0x00, 0x99,
+	0xa6, 0x08, 0xbc, 0x5e, 0x2c, 0x19, 0xc6, 0xd2, 0xfa, 0xe0, 0x78, 0xbc, 0xad, 0xd4, 0x5c, 0x6d,
+	0x3d, 0x86, 0xbc, 0x59, 0xa7, 0xa1, 0xab, 0xfd, 0x1f, 0x29, 0x48, 0x7e, 0x7c, 0x55, 0x43, 0x47,
+	0x90, 0x1d, 0x76, 0x49, 0x54, 0x88, 0x8b, 0x18, 0xfc, 0xd9, 0xce, 0x9b, 0x83, 0x9a, 0xff, 0x08,
+	0xb2, 0xc3, 0xde, 0x37, 0xe0, 0x31, 0xd8, 0xeb, 0x80, 0x67, 0xd2, 0x2e, 0x4f, 0xfb, 0x1e, 0x3a,
+	0xb0, 0x16, 0x54, 0x1c, 0xc3, 0x4f, 0x38, 0xa3, 0xbd, 0x39, 0x03, 0xa1, 0x69, 0xfd, 0xbe, 0x63,
+	0x8d, 0xf9, 0x08, 0x7a, 0x30, 0x96, 0x69, 0xf6, 0x29, 0x7b, 0xfb, 0x3a, 0x98, 0xae, 0xd2, 0x86,
+	0xfc, 0x54, 0x83, 0x40, 0x25, 0x33, 0xc3, 0xa4, 0x0f, 0xd9, 0x3b, 0x73, 0x20, 0x75, 0xb9, 0x4f,
+	0x80, 0x26, 0x17, 0x0f, 0x6d, 0xc5, 0xd9, 0x53, 0xd7, 0xdf, 0xbe, 0x37, 0x0b, 0x12, 0xb4, 0xba,
+	0xfb, 0x7f, 0x12, 0xb0, 0x74, 0x48, 0xf4, 0x65, 0x22, 0xbe, 0xbe, 0x25, 0x18, 0x6e, 0x1b, 0x37,
+	0x06, 0xdd, 0x8f, 0x99, 0x66, 0x6d, 0xb5, 0xed, 0x5c, 0x83, 0xd2, 0xcd, 0x7c, 0x1d, 0x2c, 0xe5,
+	0x90, 0xaa, 0x1a, 0x61, 0xfe, 0xff, 0xad, 0xf3, 0x05, 0xd6, 0x4c, 0x5b, 0x82, 0xb6, 0xc7, 0x73,
+	0x0d, 0xbb, 0x6e, 0x6f, 0xcd, 0x06, 0x05, 0xad, 0xee, 0x41, 0xf9, 0xf3, 0x6e, 0x93, 0xaa, 0xb3,
+	0x4e, 0xa3, 0xec, 0xf1, 0x76, 0xe5, 0x6d, 0x57, 0x50, 0xec, 0xef, 0xbd, 0x14, 0x04, 0xb7, 0x29,
+	0xab, 0x34, 0xf9, 0xde, 0x05, 0x91, 0x15, 0xbd, 0xe4, 0x95, 0x1e, 0x53, 0x63, 0x21, 0xfc, 0x47,
+	0xf4, 0xf4, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x78, 0x78, 0xfa, 0x32, 0x35, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -631,6 +844,7 @@ type VESClient interface {
 	SessionStart(ctx context.Context, in *SessionStartRequest, opts ...grpc.CallOption) (*SessionStartReply, error)
 	SessionAckForInit(ctx context.Context, in *SessionAckForInitRequest, opts ...grpc.CallOption) (*SessionAckForInitReply, error)
 	SessionRequireTransact(ctx context.Context, in *SessionRequireTransactRequest, opts ...grpc.CallOption) (*SessionRequireTransactReply, error)
+	SessionRequireRawTransact(ctx context.Context, in *SessionRequireRawTransactRequest, opts ...grpc.CallOption) (*SessionRequireRawTransactReply, error)
 	AttestationReceive(ctx context.Context, in *AttestationReceiveRequest, opts ...grpc.CallOption) (*AttestationReceiveReply, error)
 }
 
@@ -678,6 +892,15 @@ func (c *vESClient) SessionRequireTransact(ctx context.Context, in *SessionRequi
 	return out, nil
 }
 
+func (c *vESClient) SessionRequireRawTransact(ctx context.Context, in *SessionRequireRawTransactRequest, opts ...grpc.CallOption) (*SessionRequireRawTransactReply, error) {
+	out := new(SessionRequireRawTransactReply)
+	err := c.cc.Invoke(ctx, "/uiprpc.VES/SessionRequireRawTransact", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *vESClient) AttestationReceive(ctx context.Context, in *AttestationReceiveRequest, opts ...grpc.CallOption) (*AttestationReceiveReply, error) {
 	out := new(AttestationReceiveReply)
 	err := c.cc.Invoke(ctx, "/uiprpc.VES/AttestationReceive", in, out, opts...)
@@ -693,6 +916,7 @@ type VESServer interface {
 	SessionStart(context.Context, *SessionStartRequest) (*SessionStartReply, error)
 	SessionAckForInit(context.Context, *SessionAckForInitRequest) (*SessionAckForInitReply, error)
 	SessionRequireTransact(context.Context, *SessionRequireTransactRequest) (*SessionRequireTransactReply, error)
+	SessionRequireRawTransact(context.Context, *SessionRequireRawTransactRequest) (*SessionRequireRawTransactReply, error)
 	AttestationReceive(context.Context, *AttestationReceiveRequest) (*AttestationReceiveReply, error)
 }
 
@@ -772,6 +996,24 @@ func _VES_SessionRequireTransact_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VES_SessionRequireRawTransact_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionRequireRawTransactRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VESServer).SessionRequireRawTransact(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/uiprpc.VES/SessionRequireRawTransact",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VESServer).SessionRequireRawTransact(ctx, req.(*SessionRequireRawTransactRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _VES_AttestationReceive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AttestationReceiveRequest)
 	if err := dec(in); err != nil {
@@ -811,6 +1053,10 @@ var _VES_serviceDesc = grpc.ServiceDesc{
 			Handler:    _VES_SessionRequireTransact_Handler,
 		},
 		{
+			MethodName: "SessionRequireRawTransact",
+			Handler:    _VES_SessionRequireRawTransact_Handler,
+		},
+		{
 			MethodName: "AttestationReceive",
 			Handler:    _VES_AttestationReceive_Handler,
 		},
@@ -824,6 +1070,8 @@ var _VES_serviceDesc = grpc.ServiceDesc{
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CenteredVESClient interface {
 	InternalRequestComing(ctx context.Context, in *InternalRequestComingRequest, opts ...grpc.CallOption) (*InternalRequestComingReply, error)
+	InternalAttestationSending(ctx context.Context, in *InternalRequestComingRequest, opts ...grpc.CallOption) (*InternalRequestComingReply, error)
+	InternalCloseSession(ctx context.Context, in *InternalCloseSessionRequest, opts ...grpc.CallOption) (*InternalCloseSessionReply, error)
 }
 
 type centeredVESClient struct {
@@ -843,9 +1091,29 @@ func (c *centeredVESClient) InternalRequestComing(ctx context.Context, in *Inter
 	return out, nil
 }
 
+func (c *centeredVESClient) InternalAttestationSending(ctx context.Context, in *InternalRequestComingRequest, opts ...grpc.CallOption) (*InternalRequestComingReply, error) {
+	out := new(InternalRequestComingReply)
+	err := c.cc.Invoke(ctx, "/uiprpc.CenteredVES/InternalAttestationSending", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *centeredVESClient) InternalCloseSession(ctx context.Context, in *InternalCloseSessionRequest, opts ...grpc.CallOption) (*InternalCloseSessionReply, error) {
+	out := new(InternalCloseSessionReply)
+	err := c.cc.Invoke(ctx, "/uiprpc.CenteredVES/InternalCloseSession", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CenteredVESServer is the server API for CenteredVES service.
 type CenteredVESServer interface {
 	InternalRequestComing(context.Context, *InternalRequestComingRequest) (*InternalRequestComingReply, error)
+	InternalAttestationSending(context.Context, *InternalRequestComingRequest) (*InternalRequestComingReply, error)
+	InternalCloseSession(context.Context, *InternalCloseSessionRequest) (*InternalCloseSessionReply, error)
 }
 
 func RegisterCenteredVESServer(s *grpc.Server, srv CenteredVESServer) {
@@ -870,6 +1138,42 @@ func _CenteredVES_InternalRequestComing_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CenteredVES_InternalAttestationSending_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalRequestComingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CenteredVESServer).InternalAttestationSending(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/uiprpc.CenteredVES/InternalAttestationSending",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CenteredVESServer).InternalAttestationSending(ctx, req.(*InternalRequestComingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CenteredVES_InternalCloseSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalCloseSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CenteredVESServer).InternalCloseSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/uiprpc.CenteredVES/InternalCloseSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CenteredVESServer).InternalCloseSession(ctx, req.(*InternalCloseSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _CenteredVES_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "uiprpc.CenteredVES",
 	HandlerType: (*CenteredVESServer)(nil),
@@ -877,6 +1181,14 @@ var _CenteredVES_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InternalRequestComing",
 			Handler:    _CenteredVES_InternalRequestComing_Handler,
+		},
+		{
+			MethodName: "InternalAttestationSending",
+			Handler:    _CenteredVES_InternalAttestationSending_Handler,
+		},
+		{
+			MethodName: "InternalCloseSession",
+			Handler:    _CenteredVES_InternalCloseSession_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

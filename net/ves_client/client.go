@@ -11,6 +11,7 @@ import (
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -34,6 +35,7 @@ type VesClient struct {
 	cb   chan *bytes.Buffer
 	quit chan bool
 
+	rawMessage                *wsrpc.RawMessage
 	shortSendMessage          *wsrpc.Message
 	shortReplyMessage         *wsrpc.Message
 	clientHello               *wsrpc.ClientHello
@@ -54,8 +56,9 @@ type VesClient struct {
 	sessionFinishedReply      *wsrpc.SessionFinishedReply
 	// sessionRequireTransactRequest *wsrpc.SessionRequireTransactRequest
 	// sessionRequireTransactReply   *wsrpc.SessionRequireTransactReply
-	attestationReceiveRequest *wsrpc.AttestationReceiveRequest
-	attestationReceiveReply   *wsrpc.AttestationReceiveReply
+	attestationReceiveRequestSend    *wsrpc.AttestationReceiveRequest
+	attestationReceiveRequestReceive *wsrpc.AttestationReceiveRequest
+	attestationReceiveReply          *wsrpc.AttestationReceiveReply
 
 	sessionStart *uiprpc.SessionStartRequest
 
@@ -190,6 +193,13 @@ func (vc *VesClient) getShortSendMessage() *wsrpc.Message {
 	return vc.shortSendMessage
 }
 
+func (vc *VesClient) getRawMessage() *wsrpc.RawMessage {
+	if vc.rawMessage == nil {
+		vc.rawMessage = new(wsrpc.RawMessage)
+	}
+	return vc.rawMessage
+}
+
 func (vc *VesClient) getShortReplyMessage() *wsrpc.Message {
 	if vc.shortReplyMessage == nil {
 		vc.shortReplyMessage = new(wsrpc.Message)
@@ -212,10 +222,11 @@ func (vc *VesClient) getUserRegisterReply() *wsrpc.UserRegisterReply {
 }
 
 func (vc *VesClient) getrequestComingRequest() *wsrpc.RequestComingRequest {
-	if vc.requestComingRequest == nil {
-		vc.requestComingRequest = new(wsrpc.RequestComingRequest)
-	}
-	return vc.requestComingRequest
+	// if vc.requestComingRequest == nil {
+	// 	vc.requestComingRequest = new(wsrpc.RequestComingRequest)
+	// }
+	// return vc.requestComingRequest
+	return new(wsrpc.RequestComingRequest)
 }
 
 func (vc *VesClient) getrequestComingReply() *wsrpc.RequestComingReply {
@@ -330,11 +341,18 @@ func (vc *VesClient) getSessionFinishedReply() *wsrpc.SessionFinishedReply {
 // 	return vc.sessionRequireTransactReply
 // }
 
-func (vc *VesClient) getAttestationReceiveRequest() *wsrpc.AttestationReceiveRequest {
-	if vc.attestationReceiveRequest == nil {
-		vc.attestationReceiveRequest = new(wsrpc.AttestationReceiveRequest)
+func (vc *VesClient) getSendAttestationReceiveRequest() *wsrpc.AttestationReceiveRequest {
+	if vc.attestationReceiveRequestSend == nil {
+		vc.attestationReceiveRequestSend = new(wsrpc.AttestationReceiveRequest)
 	}
-	return vc.attestationReceiveRequest
+	return vc.attestationReceiveRequestSend
+}
+
+func (vc *VesClient) getReceiveAttestationReceiveRequest() *wsrpc.AttestationReceiveRequest {
+	if vc.attestationReceiveRequestReceive == nil {
+		vc.attestationReceiveRequestReceive = new(wsrpc.AttestationReceiveRequest)
+	}
+	return vc.attestationReceiveRequestReceive
 }
 
 func (vc *VesClient) getAttestationReceiveReply() *wsrpc.AttestationReceiveReply {
@@ -355,13 +373,35 @@ func (vc *VesClient) postMessage(code wsrpc.MessageType, msg proto.Message) erro
 	return nil
 }
 
+func (vc *VesClient) postRawMessage(code wsrpc.MessageType, dst *uipbase.Account, msg proto.Message) error {
+
+	buf, err := wsrpc.GetDefaultSerializer().Serial(code, msg)
+	/// fmt.Println(buf.Bytes())
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var s = vc.getRawMessage()
+	s.To, err = proto.Marshal(dst)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	s.From = vc.name
+	s.Contents = make([]byte, buf.Len())
+	copy(s.Contents, buf.Bytes())
+	// fmt.Println(s.Contents)
+	wsrpc.GetDefaultSerializer().Put(buf)
+	return vc.postMessage(wsrpc.CodeRawProto, s)
+}
+
 func (vc *VesClient) sendMessage(to, msg []byte) error {
 	shortSendMessage := vc.getShortSendMessage()
 	shortSendMessage.From = vc.name
 	shortSendMessage.To = to
 	shortSendMessage.Contents = string(msg)
 
-	fmt.Println(to, msg)
+	// fmt.Println(to, msg)
 
 	return vc.postMessage(wsrpc.CodeMessageRequest, shortSendMessage)
 }

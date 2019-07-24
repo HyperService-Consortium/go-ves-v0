@@ -33,7 +33,8 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 	var accs = anyb.GetAccounts()
 
 	var owners = make([][]byte, 0, len(accs)+1)
-	owners = append(owners, s.Signer.GetPublicKey())
+	// todo
+	// owners = append(owners, s.Signer.GetPublicKey())
 	for _, owner := range accs {
 		owners = append(owners, owner.GetAddress())
 	}
@@ -46,12 +47,13 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 		}
 		btxs = append(btxs, b)
 	}
-	fmt.Println("accs, txs", owners, txs)
+	// fmt.Println("accs, txs", owners, txs)
 	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})))
 }
 
 func (s *SerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
 	var ses = new(session.SerialSession)
+	ses.Signer = s.Signer
 	success, help_info, err := ses.InitFromOpIntents(s.GetOpintents())
 	if err != nil {
 		// TODO: log
@@ -92,7 +94,7 @@ func (s *SerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
 				return
 			}(),
 		})
-		fmt.Println("reply?", r, err)
+		// fmt.Println("reply?", r, err)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +118,8 @@ func (s *MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb type
 	var accs = anyb.GetAccounts()
 
 	var owners = make([][]byte, 0, len(accs)+1)
-	owners = append(owners, s.Signer.GetPublicKey())
+	// todo
+	// owners = append(owners, s.Signer.GetPublicKey())
 	for _, owner := range accs {
 		owners = append(owners, owner.GetAddress())
 	}
@@ -129,12 +132,13 @@ func (s *MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb type
 		}
 		btxs = append(btxs, b)
 	}
-	fmt.Println("accs, txs", owners, txs)
+	// fmt.Println("accs, txs", owners, txs)
 	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})))
 }
 
 func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
 	var ses = new(session.MultiThreadSerialSession)
+	ses.Signer = s.Signer
 	success, help_info, err := ses.InitFromOpIntents(s.GetOpintents())
 	if err != nil {
 		// TODO: log
@@ -144,10 +148,14 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 		return nil, nil, errors.New(help_info)
 	}
 	ses.ISCAddress, err = s.RequestNSBForNewSession(ses)
+	if ses.ISCAddress == nil {
+		return nil, nil, errors.New("request isc failed")
+	}
 	if err != nil {
 		return nil, nil, err
 	}
 	err = ses.AfterInitGUID()
+	fmt.Println("after init guid...")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -180,7 +188,7 @@ func (s *MultiThreadSerialSessionStartService) Serve() (*uiprpc.SessionStartRepl
 				return
 			}(),
 		})
-		fmt.Println("reply?", r, err)
+		// fmt.Println("reply?", r, err)
 		if err != nil {
 			return nil, err
 		}

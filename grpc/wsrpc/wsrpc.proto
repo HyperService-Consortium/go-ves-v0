@@ -14,6 +14,12 @@ message Message {
     bytes to = 3;
 }
 
+message RawMessage {
+    bytes contents = 1;
+    bytes from = 2;
+    bytes to = 3;
+}
+
 message ClientHello {
     bytes name = 1;
 }
@@ -125,10 +131,24 @@ message SessionRequireTransactReply {
 message AttestationReceiveRequest {
     // isc_address
     bytes session_id = 1;
-    bytes grpc_host = 2;
-    uiprpc.base.Attestation atte = 3;
+    uiprpc.base.Account dst = 2;
+    uiprpc.base.Account src = 3;
+    uiprpc.base.Attestation atte = 4;
+    // option
+    bytes grpc_host = 5;
 }
 
 message AttestationReceiveReply {
+    bool ok = 1;
+}
+
+message CloseSessionRequest {
+    // isc_address
+    bytes session_id = 1;
+    bytes nsb_host =2;
+    bytes grpc_host = 3;
+}
+
+message CloseSessionReply {
     bool ok = 1;
 }

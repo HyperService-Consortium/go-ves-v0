@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
@@ -39,12 +40,21 @@ func (s *AttestationReceiveService) Serve() (*wsrpc.AttestationReceiveReply, err
 	case Inited:
 		return nil, errors.New("transaction is of the status inited")
 	case Instantiating:
-		s.InsuranceClaim(s.Signer, sessionID, tid, Instantiated)
+		ret, err := s.InsuranceClaim(s.Signer, sessionID, tid, Instantiated)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("insurance claiming instantiated {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n", ret.Info, string(ret.Data), ret.Log, ret.Tags)
+
 		return &wsrpc.AttestationReceiveReply{
 			Ok: true,
 		}, nil
 	case Instantiated:
-		s.InsuranceClaim(s.Signer, sessionID, tid, Open)
+		ret, err := s.InsuranceClaim(s.Signer, sessionID, tid, Open)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("insurance claiming open {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n", ret.Info, string(ret.Data), ret.Log, ret.Tags)
 
 		// type = s.GetAtte().GetContent()
 		// content = type.Content
@@ -54,12 +64,22 @@ func (s *AttestationReceiveService) Serve() (*wsrpc.AttestationReceiveReply, err
 			Ok: true,
 		}, nil
 	case Open:
-		s.InsuranceClaim(s.Signer, sessionID, tid, Opened)
+		ret, err := s.InsuranceClaim(s.Signer, sessionID, tid, Opened)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("insurance claiming opened {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n", ret.Info, string(ret.Data), ret.Log, ret.Tags)
+
 		return &wsrpc.AttestationReceiveReply{
 			Ok: true,
 		}, nil
 	case Opened:
-		s.InsuranceClaim(s.Signer, sessionID, tid, Closed)
+		ret, err := s.InsuranceClaim(s.Signer, sessionID, tid, Closed)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("insurance claiming closed {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n", ret.Info, string(ret.Data), ret.Log, ret.Tags)
+
 		return &wsrpc.AttestationReceiveReply{
 			Ok: true,
 		}, nil

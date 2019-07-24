@@ -50,6 +50,10 @@ func (db *Database) DeleteSessionInfo(isc_address []byte) error {
 	return db.sesdb.DeleteSessionInfo(db.muldb, db.sindb, isc_address)
 }
 
+func (db *Database) FindTransaction(isc_address []byte, transaction_id uint64, getter func([]byte) error) error {
+	return db.sesdb.FindTransaction(db.sindb, isc_address, transaction_id, getter)
+}
+
 func (db *Database) InsertAccount(user_name string, account uiptypes.Account) error {
 	fmt.Println(db.userdb, db.muldb)
 	return db.userdb.InsertAccount(db.muldb, user_name, account)

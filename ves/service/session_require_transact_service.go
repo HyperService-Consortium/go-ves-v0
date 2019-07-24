@@ -20,7 +20,7 @@ func (s SessionRequireTransactService) Serve() (*uiprpc.SessionRequireTransactRe
 		return nil, err
 	} else {
 		return &uiprpc.SessionRequireTransactReply{
-			Ok: true,
+			// Tx: true,
 		}, nil
 	}
 }

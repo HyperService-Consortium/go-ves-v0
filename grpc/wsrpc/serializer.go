@@ -21,7 +21,11 @@ type BufferPool struct {
 // NewBufferPool return a pointer of BufferPool
 func NewBufferPool(maxBufferSize int) *BufferPool {
 	return &BufferPool{Pool: &sync.Pool{
-		New: func() interface{} { return bytes.NewBuffer(make([]byte, 0, maxBufferSize)) },
+		New: func() interface{} {
+			// buf :=
+			// fmt.Printf("gee %p", buf)
+			return bytes.NewBuffer(make([]byte, 0, maxBufferSize))
+		},
 	},
 		maxBufferSize: maxBufferSize,
 	}
@@ -31,6 +35,7 @@ func NewBufferPool(maxBufferSize int) *BufferPool {
 // bufferPool.maxBufferSize will be ignored
 func (bufpool *BufferPool) Put(buf interface{}) {
 	if buf, ok := buf.(*bytes.Buffer); ok {
+		// fmt.Printf("puu %p", buf)
 		if buf.Cap() >= bufpool.maxBufferSize {
 			buf.Reset()
 			bufpool.Pool.Put(buf)

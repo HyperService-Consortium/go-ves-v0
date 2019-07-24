@@ -11,11 +11,14 @@ const (
 	// CodeMessageReply is from server to client
 	CodeMessageReply
 
+	// CodeRawProto if from client to server
+	CodeRawProto
+
 	// CodeClientHelloRequest is from client to server
 	CodeClientHelloRequest
 
 	// CodeClientHelloReply is from server to client
-	CodeClientHelloReply
+	CodeClientHelloReply // 4
 
 	// CodeRequestComingRequest is from server to client
 	CodeRequestComingRequest
@@ -30,7 +33,7 @@ const (
 	CodeRequestGrpcServiceReply
 
 	// CodeRequestNsbServiceRequest is from client to server
-	CodeRequestNsbServiceRequest
+	CodeRequestNsbServiceRequest // 9
 
 	// CodeRequestNsbServiceReply is from server to client
 	CodeRequestNsbServiceReply
@@ -45,7 +48,7 @@ const (
 	CodeTransactionListRequest
 
 	// CodeTransactionListReply is from server to client
-	CodeTransactionListReply
+	CodeTransactionListReply // 14
 
 	// CodeUserRegisterRequest is from client to server
 	CodeUserRegisterRequest
@@ -65,7 +68,7 @@ const (
 	// CodeSessionRequestForInitReply
 
 	// CodeSessionRequireTransactRequest is either from server to client or client to server
-	CodeSessionRequireTransactRequest
+	CodeSessionRequireTransactRequest // 19
 
 	// CodeSessionRequireTransactReply is either from server to client or client to server
 	CodeSessionRequireTransactReply
@@ -75,4 +78,16 @@ const (
 
 	// CodeAttestationReceiveReply is either from server to client or client to server
 	CodeAttestationReceiveReply
+
+	// CodeAttestationSendingRequest is from server to client
+	CodeAttestationSendingRequest
+
+	// CodeAttestationSendingReply is client to server
+	CodeAttestationSendingReply // 24
+
+	// CodeCloseSessionRequest is from server to client
+	CodeCloseSessionRequest
+
+	// CodeCloseSessionReply is client to server
+	CodeCloseSessionReply
 )

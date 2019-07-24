@@ -57,7 +57,7 @@ func TestFreezeInfo(t *testing.T) {
 }
 
 func TestUserAck(t *testing.T) {
-	ret, err := NewNSBClient(host).UserAck(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("6HaW8O5JuraT9Ew5eW6etChPc2uyahVGhm9KjF+BBqc="), []byte("SB"))
+	ret, err := NewNSBClient(host).UserAck(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("6HaW8O5JuraT9Ew5eW6etChPc2uyahVGhm9KjF+BBqc="), []byte("6HaW8O5JuraT9Ew5eW6etChPc2uyahVGhm9KjF+BBqc="), []byte("SB"))
 	if err != nil {
 		t.Error("USR ACK ERR", err, "\n")
 	} else {
@@ -66,7 +66,7 @@ func TestUserAck(t *testing.T) {
 }
 
 func TestInsuranceClaim(t *testing.T) {
-	err := NewNSBClient(host).InsuranceClaim(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("6HaW8O5JuraT9Ew5eW6etChPc2uyahVGhm9KjF+BBqc="), 0, 1)
+	_, err := NewNSBClient(host).InsuranceClaim(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("6HaW8O5JuraT9Ew5eW6etChPc2uyahVGhm9KjF+BBqc="), 0, 1)
 	if err != nil {
 		t.Error("INSURANCE CLAIM ERR", err, "\n")
 	} else {
@@ -74,7 +74,7 @@ func TestInsuranceClaim(t *testing.T) {
 	}
 }
 func TestSettleContract(t *testing.T) {
-	ret, err := NewNSBClient(host).SettleContract(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("6HaW8O5JuraT9Ew5eW6etChPc2uyahVGhm9KjF+BBqc="), 0, 1)
+	ret, err := NewNSBClient(host).SettleContract(&eacc{[]byte{1, 2, 3}, []byte("abcc")}, []byte("6HaW8O5JuraT9Ew5eW6etChPc2uyahVGhm9KjF+BBqc="))
 	if err != nil {
 		t.Error("SETTLE CONTRACT ERR", err, "\n")
 	} else {

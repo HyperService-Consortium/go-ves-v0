@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"time"
 	"unsafe"
@@ -18,6 +17,8 @@ import (
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
+	log "github.com/Myriad-Dreamin/go-ves/log"
+	helper "github.com/Myriad-Dreamin/go-ves/net/help-func"
 	"google.golang.org/grpc"
 )
 
@@ -36,7 +37,7 @@ func (vc *VesClient) write() {
 	for {
 		strBytes, _, err := reader.ReadLine()
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 
@@ -44,7 +45,7 @@ func (vc *VesClient) write() {
 
 		cmdBytes, err = buf.ReadBytes(' ')
 		if err != nil && err != io.EOF {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 
@@ -52,32 +53,32 @@ func (vc *VesClient) write() {
 		case "set-name":
 			vc.name, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 			vc.name = bytes.TrimSpace(vc.name)
 			if err = vc.sayClientHello(vc.name); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 
 		case "send-to":
 			toBytes, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 			if err = vc.sendMessage(
 				bytes.TrimSpace(toBytes),
 				bytes.TrimSpace(buf.Bytes()),
 			); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 		case "register-key":
 			filePath, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 
@@ -85,13 +86,13 @@ func (vc *VesClient) write() {
 				bytes.TrimSpace(filePath),
 				fileBuffer,
 			); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 		case "register-eth":
 			filePath, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 
@@ -99,32 +100,32 @@ func (vc *VesClient) write() {
 				bytes.TrimSpace(filePath),
 				fileBuffer,
 			); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 		case "send-eth-alias-to-ves":
 			alias, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 
 			if err = vc.sendEthAlias(
 				bytes.TrimSpace(alias),
 			); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 		case "send-alias-to-ves":
 			alias, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 			if err = vc.sendAlias(
 				bytes.TrimSpace(alias),
 			); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 		case "keys":
@@ -147,7 +148,7 @@ func (vc *VesClient) write() {
 		case "send-op-intents":
 			filePath, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 
@@ -155,7 +156,7 @@ func (vc *VesClient) write() {
 				bytes.TrimSpace(filePath),
 				fileBuffer,
 			); err != nil {
-				fmt.Println(err)
+				log.Println(err)
 				continue
 			}
 		}
@@ -373,4 +374,32 @@ func (vc *VesClient) sendOpIntents(filepath, fileBuffer []byte) error {
 	}
 	fmt.Printf("Session Start: %v, %v\n", r.GetOk(), hex.EncodeToString(r.GetSessionId()))
 	return nil
+}
+
+func (vc *VesClient) getRawTransaction(sessionID, host []byte) (
+	[]byte, uint64, *uipbase.Account, *uipbase.Account, error,
+) {
+	mhost, err := helper.DecodeIP(host)
+	if err != nil {
+		return nil, 0, nil, nil, fmt.Errorf("could not decode ip: %v", err)
+	}
+	conn, err := grpc.Dial(mhost, grpc.WithInsecure())
+	if err != nil {
+		return nil, 0, nil, nil, fmt.Errorf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	c := uiprpc.NewVESClient(conn)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	r, err := c.SessionRequireRawTransact(
+		ctx,
+		&uiprpc.SessionRequireRawTransactRequest{
+			SessionId: sessionID,
+		},
+	)
+	if err != nil {
+		return nil, 0, nil, nil, fmt.Errorf("could not greet: %v", err)
+	}
+	return r.GetRawTransaction(), r.GetTid(), r.GetSrc(), r.GetDst(), nil
 }

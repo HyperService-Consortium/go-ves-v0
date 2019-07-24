@@ -14,5 +14,6 @@ centered_ves/index_data/MANIFEST-000043
 bin/centered-ves-server/index_data/*
 bin/ves-client/data/ 
 bin/ves-server/data/
+bin/ves-server/index_data/
 types/session/testdb/
 ves/data/

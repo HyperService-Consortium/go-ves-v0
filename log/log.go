@@ -37,25 +37,26 @@ func init() {
 	var screenLog, _ = scrlog.NewScreenLogPlugin(nil)
 	Logger.SetOutput(new(NilWriter))
 	Logger.AddHook(screenLog)
-	var loggerTime = time.Now()
-	var ninf = true
+	// var loggerTime = time.Now()
+	// var ninf = true
 	predo = func(l log.Level) bool {
-		if l == log.InfoLevel {
-			if time.Now().Sub(loggerTime) > FlushTime {
-				if ninf {
-					ninf = false
-				} else {
-					ResetToLastLine()
-				}
-				loggerTime = time.Now()
-				return false
-			} else {
-				return true
-			}
-		} else {
-			ninf = true
-			return false
-		}
+		return false
+		// if l == log.InfoLevel {
+		// 	if time.Now().Sub(loggerTime) > FlushTime {
+		// 		if ninf {
+		// 			ninf = false
+		// 		} else {
+		// 			ResetToLastLine()
+		// 		}
+		// 		loggerTime = time.Now()
+		// 		return false
+		// 	} else {
+		// 		return true
+		// 	}
+		// } else {
+		// 	ninf = true
+		// 	return false
+		// }
 	}
 }
 

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -10,9 +9,11 @@ import (
 
 	"golang.org/x/net/context"
 
+	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
+	log "github.com/Myriad-Dreamin/go-ves/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 
@@ -28,7 +29,7 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 	ses, err := s.FindSessionInfo(s.SessionId)
 	// todo: get Session Acked from isc
 	// nsbClient.
-	fmt.Println("session acking... ", hex.EncodeToString(s.GetUser().GetAddress()))
+	log.Println("session acking... ", hex.EncodeToString(s.GetUser().GetAddress()))
 	if err == nil {
 		var success bool
 		var help_info string
@@ -39,40 +40,33 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 		} else if !success {
 			return nil, errors.New(help_info)
 		} else {
-			fmt.Println(ses.GetAckCount(), uint32(len(ses.GetAccounts())))
+			// fmt.Println(ses.GetAckCount(), uint32(len(ses.GetAccounts())))
 			if ses.GetAckCount() == uint32(len(ses.GetAccounts())) {
 
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 				defer cancel()
 				txb := ses.GetTransaction(0)
-				var kvs map[string]interface{}
+				var kvs tx.TransactionIntent
 				err := json.Unmarshal(txb, &kvs)
 				if err != nil {
 					return nil, err
 				}
 				var accs []*uipbase.Account
-				txb, err = base64.StdEncoding.DecodeString(kvs["src"].(string))
-				if err != nil {
-					return nil, err
-				}
 				accs = append(accs, &uipbase.Account{
-					Address: txb,
-					ChainId: kvs["chain_id"].(uint64),
+					Address: kvs.Src,
+					ChainId: kvs.ChainId,
 				})
-				txb, err = base64.StdEncoding.DecodeString(kvs["dst"].(string))
-				if err != nil {
-					return nil, err
-				}
-				accs = append(accs, &uipbase.Account{
-					Address: txb,
-					ChainId: kvs["chain_id"].(uint64),
-				})
-				r, err := s.CVes.InternalRequestComing(ctx, &uiprpc.InternalRequestComingRequest{
+				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainId)
+				// accs = append(accs, &uipbase.Account{
+				// 	Address: kvs.Dst,
+				// 	ChainId: kvs.ChainId,
+				// })
+				_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{
 					SessionId: ses.GetGUID(),
 					Host:      []byte{127, 0, 0, 1, ((23351) >> 8 & 0xff), 23351 & 0xff},
 					Accounts:  accs,
 				})
-				fmt.Println("reply?", r, err)
+				// fmt.Println("reply?", r, err)
 				if err != nil {
 					return nil, err
 				}

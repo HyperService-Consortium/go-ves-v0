@@ -6,11 +6,10 @@ package centered_ves
 
 import (
 	"encoding/hex"
-	"fmt"
-	"log"
 	"time"
 	"unsafe"
 
+	log "github.com/Myriad-Dreamin/go-ves/log"
 	"github.com/gorilla/websocket"
 )
 
@@ -23,6 +22,12 @@ type uniMessage struct {
 	chainID uint64
 	aim     []byte
 	message []byte
+	cb      func()
+}
+
+type broMessage struct {
+	message []byte
+	cb      func()
 }
 
 type clientKey struct {
@@ -40,7 +45,7 @@ type Hub struct {
 	reverseClients map[clientKey]*Client
 
 	// Inbound messages from the clients.
-	broadcast chan []byte
+	broadcast chan *broMessage
 
 	// messages to single clients
 	unicast chan *uniMessage
@@ -56,7 +61,7 @@ type Hub struct {
 
 func newHub() *Hub {
 	return &Hub{
-		broadcast:      make(chan []byte),
+		broadcast:      make(chan *broMessage),
 		unicast:        make(chan *uniMessage),
 		reverseClients: make(map[clientKey]*Client),
 		register:       make(chan *Client),
@@ -69,10 +74,10 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
-			fmt.Println("hello...")
+			// fmt.Println("hello...")
 			select {
 			case <-client.helloed:
-				fmt.Println("hello...")
+				// fmt.Println("hello...")
 			case <-time.After(5 * time.Second):
 				message := websocket.FormatCloseMessage(
 					websocket.ClosePolicyViolation,
@@ -90,7 +95,7 @@ func (h *Hub) run() {
 					address.GetChainId(),
 					*(*string)(unsafe.Pointer(&a)),
 				}] = client
-				fmt.Println("maps", address.GetChainId(), hex.EncodeToString(address.GetAddress()), "->", client.user.GetName())
+				// fmt.Println("maps", address.GetChainId(), hex.EncodeToString(address.GetAddress()), "->", client.user.GetName())
 			}
 			var a = client.user.GetName()
 			h.reverseClients[clientKey{
@@ -116,9 +121,9 @@ func (h *Hub) run() {
 			}
 		case message := <-h.broadcast:
 			for client := range h.clients {
-				fmt.Println("msg...", client.user, message)
+				// fmt.Println("msg...", client.user, message)
 				select {
-				case client.send <- message:
+				case client.send <- &writeMessageTask{message.message, func() {}}:
 				default:
 					close(client.send)
 					delete(h.clients, client)
@@ -136,14 +141,16 @@ func (h *Hub) run() {
 					})
 				}
 			}
+			message.cb()
 		case message := <-h.unicast:
+			log.Infof("must transmit %v %v\n", hex.EncodeToString(message.aim), message.chainID)
 			if client, ok := h.reverseClients[clientKey{
 				message.chainID,
 				*(*string)(unsafe.Pointer(&message.aim)),
 			}]; ok {
-				fmt.Println("hexx", message.chainID, hex.EncodeToString(message.aim))
+				// fmt.Println("hexx", message.chainID, hex.EncodeToString(message.aim), client)
 				select {
-				case client.send <- message.message:
+				case client.send <- &writeMessageTask{message.message, message.cb}:
 				default:
 					close(client.send)
 					delete(h.clients, client)
@@ -163,7 +170,6 @@ func (h *Hub) run() {
 			} else {
 				log.Println("debugging unknown aim", string(message.aim), message.aim)
 			}
-
 		}
 	}
 }

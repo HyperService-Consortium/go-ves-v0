@@ -7,6 +7,7 @@ type isc_address = []byte
 type NSBInterface interface {
 	SaveAttestation(isc_address, uiptypes.Attestation) error
 	InsuranceClaim(isc_address, uiptypes.Attestation) error
+	SettleContract(isc_address) error
 }
 
 type destination = uint64
@@ -45,6 +46,9 @@ type Session interface {
 }
 
 // the database which used by others
+
+type transaction_id = uint64
+type getter = func([]byte) error
 type SessionBase interface {
 
 	// insert accounts maps from guid to account
@@ -56,4 +60,6 @@ type SessionBase interface {
 	UpdateSessionInfo(MultiIndex, Index, Session) error
 
 	DeleteSessionInfo(MultiIndex, Index, isc_address) error
+
+	FindTransaction(Index, isc_address, transaction_id, getter) error
 }

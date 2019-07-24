@@ -21,7 +21,7 @@ func NewBitMap(Name []byte, length int64, conn redis.Conn) (*BitMap, error) {
 	binary.BigEndian.PutUint64(b, uint64(length))
 	s := bytes.NewBuffer(Name)
 	s.WriteByte(':')
-	s.WriteByte('b')
+	s.WriteByte('l')
 	_, err := conn.Do("set", s.Bytes(), b)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func PutBitMapLength(Name []byte, length int64, conn redis.Conn) error {
 	binary.BigEndian.PutUint64(b, uint64(length))
 	s := bytes.NewBuffer(Name)
 	s.WriteByte(':')
-	s.WriteByte('b')
+	s.WriteByte('l')
 	_, err := conn.Do("set", s.Bytes(), b)
 	if err != nil {
 		return err
@@ -106,6 +106,17 @@ func (b *BitMap) InLength(idx int64) (bool, error) {
 		b.length = int64(binary.BigEndian.Uint64(a.([]byte)))
 	}
 	return idx < b.length, nil
+}
+
+func (b *BitMap) Length() (int64, error) {
+	if b.length == 0 {
+		a, err := b.Conn.Do("get", *(*string)(unsafe.Pointer(&b.name))+":l")
+		if err != nil {
+			return 0, err
+		}
+		b.length = int64(binary.BigEndian.Uint64(a.([]byte)))
+	}
+	return b.length, nil
 }
 
 func (b *BitMap) Count() (int64, error) {

@@ -14,11 +14,14 @@ service VES {
     rpc SessionAckForInit (SessionAckForInitRequest) returns (SessionAckForInitReply);
 
     rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
+    rpc SessionRequireRawTransact (SessionRequireRawTransactRequest) returns (SessionRequireRawTransactReply);
     rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
 }
 
 service CenteredVES {
     rpc InternalRequestComing (InternalRequestComingRequest) returns (InternalRequestComingReply);
+    rpc InternalAttestationSending (InternalRequestComingRequest) returns (InternalRequestComingReply);
+    rpc InternalCloseSession (InternalCloseSessionRequest) returns (InternalCloseSessionReply);
 }
 
 // service CenteredVES {
@@ -66,11 +69,22 @@ message SessionAckForInitReply {
 message SessionRequireTransactRequest {
     // isc_address
     bytes session_id = 1;
-    uiprpc.base.Transaction tx = 2;
 }
 
 message SessionRequireTransactReply {
-    bool ok = 1;
+    uiprpc.base.Transaction tx = 2;
+}
+
+message SessionRequireRawTransactRequest {
+    // isc_address
+    bytes session_id = 1;
+}
+
+message SessionRequireRawTransactReply {
+    bytes raw_transaction = 1;
+    uint64 tid = 2;
+    uiprpc.base.Account src = 3;
+    uiprpc.base.Account dst = 4;
 }
 
 message AttestationReceiveRequest {
@@ -90,5 +104,19 @@ message InternalRequestComingRequest {
 }
 
 message InternalRequestComingReply {
+    bool ok = 1;
+}
+
+
+
+message InternalCloseSessionRequest {
+    // isc_address
+    bytes session_id = 1;
+    bytes nsb_host = 2;
+    bytes grpc_host = 3;
+    repeated uiprpc.base.Account accounts = 4;
+}
+
+message InternalCloseSessionReply {
     bool ok = 1;
 }

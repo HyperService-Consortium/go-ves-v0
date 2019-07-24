@@ -7,13 +7,13 @@ package centered_ves
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
+	log "github.com/Myriad-Dreamin/go-ves/log"
 	"github.com/Myriad-Dreamin/go-ves/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -38,11 +38,11 @@ var (
 	space   = []byte{' '}
 
 	// nsb ip
-	nsbip = []byte{47, 251, 2, 73, ':', uint8(26657 >> 8), uint8(26657 & 0xff)}
+	nsbip = []byte{47, 251, 2, 73, uint8(26657 >> 8), uint8(26657 & 0xff)}
 
 	// grpc ips
 	grpcips = [][]byte{
-		[]byte{127, 0, 0, 1, ':', uint8(23351 >> 8), uint8(23351 & 0xff)},
+		[]byte{127, 0, 0, 1, uint8(23351 >> 8), uint8(23351 & 0xff)},
 	}
 )
 
@@ -52,6 +52,11 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+}
+
+type writeMessageTask struct {
+	b  []byte
+	cb func()
 }
 
 // Client is a middleman between the websocket connection and the hub.
@@ -65,7 +70,7 @@ type Client struct {
 	user types.User
 
 	// Buffered channel of outbound messages.
-	send chan []byte
+	send chan *writeMessageTask
 
 	// client hello sended
 	helloed chan bool
@@ -92,28 +97,48 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		fmt.Println("reading message", string(message))
+		// fmt.Println("reading message", string(message))
 
 		var buf = bytes.NewBuffer(message)
 		var messageID uint16
 		binary.Read(buf, binary.BigEndian, &messageID)
 		switch messageID {
 		case wsrpc.CodeMessageRequest:
-
 			var s wsrpc.Message
 			err = proto.Unmarshal(buf.Bytes(), &s)
 			if err != nil {
 				log.Println("err:", err)
+				continue
 			}
-			fmt.Println(s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
+			log.Infoln("message request", s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
+			// fmt.Println(s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
 			var qwq, err = wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeMessageReply, &s)
 
 			if err != nil {
 				log.Println("err:", qwq)
 				continue
 			}
-			c.hub.broadcast <- qwq.Bytes()
-			wsrpc.GetDefaultSerializer().Put(qwq)
+			c.hub.broadcast <- &broMessage{qwq.Bytes(), func() {
+				wsrpc.GetDefaultSerializer().Put(qwq)
+			}}
+		case wsrpc.CodeRawProto:
+
+			var s wsrpc.RawMessage
+			err = proto.Unmarshal(buf.Bytes(), &s)
+			if err != nil {
+				log.Println("err:", err)
+				continue
+			}
+			var a uipbase.Account
+			err = proto.Unmarshal(s.GetTo(), &a)
+			if err != nil {
+				log.Println("err:", err)
+				continue
+			}
+			log.Infoln("raw proto", s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
+			// fmt.Println(string(s.GetContents()), string(s.GetFrom()), s.GetFrom(), "->", string(a.GetAddress()), s.GetTo())
+
+			c.hub.unicast <- &uniMessage{a.GetChainId(), a.GetAddress(), s.GetContents(), func() {}}
 		case wsrpc.CodeClientHelloRequest:
 			var s wsrpc.ClientHello
 			err = proto.Unmarshal(buf.Bytes(), &s)
@@ -122,7 +147,7 @@ func (c *Client) readPump() {
 			}
 
 			c.user, err = c.hub.server.vesdb.FindUser(string(s.GetName()))
-			fmt.Println(c.user, err)
+			// fmt.Println(c.user, err)
 			if err != nil {
 				log.Println(err)
 				return
@@ -137,8 +162,10 @@ func (c *Client) readPump() {
 				continue
 			}
 			c.helloed <- true
-			c.hub.unicast <- &uniMessage{placeHolderChain, s.GetName(), qwq.Bytes()}
-			wsrpc.GetDefaultSerializer().Put(qwq)
+			c.hub.unicast <- &uniMessage{placeHolderChain, s.GetName(), qwq.Bytes(), func() {
+				wsrpc.GetDefaultSerializer().Put(qwq)
+			}}
+
 		case wsrpc.CodeUserRegisterRequest:
 			var s wsrpc.UserRegisterRequest
 			err = proto.Unmarshal(buf.Bytes(), &s)
@@ -146,7 +173,7 @@ func (c *Client) readPump() {
 				log.Println("err:", err)
 			}
 
-			fmt.Println("hexx registering", hex.EncodeToString(s.GetAccount().GetAddress()))
+			// fmt.Println("hexx registering", hex.EncodeToString(s.GetAccount().GetAddress()))
 			err = c.hub.server.vesdb.InsertAccount(s.GetUserName(), s.GetAccount())
 
 			if err != nil {
@@ -158,8 +185,7 @@ func (c *Client) readPump() {
 			// abort
 		}
 
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		c.hub.broadcast <- message
+		c.hub.broadcast <- &broMessage{bytes.TrimSpace(bytes.Replace(message, newline, space, -1)), func() {}}
 	}
 }
 
@@ -181,22 +207,31 @@ func (c *Client) writePump() {
 			if !ok {
 				// The hub closed the channel.
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				if message.cb != nil {
+					message.cb()
+				}
 				return
 			}
 
 			w, err := c.conn.NextWriter(websocket.BinaryMessage)
 			if err != nil {
+				if message.cb != nil {
+					message.cb()
+				}
 				return
 			}
-			w.Write(message)
+			w.Write(message.b)
 
 			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
+			// n := len(c.send)
+			// for i := 0; i < n; i++ {
+			// 	w.Write(newline)
+			// 	w.Write(<-c.send)
+			// }
 
+			if message.cb != nil {
+				message.cb()
+			}
 			if err := w.Close(); err != nil {
 				return
 			}

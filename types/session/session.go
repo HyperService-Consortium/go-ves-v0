@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/binary"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"math/rand"
 	"unsafe"
 
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
+	log "github.com/Myriad-Dreamin/go-ves/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
 	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping"
@@ -157,15 +156,16 @@ func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool,
 	if err != nil {
 		return false, err.Error(), nil
 	}
-	fmt.Println(intents, err)
+	// fmt.Println(intents, err)
 	ses.Transactions = make([][]byte, 0, len(intents))
 
 	ses.Accounts = nil
 	c := makeComparator()
+	ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: 3, Address: ses.Signer.GetPublicKey()})
 	for _, intent := range intents {
-		fmt.Println("insert", len(ses.Transactions))
+		// fmt.Println("insert", len(ses.Transactions))
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
-		fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
+		// fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
 
 		if c.Insert(intent.ChainId, intent.Src) {
 			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Src})
@@ -203,9 +203,9 @@ func (ses *SerialSession) AckForInit(
 	signature uiptypes.Signature,
 ) (success_or_not bool, help_info string, err error) {
 	var addr = account.GetAddress()
-	fmt.Println(ses.Acks, len(ses.Acks))
+	// fmt.Println(ses.Acks, len(ses.Acks))
 	for idx, ak := range ses.GetAccounts() {
-		fmt.Println("comparing", hex.EncodeToString(ak.GetAddress()), hex.EncodeToString(addr))
+		// fmt.Println("comparing", hex.EncodeToString(ak.GetAddress()), hex.EncodeToString(addr))
 		if bytes.Equal(ak.GetAddress(), addr) {
 			if !bitmap.InLength(ses.Acks, idx) {
 				return false, "", errors.New("wrong Acks bytes set..")
@@ -308,13 +308,13 @@ func (ses *SerialSession) ProcessAttestation(
 		// s.BroadcastTxCommit(content)
 		if isRawTransaction(tag) {
 			cb, err := bn.RouteRaw(chainID, payload)
-			fmt.Println("cbing ", string(cb))
+			log.Infoln("cbing ", string(cb))
 			if err != nil {
 				return false, err.Error(), nil
 			}
 		} else {
 			cb, err := bn.Route(chainID, payload)
-			fmt.Println("cbing ", string(cb))
+			log.Infoln("cbing ", string(cb))
 			if err != nil {
 				return false, err.Error(), nil
 			}
@@ -380,25 +380,25 @@ func (sb *SerialSessionBase) FindSessionInfo(
 	}
 	sb.FindSessionAccounts(idb, isc_address, func(arg1 uint64, arg2 []byte) error {
 		f[0].Accounts = append(f[0].Accounts, &account.PureAccount{ChainId: arg1, Address: arg2})
-		fmt.Println("finded", hex.EncodeToString(arg2))
+		// fmt.Println("finded", hex.EncodeToString(arg2))
 		return nil
 	})
 	for idx := uint64(f[0].TransactionCount); idx != 0; idx-- {
 		sb.FindTransaction(idb, isc_address, idx, func(arg []byte) error {
 			f[0].Transactions = append(f[0].Transactions, arg)
-			fmt.Println("finded tx", len(arg))
+			// fmt.Println("finded tx", len(arg))
 			return nil
 		})
 	}
 	session = &f[0]
-	fmt.Println("getid", session.GetID())
+	// fmt.Println("getid", session.GetID())
 	return
 }
 
 func (sb *SerialSessionBase) UpdateSessionInfo(
 	db types.MultiIndex, idb types.Index, session types.Session,
 ) (err error) {
-	fmt.Println("updateid", session.GetID())
+	// fmt.Println("updateid", session.GetID())
 	return db.Modify(session, session.ToKVMap())
 }
 
