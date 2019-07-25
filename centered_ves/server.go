@@ -228,7 +228,7 @@ func (srv *Server) CloseSession(accounts []uiptypes.Account, iscAddress, grpcHos
 
 func (srv *Server) closeSession(acc uiptypes.Account, iscAddress, grpcHost, nsbHost []byte) error {
 	var msg wsrpc.CloseSessionRequest
-	msg.NsbHost = nsbip
+	msg.NsbHost = nsbHost
 	msg.GrpcHost = grpcHost
 	msg.SessionId = iscAddress
 

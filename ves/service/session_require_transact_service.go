@@ -15,6 +15,8 @@ type SessionRequireTransactService struct {
 
 func (s SessionRequireTransactService) Serve() (*uiprpc.SessionRequireTransactReply, error) {
 	// todo errors.New("TODO")
+	s.ActivateSession(s.GetSessionId())
+	defer s.InactivateSession(s.GetSessionId())
 	var err error
 	if err != nil {
 		return nil, err

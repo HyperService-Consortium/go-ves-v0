@@ -86,3 +86,10 @@ func (db *Database) HasAccount(user_name string, account uiptypes.Account) (bool
 func (db *Database) InvertFind(account uiptypes.Account) (string, error) {
 	return db.userdb.InvertFind(db.muldb, account)
 }
+
+func (db *Database) ActivateSession(isc_address []byte) {
+	db.sesdb.ActivateSession(isc_address)
+}
+func (db *Database) InactivateSession(isc_address []byte) {
+	db.sesdb.InactivateSession(isc_address)
+}

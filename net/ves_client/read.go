@@ -2,13 +2,16 @@ package vesclient
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"time"
+
 	log "github.com/Myriad-Dreamin/go-ves/log"
 
 	"context"
+
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
@@ -21,7 +24,6 @@ import (
 	service "github.com/Myriad-Dreamin/go-ves/net/ves_client/service"
 )
 
-
 func (vc *VesClient) read() {
 	for {
 		_, message, err := vc.conn.ReadMessage()
@@ -30,8 +32,13 @@ func (vc *VesClient) read() {
 			return
 		}
 
+		tag := md5.Sum(message)
+		log.Infoln("message tag", hex.EncodeToString(tag[:]))
+
 		var buf = bytes.NewBuffer(message)
 		var messageID uint16
+
+		// todo: BigEndian
 		binary.Read(buf, binary.BigEndian, &messageID)
 		switch messageID {
 		case wsrpc.CodeMessageReply:
@@ -66,7 +73,7 @@ func (vc *VesClient) read() {
 			if err != nil {
 				log.Errorln("VesClient.read.ClientHelloReply.decodeNSBHost:", err)
 			} else {
-				log.Infoln("adding default nsbip ", vc.grpcip)
+				log.Infoln("adding default nsbip ", vc.nsbip)
 			}
 
 		case wsrpc.CodeRequestComingRequest:
@@ -343,7 +350,7 @@ func (vc *VesClient) informAttestation(grpcHost string, sendingAtte *wsrpc.Attes
 		ctx,
 		&uiprpc.AttestationReceiveRequest{
 			SessionId: sendingAtte.SessionId,
-			Atte: sendingAtte.Atte,
+			Atte:      sendingAtte.Atte,
 		},
 	)
 	if err != nil {

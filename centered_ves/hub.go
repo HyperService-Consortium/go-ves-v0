@@ -5,6 +5,7 @@
 package centered_ves
 
 import (
+	"crypto/md5"
 	"encoding/hex"
 	"time"
 	"unsafe"
@@ -120,10 +121,12 @@ func (h *Hub) run() {
 				})
 			}
 		case message := <-h.broadcast:
+			tag := md5.Sum(message.message)
+			log.Println("message broadcasting tag:", hex.EncodeToString(tag[:]))
 			for client := range h.clients {
 				// fmt.Println("msg...", client.user, message)
 				select {
-				case client.send <- &writeMessageTask{message.message, func() {}}:
+				case client.send <- &writeMessageTask{message.message, message.cb}:
 				default:
 					close(client.send)
 					delete(h.clients, client)
@@ -144,6 +147,8 @@ func (h *Hub) run() {
 			message.cb()
 		case message := <-h.unicast:
 			log.Infof("must transmit %v %v\n", hex.EncodeToString(message.aim), message.chainID)
+			tag := md5.Sum(message.message)
+			log.Println("message unicasting tag:", hex.EncodeToString(tag[:]))
 			if client, ok := h.reverseClients[clientKey{
 				message.chainID,
 				*(*string)(unsafe.Pointer(&message.aim)),

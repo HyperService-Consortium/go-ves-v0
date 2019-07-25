@@ -6,7 +6,9 @@ package centered_ves
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"time"
@@ -47,8 +49,8 @@ var (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  1024 * 1024,
+	WriteBufferSize: 1024 * 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -97,7 +99,8 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		// fmt.Println("reading message", string(message))
+		tag := md5.Sum(message)
+		fmt.Println("reading message", hex.EncodeToString(tag[:]))
 
 		var buf = bytes.NewBuffer(message)
 		var messageID uint16
@@ -135,7 +138,8 @@ func (c *Client) readPump() {
 				log.Println("err:", err)
 				continue
 			}
-			log.Infoln("raw proto", s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
+			tag := md5.Sum(s.GetContents())
+			log.Infoln("raw proto", hex.EncodeToString(tag[:]), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
 			// fmt.Println(string(s.GetContents()), string(s.GetFrom()), s.GetFrom(), "->", string(a.GetAddress()), s.GetTo())
 
 			c.hub.unicast <- &uniMessage{a.GetChainId(), a.GetAddress(), s.GetContents(), func() {}}
@@ -156,6 +160,7 @@ func (c *Client) readPump() {
 			var t wsrpc.ClientHelloReply
 			t.GrpcHost = grpcips[0]
 			t.NsbHost = nsbip
+
 			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeClientHelloReply, &t)
 			if err != nil {
 				log.Println("err:", err)
@@ -185,7 +190,7 @@ func (c *Client) readPump() {
 			// abort
 		}
 
-		c.hub.broadcast <- &broMessage{bytes.TrimSpace(bytes.Replace(message, newline, space, -1)), func() {}}
+		// c.hub.broadcast <- &broMessage{bytes.TrimSpace(bytes.Replace(message, newline, space, -1)), func() {}}
 	}
 }
 
@@ -207,9 +212,9 @@ func (c *Client) writePump() {
 			if !ok {
 				// The hub closed the channel.
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				if message.cb != nil {
-					message.cb()
-				}
+				// if message.cb != nil {
+				// 	message.cb()
+				// }
 				return
 			}
 

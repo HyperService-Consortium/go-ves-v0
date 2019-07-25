@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"sync"
 
 	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
 	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
@@ -220,7 +221,7 @@ func (ses *MultiThreadSerialSession) AckForInit(
 	return false, "account not found in this session", nil
 }
 
-func (ses *SerialSession) NotifyAttestation(
+func (ses *MultiThreadSerialSession) NotifyAttestation(
 	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
@@ -229,6 +230,7 @@ func (ses *SerialSession) NotifyAttestation(
 	if tid != uint64(ses.UnderTransacting) {
 		return false, "this transaction is not undertransacting", nil
 	}
+	fmt.Println("notifying")
 
 	switch atte.GetAid() {
 	// case Unknown:
@@ -289,11 +291,13 @@ func (ses *SerialSession) NotifyAttestation(
 		ses.UnderTransacting++
 		if ses.UnderTransacting == ses.TransactionCount {
 			err = nsb.SettleContract(ses.ISCAddress)
+
 			if err != nil {
 				return false, "", err
 			}
+
 		}
-		return true, "", nil
+		return true, "closed session", nil
 	default:
 		return false, "", errors.New("unknown aid types")
 	}
@@ -383,12 +387,35 @@ func (ses *MultiThreadSerialSession) SyncFromISC() (err error) {
 	return errors.New("TODO")
 }
 
+const MaxSessionCount = 500
+
+type LabeledMutex struct {
+	sync.Mutex
+	Index int
+}
+
 // the database which used by others
 type MultiThreadSerialSessionBase struct {
+	mutex sync.Mutex
+	// todo is it safe enough?
+	alloc  map[uint64]*LabeledMutex
+	resrc  chan int
+	mutexs [MaxSessionCount]*LabeledMutex
+	count  [MaxSessionCount]int
 }
 
 func NewMultiThreadSerialSessionBase() *MultiThreadSerialSessionBase {
-	return &MultiThreadSerialSessionBase{}
+	sb := &MultiThreadSerialSessionBase{
+		alloc: make(map[uint64]*LabeledMutex),
+		resrc: make(chan int, MaxSessionCount),
+	}
+	for idx := len(sb.mutexs) - 1; idx >= 0; idx-- {
+		mutex := new(LabeledMutex)
+		sb.mutexs[idx] = mutex
+		mutex.Index = idx
+		sb.resrc <- idx
+	}
+	return sb
 }
 
 // func RequestsStart() {
@@ -546,5 +573,37 @@ func (sb *MultiThreadSerialSessionBase) FindTransaction(
 		return
 	}
 	err = getter(v)
+	return
+}
+
+func (sb *MultiThreadSerialSessionBase) ActivateSession(isc_address []byte) {
+	sb.mutex.Lock()
+	idx := binary.BigEndian.Uint64(isc_address[0:8])
+	if mutex := sb.alloc[idx]; mutex != nil {
+		sb.count[mutex.Index]++
+		sb.mutex.Unlock()
+		mutex.Lock()
+	} else {
+		mutex = sb.mutexs[<-sb.resrc]
+		sb.alloc[idx] = mutex
+		sb.count[mutex.Index]++
+		sb.mutex.Unlock()
+		mutex.Lock()
+	}
+	return
+}
+func (sb *MultiThreadSerialSessionBase) InactivateSession(isc_address []byte) {
+	sb.mutex.Lock()
+	idx := binary.BigEndian.Uint64(isc_address[0:8])
+
+	// for fast operation
+	mutex := sb.alloc[idx]
+	sb.count[mutex.Index]--
+	if sb.count[mutex.Index] == 0 {
+		sb.resrc <- mutex.Index
+		sb.alloc[idx] = nil
+	}
+	sb.mutex.Unlock()
+	mutex.Unlock()
 	return
 }

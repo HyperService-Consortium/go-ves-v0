@@ -30,10 +30,16 @@ type InformAttestationService struct {
 
 func (s *InformAttestationService) Serve() (*uiprpc.AttestationReceiveReply, error) {
 	// todo
+	s.ActivateSession(s.GetSessionId())
 	ses, err := s.FindSessionInfo(s.GetSessionId())
-	defer s.UpdateSessionInfo(ses)
-
+	tid, _ := ses.GetTransactingTransaction()
+	fmt.Printf("%T\n", ses)
+	fmt.Println("this is about ", tid)
 	if err == nil {
+		defer func() {
+			s.UpdateSessionInfo(ses)
+			s.InactivateSession(s.GetSessionId())
+		}()
 		ses.SetSigner(s.Signer)
 
 		var success bool
@@ -55,6 +61,45 @@ func (s *InformAttestationService) Serve() (*uiprpc.AttestationReceiveReply, err
 		} else {
 			if fixed_tx_id == uint32(len(ses.GetTransactions())) {
 				// close
+
+				if len(helpInfo) != 0 {
+					log.Infoln("InformAttestationService:", helpInfo)
+				}
+
+				// if ret, err := nsbClient.SettleContract(s.Signer, ses.GetGUID()); err != nil {
+				// 	return nil, err
+				// } else {
+				// 	fmt.Printf(
+				// 		"closing contract {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n",
+				// 		ret.Info, string(ret.Data), ret.Log, ret.Tags,
+				// 	)
+				// }
+
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+				defer cancel()
+
+				raccs := ses.GetAccounts()
+
+				var accs []*uipbase.Account
+
+				for _, acc := range raccs {
+					accs = append(accs, &uipbase.Account{
+						Address: acc.GetAddress(),
+						ChainId: acc.GetChainId(),
+					})
+				}
+
+				_, err = s.CVes.InternalCloseSession(ctx, &uiprpc.InternalCloseSessionRequest{
+					SessionId: ses.GetGUID(),
+					NsbHost:   []byte{47, 251, 2, 73, uint8(26657 >> 8), uint8(26657 & 0xff)},
+					GrpcHost:  []byte{127, 0, 0, 1, ((23351) >> 8 & 0xff), 23351 & 0xff},
+					Accounts:  accs,
+				})
+				// fmt.Println("reply?", r, err)
+				if err != nil {
+					return nil, err
+				}
+
 				return &uiprpc.AttestationReceiveReply{
 					Ok: true,
 				}, nil
@@ -107,6 +152,7 @@ func (s *InformAttestationService) Serve() (*uiprpc.AttestationReceiveReply, err
 		}
 
 	} else {
+		s.InactivateSession(s.GetSessionId())
 		return nil, err
 	}
 }

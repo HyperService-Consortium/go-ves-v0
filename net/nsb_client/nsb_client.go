@@ -796,7 +796,7 @@ func (nc *NSBClient) insuranceClaim(
 
 func (nc *NSBClient) SettleContract(
 	user Ed25519SignableAccount, contractAddress []byte,
-) ([]byte, error) {
+) (*DeliverTx, error) {
 	var txHeader cmn.TransactionHeader
 	var err error
 	var fap appl.FAPair
@@ -831,10 +831,10 @@ func (nc *NSBClient) SettleContract(
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes())
-	_, err = nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
+	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
 	// fmt.Println(PretiJson(ret), err)
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return &ret.DeliverTx, nil
 }

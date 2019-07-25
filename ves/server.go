@@ -139,6 +139,21 @@ func (server *Server) AttestationReceive(
 	}).Serve()
 }
 
+func (server *Server) InformAttestation(
+	ctx context.Context,
+	in *uiprpc.AttestationReceiveRequest,
+) (*uiprpc.AttestationReceiveReply, error) {
+	log.Infof("informing attestation: %v, %v\n", in.GetAtte().GetTid(), in.GetAtte().GetAid())
+	return (&service.InformAttestationService{
+		Signer:                    server.signer,
+		CVes:                      server.cves,
+		VESDB:                     server.db,
+		Host:                      "http://47.251.2.73:26657",
+		Context:                   ctx,
+		AttestationReceiveRequest: in,
+	}).Serve()
+}
+
 func (server *Server) requestSendSessionInfo(sessionID []byte, requestingAccount []*uipbase.Account) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()

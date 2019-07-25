@@ -43,10 +43,14 @@ func (atte *AtteAdapdator) GetSignatures() []uiptypes.Signature {
 
 func (s *AttestationReceiveService) Serve() (*uiprpc.AttestationReceiveReply, error) {
 	// todo
+	s.ActivateSession(s.GetSessionId())
 	ses, err := s.FindSessionInfo(s.GetSessionId())
-	defer s.UpdateSessionInfo(ses)
-
 	if err == nil {
+		defer func() {
+			s.UpdateSessionInfo(ses)
+			s.InactivateSession(s.GetSessionId())
+		}()
+
 		ses.SetSigner(s.Signer)
 
 		var success bool
@@ -121,6 +125,7 @@ func (s *AttestationReceiveService) Serve() (*uiprpc.AttestationReceiveReply, er
 		}
 
 	} else {
+		s.InactivateSession(s.GetSessionId())
 		return nil, err
 	}
 }

@@ -26,6 +26,8 @@ type SessionAckForInitService struct {
 }
 
 func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error) {
+	s.ActivateSession(s.GetSessionId())
+	defer s.InactivateSession(s.GetSessionId())
 	ses, err := s.FindSessionInfo(s.SessionId)
 	// todo: get Session Acked from isc
 	// nsbClient.

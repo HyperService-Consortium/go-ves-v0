@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -20,6 +21,8 @@ type SessionRequireRawTransactService struct {
 
 func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTransactReply, error) {
 	// todo errors.New("TODO")
+	s.ActivateSession(s.GetSessionId())
+	defer s.InactivateSession(s.GetSessionId())
 	ses, err := s.FindSessionInfo(s.SessionId)
 	if err != nil {
 		return nil, err
@@ -42,6 +45,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", transactionIntent.Dst)
 	return &uiprpc.SessionRequireRawTransactReply{
 		RawTransaction: b,
 		Tid:            uint64(underTransacting),

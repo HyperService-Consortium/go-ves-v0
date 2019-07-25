@@ -63,4 +63,7 @@ type SessionBase interface {
 	DeleteSessionInfo(MultiIndex, Index, isc_address) error
 
 	FindTransaction(Index, isc_address, transaction_id, getter) error
+
+	ActivateSession(isc_address)
+	InactivateSession(isc_address)
 }

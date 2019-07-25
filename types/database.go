@@ -90,6 +90,9 @@ type VESDB interface {
 
 	FindTransaction(isc_address, transaction_id, getter) error
 
+	ActivateSession(isc_address)
+	InactivateSession(isc_address)
+
 	// insert accounts maps from guid to account
 	InsertAccount(user_name, uiptypes.Account) error
 

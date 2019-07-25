@@ -264,7 +264,7 @@ func isRawTransaction(tag uint8) bool {
 	return (tag & 0x1) == 0x1
 }
 
-func (ses *MultiThreadSerialSession) NotifyAttestation(
+func (ses *SerialSession) NotifyAttestation(
 	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
@@ -570,3 +570,6 @@ func (sb *SerialSessionBase) FindTransaction(
 	err = getter(v)
 	return
 }
+
+func (sb *SerialSessionBase) ActivateSession(isc_address []byte)   { return }
+func (sb *SerialSessionBase) InactivateSession(isc_address []byte) { return }
