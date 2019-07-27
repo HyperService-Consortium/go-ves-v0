@@ -56,12 +56,12 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 				var accs []*uipbase.Account
 				accs = append(accs, &uipbase.Account{
 					Address: kvs.Src,
-					ChainId: kvs.ChainId,
+					ChainId: kvs.ChainID,
 				})
-				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainId)
+				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainID)
 				// accs = append(accs, &uipbase.Account{
 				// 	Address: kvs.Dst,
-				// 	ChainId: kvs.ChainId,
+				// 	ChainID: kvs.ChainID,
 				// })
 				_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{
 					SessionId: ses.GetGUID(),

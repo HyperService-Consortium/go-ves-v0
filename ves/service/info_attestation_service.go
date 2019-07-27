@@ -9,13 +9,13 @@ import (
 
 	"golang.org/x/net/context"
 
+	bni "github.com/Myriad-Dreamin/go-uip/bni/eth"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	log "github.com/Myriad-Dreamin/go-ves/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
-	bni "github.com/Myriad-Dreamin/go-ves/types/bn-interface"
 	nsbi "github.com/Myriad-Dreamin/go-ves/types/nsb-interface"
 )
 
@@ -117,12 +117,12 @@ func (s *InformAttestationService) Serve() (*uiprpc.AttestationReceiveReply, err
 				var accs []*uipbase.Account
 				accs = append(accs, &uipbase.Account{
 					Address: kvs.Src,
-					ChainId: kvs.ChainId,
+					ChainId: kvs.ChainID,
 				})
-				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainId)
+				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainID)
 				// accs = append(accs, &uipbase.Account{
 				// 	Address: kvs.Dst,
-				// 	ChainId: kvs.ChainId,
+				// 	ChainId: kvs.ChainID,
 				// })
 				_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{
 					SessionId: ses.GetGUID(),

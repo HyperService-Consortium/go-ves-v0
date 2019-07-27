@@ -6,11 +6,11 @@ import (
 
 	"golang.org/x/net/context"
 
+	bni "github.com/Myriad-Dreamin/go-uip/bni/eth"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	types "github.com/Myriad-Dreamin/go-ves/types"
-	translator "github.com/Myriad-Dreamin/go-ves/types/chain-translator"
 )
 
 type SessionRequireRawTransactService struct {
@@ -41,7 +41,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 		return nil, err
 	}
 	var b []byte
-	b, err = (&translator.Translator{}).Translate(&transactionIntent)
+	b, err = (&bni.BN{}).Translate(&transactionIntent, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +51,11 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 		Tid:            uint64(underTransacting),
 		Src: &uipbase.Account{
 			Address: transactionIntent.Src,
-			ChainId: transactionIntent.ChainId,
+			ChainId: transactionIntent.ChainID,
 		},
 		Dst: &uipbase.Account{
 			Address: transactionIntent.Dst,
-			ChainId: transactionIntent.ChainId,
+			ChainId: transactionIntent.ChainID,
 		},
 	}, nil
 }

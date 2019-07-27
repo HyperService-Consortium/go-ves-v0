@@ -2,12 +2,14 @@ package vesclient
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"sync"
 
+	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
@@ -430,4 +432,51 @@ func (vc *VesClient) getSigner() (uiptypes.Signer, error) {
 		return nil, errors.New("key ten1 not found")
 	}
 	return vc.signer, nil
+}
+
+func (vc *VesClient) getRouter(chainID uint64) uiptypes.Router {
+	switch chainID {
+	case 1, 2:
+		return &ethbni.BN{}
+	default:
+		return nil
+	}
+}
+
+func (signer *EthAccount) GetPublicKey() []byte {
+	b, _ := hex.DecodeString(signer.Address)
+	return b
+}
+
+func (signer *EthAccount) Sign([]byte) []byte {
+	return nil
+}
+
+func (vc *VesClient) getRespSigner(acc *uipbase.Account) (uiptypes.Signer, error) {
+	if vc.signer != nil {
+		return vc.signer, nil
+	}
+	cid := acc.GetChainId()
+	switch cid {
+	case 1, 2:
+		sadd := hex.EncodeToString(acc.GetAddress())
+		for _, acc := range vc.accs.Alias {
+			if acc.ChainID == cid && acc.Address == sadd {
+				return &acc, nil
+			}
+		}
+	default:
+		for _, key := range vc.keys.Alias {
+			if key.ChainID != cid {
+				continue
+			}
+
+			signer := signaturer.NewTendermintNSBSigner(key.PrivateKey)
+			if bytes.Equal(signer.GetPublicKey(), acc.GetAddress()) {
+				return signer, nil
+			}
+		}
+	}
+
+	return nil, errors.New("not found")
 }

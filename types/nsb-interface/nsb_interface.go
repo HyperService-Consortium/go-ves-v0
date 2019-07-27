@@ -19,7 +19,7 @@ func (nsb *NSBClientImpl) SaveAttestation(isc_address []byte, atte uiptypes.Atte
 	return nil
 }
 func (nsb *NSBClientImpl) InsuranceClaim(isc_address []byte, atte uiptypes.Attestation) error {
-	_, err := nsb.NSBClient.InsuranceClaim(nsb.signer, isc_address, atte.GetTid(), uint64(len(atte.GetSignatures())+2))
+	_, err := nsb.NSBClient.InsuranceClaim(nsb.signer, isc_address, atte.GetTid(), atte.GetAid())
 	return err
 }
 

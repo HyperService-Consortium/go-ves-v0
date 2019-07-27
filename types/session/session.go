@@ -13,7 +13,6 @@ import (
 	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
-	log "github.com/Myriad-Dreamin/go-ves/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
 	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping"
@@ -136,7 +135,7 @@ func makeComparator() *comparator {
 
 func (c *comparator) Insert(a uint64, b []byte) bool {
 	h := md5.New()
-	*(*uint64)(unsafe.Pointer(&c.hacker)) = a
+	*(*uint64)(unsafe.Pointer(&c.hacker[0])) = a
 	h.Write(c.hacker[:])
 	h.Write(b)
 	var nb = h.Sum(nil)
@@ -168,11 +167,11 @@ func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool,
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
 		// fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
 
-		if c.Insert(intent.ChainId, intent.Src) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Src})
+		if c.Insert(intent.ChainID, intent.Src) {
+			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Src})
 		}
-		if c.Insert(intent.ChainId, intent.Dst) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Dst})
+		if c.Insert(intent.ChainID, intent.Dst) {
+			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Dst})
 		}
 	}
 	ses.TransactionCount = uint32(len(intents))
@@ -265,7 +264,7 @@ func isRawTransaction(tag uint8) bool {
 }
 
 func (ses *SerialSession) NotifyAttestation(
-	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
+	nsb types.NSBInterface, bn uiptypes.BlockChainInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
 	tid := atte.GetTid()
@@ -344,7 +343,7 @@ func (ses *SerialSession) NotifyAttestation(
 }
 
 func (ses *SerialSession) ProcessAttestation(
-	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
+	nsb types.NSBInterface, bn uiptypes.BlockChainInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 
 	tid := atte.GetTid()
@@ -364,28 +363,28 @@ func (ses *SerialSession) ProcessAttestation(
 		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
 		return true, "", nil
 	case TxState.Instantiated:
-		chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
-
-		if err != nil {
-			return false, err.Error(), nil
-		}
+		// chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
+		//
+		// if err != nil {
+		// 	return false, err.Error(), nil
+		// }
 
 		// type = s.GetAtte().GetContent()
 		// content = type.Content
 		// s.BroadcastTxCommit(content)
-		if isRawTransaction(tag) {
-			cb, err := bn.RouteRaw(chainID, payload)
-			log.Infoln("cbing ", string(cb))
-			if err != nil {
-				return false, err.Error(), nil
-			}
-		} else {
-			cb, err := bn.Route(chainID, payload)
-			log.Infoln("cbing ", string(cb))
-			if err != nil {
-				return false, err.Error(), nil
-			}
-		}
+		// if isRawTransaction(tag) {
+		// 	cb, err := bn.RouteRaw(chainID, payload)
+		// 	log.Infoln("cbing ", string(cb))
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// } else {
+		// 	cb, err := bn.Route(chainID, payload)
+		// 	log.Infoln("cbing ", string(cb))
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// }
 
 		nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
 

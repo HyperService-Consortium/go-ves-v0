@@ -145,7 +145,7 @@ message AttestationReceiveReply {
 message CloseSessionRequest {
     // isc_address
     bytes session_id = 1;
-    bytes nsb_host =2;
+    bytes nsb_host = 2;
     bytes grpc_host = 3;
 }
 

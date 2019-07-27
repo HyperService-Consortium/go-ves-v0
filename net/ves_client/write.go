@@ -335,7 +335,7 @@ func (vc *VesClient) sendOpIntents(filepath, fileBuffer []byte) error {
 			"domain":    1,
 			"user_name": "a2",
 		},
-		"amount": "02e0",
+		"amount": "2e0",
 		"unit":   "wei",
 	}
 	// Set up a connection to the server.

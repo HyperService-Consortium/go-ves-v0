@@ -10,15 +10,6 @@ type NSBInterface interface {
 	SettleContract(isc_address) error
 }
 
-type destination = uint64
-type payload = []byte
-type on_chain_transaction = []byte
-type cb_info = []byte
-type BNInterface interface {
-	RouteRaw(destination, payload) (cb_info, error)
-	Route(destination, on_chain_transaction) (cb_info, error)
-}
-
 type success_or_not = bool
 type help_info = string
 type Session interface {
@@ -40,8 +31,8 @@ type Session interface {
 	// error reports Internal errors, help_info reports Logic errors
 	InitFromOpIntents(uiptypes.OpIntents) (success_or_not, help_info, error)
 	AckForInit(uiptypes.Account, uiptypes.Signature) (success_or_not, help_info, error)
-	NotifyAttestation(NSBInterface, BNInterface, uiptypes.Attestation) (success_or_not, help_info, error)
-	ProcessAttestation(NSBInterface, BNInterface, uiptypes.Attestation) (success_or_not, help_info, error)
+	NotifyAttestation(NSBInterface, uiptypes.BlockChainInterface, uiptypes.Attestation) (success_or_not, help_info, error)
+	ProcessAttestation(NSBInterface, uiptypes.BlockChainInterface, uiptypes.Attestation) (success_or_not, help_info, error)
 
 	SyncFromISC() error
 }

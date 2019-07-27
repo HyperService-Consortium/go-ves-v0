@@ -146,11 +146,11 @@ func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpInte
 	for _, intent := range intents {
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
 
-		if c.Insert(intent.ChainId, intent.Src) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Src})
+		if c.Insert(intent.ChainID, intent.Src) {
+			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Src})
 		}
-		if c.Insert(intent.ChainId, intent.Dst) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainId, Address: intent.Dst})
+		if c.Insert(intent.ChainID, intent.Dst) {
+			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Dst})
 		}
 	}
 	ses.TransactionCount = uint32(len(intents))
@@ -222,7 +222,7 @@ func (ses *MultiThreadSerialSession) AckForInit(
 }
 
 func (ses *MultiThreadSerialSession) NotifyAttestation(
-	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
+	nsb types.NSBInterface, bn uiptypes.BlockChainInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
 	tid := atte.GetTid()
@@ -304,7 +304,7 @@ func (ses *MultiThreadSerialSession) NotifyAttestation(
 }
 
 func (ses *MultiThreadSerialSession) ProcessAttestation(
-	nsb types.NSBInterface, bn types.BNInterface, atte uiptypes.Attestation,
+	nsb types.NSBInterface, bn uiptypes.BlockChainInterface, atte uiptypes.Attestation,
 ) (success_or_not bool, help_info string, err error) {
 	// todo
 
@@ -328,28 +328,28 @@ func (ses *MultiThreadSerialSession) ProcessAttestation(
 		}
 		return true, "", nil
 	case TxState.Instantiated:
-		chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
-
-		if err != nil {
-			return false, err.Error(), nil
-		}
+		// chainID, tag, payload, err := serial_helper.UnserializeAttestationContent(atte.GetContent())
+		//
+		// if err != nil {
+		// 	return false, err.Error(), nil
+		// }
 
 		// type = s.GetAtte().GetContent()
 		// content = type.Content
 		// s.BroadcastTxCommit(content)
-		if isRawTransaction(tag) {
-			cb, err := bn.RouteRaw(chainID, payload)
-			log.Infof("cbing %v", cb)
-			if err != nil {
-				return false, err.Error(), nil
-			}
-		} else {
-			cb, err := bn.Route(chainID, payload)
-			log.Infof("cbing %v", cb)
-			if err != nil {
-				return false, err.Error(), nil
-			}
-		}
+		// if isRawTransaction(tag) {
+		// 	cb, err := bn.RouteRaw(chainID, payload)
+		// 	log.Infof("cbing %v", cb)
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// } else {
+		// 	cb, err := bn.Route(chainID, payload)
+		// 	log.Infof("cbing %v", cb)
+		// 	if err != nil {
+		// 		return false, err.Error(), nil
+		// 	}
+		// }
 
 		err = nsb.InsuranceClaim(ses.GetGUID(), iter(atte, ses.Signer))
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -21,7 +22,6 @@ import (
 	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
 	helper "github.com/Myriad-Dreamin/go-ves/net/help-func"
 	nsbcli "github.com/Myriad-Dreamin/go-ves/net/nsb_client"
-	service "github.com/Myriad-Dreamin/go-ves/net/ves_client/service"
 )
 
 func (vc *VesClient) read() {
@@ -226,33 +226,27 @@ func (vc *VesClient) read() {
 				continue
 			}
 
-			signer, err := vc.getSigner()
-			if err != nil {
-				log.Errorln("VesClient.read.AttestationReceiveRequest.getSigner:", err)
-				continue
-			}
+			atte := s.GetAtte()
+			aid := atte.GetAid()
 
-			if _, err = (&service.AttestationReceiveService{
-				Signer:                    signer,
-				NSBClient:                 vc.nsbClient,
-				AttestationReceiveRequest: s,
-			}).Serve(); err != nil {
-				log.Errorln("VesClient.read.AttestationReceiveRequest.AttestationReceiveService:", err)
-				continue
-				// else if err = vc.postMessage(wsrpc.CodeAttestationReceiveReply, msg); err != nil {
-				// 	log.Println(err)
-				// 	continue
-				// }
-			} else {
-				atte := s.GetAtte()
-
+			switch aid {
+			case TxState.Unknown:
+				log.Infoln("transaction is of the status unknown")
+			case TxState.Initing:
+				log.Infoln("transaction is of the status initing")
+			case TxState.Inited:
+				log.Infoln("transaction is of the status inited")
+			case TxState.Closed:
 				// skip closed atte (last)
-				if atte.GetAid() == TxState.Closed {
-					log.Infoln("skip the last attestation of this transaction")
+				log.Infoln("skip the last attestation of this transaction")
+			default:
+				log.Infoln("must send attestation with status:", TxState.Description(aid+1))
+
+				signer, err := vc.getSigner()
+				if err != nil {
+					log.Errorln("VesClient.read.AttestationReceiveRequest.getSigner:", err)
 					continue
 				}
-
-				log.Infoln("must send attestation with status:", TxState.Description(s.GetAtte().GetAid()))
 
 				sigs := atte.GetSignatures()
 				toSig := sigs[len(sigs)-1].GetContent()
@@ -265,7 +259,7 @@ func (vc *VesClient) read() {
 				sendingAtte.Atte = &uipbase.Attestation{
 					Tid: atte.GetTid(),
 					// todo: get nx -> more readable
-					Aid:     atte.GetAid() + 1,
+					Aid:     aid + 1,
 					Content: atte.GetContent(),
 					Signatures: append(sigs, &uipbase.Signature{
 						// todo signature
@@ -275,6 +269,49 @@ func (vc *VesClient) read() {
 				}
 				sendingAtte.Src = s.GetDst()
 				sendingAtte.Dst = s.GetSrc()
+
+				if aid == TxState.Open {
+					acc := s.GetDst()
+					router := vc.getRouter(acc.ChainId)
+					if router == nil {
+						log.Errorln("VesClient.read.AttestationReceiveRequest.getRespSigner:", errors.New("get router failed"))
+						continue
+					}
+
+					if router.MustWithSigner() {
+						respSigner, err := vc.getRespSigner(s.GetDst())
+						if err != nil {
+							log.Errorln("VesClient.read.AttestationReceiveRequest.getRespSigner:", err)
+							continue
+						}
+
+						router = router.RouteWithSigner(respSigner)
+					}
+
+					cb, err := router.RouteRaw(acc.ChainId, atte.GetContent())
+					if err != nil {
+						log.Errorln("VesClient.read.AttestationReceiveRequest.router.RouteRaw:", err)
+						continue
+					}
+					fmt.Println("route result:", cb)
+				}
+
+				// sendingAtte.GetAtte()
+				ret, err := vc.nsbClient.InsuranceClaim(
+					signer,
+					s.GetSessionId(),
+					atte.GetTid(), aid,
+				)
+				//sessionID, tid, Instantiated)
+				if err != nil {
+					log.Errorln("VesClient.read.AttestationReceiveRequest.InsuranceClaim:", err)
+					continue
+				}
+
+				fmt.Printf(
+					"insurance claiming %v {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n",
+					TxState.Description(aid+1), ret.Info, string(ret.Data), ret.Log, ret.Tags,
+				)
 
 				err = vc.postRawMessage(wsrpc.CodeAttestationReceiveRequest, s.GetSrc(), sendingAtte)
 				if err != nil {
@@ -290,6 +327,7 @@ func (vc *VesClient) read() {
 
 				vc.informAttestation(grpcHost, sendingAtte)
 			}
+
 		case wsrpc.CodeCloseSessionRequest:
 			vc.cb <- buf
 			log.Infoln("session closed")
