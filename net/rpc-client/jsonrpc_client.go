@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	bytes_pool "github.com/Myriad-Dreamin/go-ves/net/bytes_pool"
 	request "github.com/Myriad-Dreamin/go-ves/net/request"
+	bytes_pool "github.com/Myriad-Dreamin/object-pool/bytes-pool"
 	"github.com/tidwall/gjson"
 )
 
@@ -28,9 +28,14 @@ type JsonRpcClient struct {
 	bufferPool *bytes_pool.BytesPool
 }
 
+var fixedJsonHeader = map[string]string{
+	"Content-Type": "application/json",
+	"charset":      "UTF-8",
+}
+
 func NewJsonRpcClient(host string) *JsonRpcClient {
 	return &JsonRpcClient{
-		handler:    request.NewRequestClient(decorateHost(host)),
+		handler:    request.NewRequestClient(decorateHost(host)).SetHeader(fixedJsonHeader),
 		bufferPool: bytes_pool.NewBytesPool(maxBytesSize),
 	}
 }
@@ -38,7 +43,7 @@ func NewJsonRpcClient(host string) *JsonRpcClient {
 // todo: test invalid json
 func (nc *JsonRpcClient) preloadJsonResponse(bb io.ReadCloser) ([]byte, error) {
 
-	var b = nc.bufferPool.Get().([]byte)
+	var b = nc.bufferPool.Get()
 	defer nc.bufferPool.Put(b)
 
 	_, err := bb.Read(b)
@@ -75,6 +80,14 @@ func (nc *JsonRpcClient) PostRequestWithJsonObj(jsonObj interface{}) ([]byte, er
 		return nil, err
 	}
 	return nc.preloadJsonResponse(b)
+}
+
+func (nc *JsonRpcClient) PostWithBody(jsonBody []byte) ([]byte, error) {
+	b, err := nc.handler.PostWithBody(jsonBody)
+	if err != nil {
+		return nil, err
+	}
+	return staticJsonRpcClient.preloadJsonResponse(b)
 }
 
 var staticJsonRpcClient = &JsonRpcClient{bufferPool: bytes_pool.NewBytesPool(maxBytesSize)}
