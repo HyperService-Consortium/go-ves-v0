@@ -540,8 +540,8 @@ func (nc *NSBClient) AddAction(
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes())
-	_, err = nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
-	// fmt.Println(PretiJson(ret), err)
+	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -608,8 +608,8 @@ func (nc *NSBClient) GetAction(
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes())
-	_, err = nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
-	// fmt.Println(PretiJson(ret), err)
+	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
+	fmt.Println(PretiJson(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -634,159 +634,160 @@ func (nc *NSBClient) getAction(
 	return err
 }
 
-func (nc *NSBClient) AddMerkleProof(
-	user Ed25519SignableAccount, toAddress []byte,
-	iscAddress []byte, cid uint64, bid uint64,
-	rootHash []byte, key []byte, value []byte, proof []byte,
-) ([]byte, error) {
-	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
-	buf.Reset()
-	// fmt.Println(string(buf.Bytes()))
-	err := nc.addMerkleProof(buf, iscAddress, cid, bid, rootHash, key, value, proof)
-	if err != nil {
-		return nil, err
-	}
-
-	var fap appl.FAPair
-	fap.FuncName = "addMerkleProof"
-	fap.Args = buf.Bytes()
-	txHeader.Data, err = json.Marshal(fap)
-	if err != nil {
-		return nil, err
-	}
-	txHeader.ContractAddress = toAddress
-	txHeader.From = user.GetPublicKey()
-
-	nonce := make([]byte, 32)
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return nil, err
-	}
-	txHeader.Nonce = nmath.NewUint256FromBytes(nonce)
-	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
-	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
-
-	buf.Write(txHeader.From)
-	buf.Write(txHeader.ContractAddress)
-	buf.Write(txHeader.Data)
-	buf.Write(txHeader.Value.Bytes())
-	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
-	_, err = nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
-	// fmt.Println(PretiJson(ret), err)
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
-type ArgsAddMerkleProof struct {
-	ISCAddress []byte `json:"1"`
-	Cid        uint64 `json:"2"`
-	Bid        uint64 `json:"3"`
-	RootHash   []byte `json:"4"`
-	Key        []byte `json:"5"`
-	Value      []byte `json:"6"`
-	Proof      []byte `json:"7"`
-}
-
-func (nc *NSBClient) addMerkleProof(
-	w io.Writer,
-	iscAddress []byte, cid uint64, bid uint64,
-	rootHash []byte, key []byte, value []byte, proof []byte,
-) error {
-	var args ArgsAddMerkleProof
-	args.ISCAddress = iscAddress
-	args.Cid = cid
-	args.Bid = bid
-	args.RootHash = rootHash
-	args.Key = key
-	args.Value = value
-	args.Proof = proof
-	b, err := json.Marshal(args)
-	if err != nil {
-		return err
-	}
-
-	// fmt.Println(PretiJson(args), b)
-	_, err = w.Write(b)
-	return err
-}
-
-type ArgsGetMerkleProof struct {
-	ISCAddress []byte `json:"1"`
-	Cid        uint64 `json:"2"`
-	Bid        uint64 `json:"3"`
-	RootHash   []byte `json:"4"`
-	Key        []byte `json:"5"`
-}
-
-func (nc *NSBClient) GetMerkleProof(
-	user Ed25519SignableAccount, toAddress []byte,
-	iscAddress []byte, cid uint64, bid uint64,
-) ([]byte, error) {
-	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
-	buf.Reset()
-	// fmt.Println(string(buf.Bytes()))
-	err := nc.getMerkleProof(buf, iscAddress, cid, bid)
-	if err != nil {
-		return nil, err
-	}
-
-	var fap appl.FAPair
-	fap.FuncName = "getMerkleProof"
-	fap.Args = buf.Bytes()
-	txHeader.Data, err = json.Marshal(fap)
-	if err != nil {
-		return nil, err
-	}
-	txHeader.ContractAddress = toAddress
-	txHeader.From = user.GetPublicKey()
-
-	nonce := make([]byte, 32)
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return nil, err
-	}
-	txHeader.Nonce = nmath.NewUint256FromBytes(nonce)
-	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
-	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
-
-	buf.Write(txHeader.From)
-	buf.Write(txHeader.ContractAddress)
-	buf.Write(txHeader.Data)
-	buf.Write(txHeader.Value.Bytes())
-	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
-	_, err = nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
-	// fmt.Println(PretiJson(ret), err)
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-}
-
-func (nc *NSBClient) getMerkleProof(
-	w io.Writer,
-	iscAddress []byte, cid uint64, bid uint64,
-) error {
-	var args ArgsGetMerkleProof
-	args.ISCAddress = iscAddress
-	args.Cid = cid
-	args.Bid = bid
-	b, err := json.Marshal(args)
-	if err != nil {
-		return err
-	}
-
-	// fmt.Println(PretiJson(args), b)
-	_, err = w.Write(b)
-	return err
-}
+//
+// func (nc *NSBClient) AddMerkleProof(
+// 	user Ed25519SignableAccount, toAddress []byte,
+// 	iscAddress []byte, cid uint64, bid uint64,
+// 	rootHash []byte, key []byte, value []byte, proof []byte,
+// ) ([]byte, error) {
+// 	var txHeader cmn.TransactionHeader
+// 	var buf = bytes.NewBuffer(make([]byte, 65535))
+// 	buf.Reset()
+// 	// fmt.Println(string(buf.Bytes()))
+// 	err := nc.addMerkleProof(buf, iscAddress, cid, bid, rootHash, key, value, proof)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	var fap appl.FAPair
+// 	fap.FuncName = "validateMerkleProof"
+// 	fap.Args = buf.Bytes()
+// 	txHeader.Data, err = json.Marshal(fap)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	txHeader.ContractAddress = toAddress
+// 	txHeader.From = user.GetPublicKey()
+//
+// 	nonce := make([]byte, 32)
+// 	_, err = rand.Read(nonce)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	txHeader.Nonce = nmath.NewUint256FromBytes(nonce)
+// 	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+// 	// bug: buf.Reset()
+// 	buf = bytes.NewBuffer(make([]byte, 65535))
+//
+// 	buf.Write(txHeader.From)
+// 	buf.Write(txHeader.ContractAddress)
+// 	buf.Write(txHeader.Data)
+// 	buf.Write(txHeader.Value.Bytes())
+// 	buf.Write(txHeader.Nonce.Bytes())
+// 	txHeader.Signature = user.Sign(buf.Bytes())
+// 	_, err = nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
+// 	// fmt.Println(PretiJson(ret), err)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return nil, nil
+// }
+//
+// type ArgsAddMerkleProof struct {
+// 	ISCAddress []byte `json:"1"`
+// 	Cid        uint64 `json:"2"`
+// 	Bid        uint64 `json:"3"`
+// 	RootHash   []byte `json:"4"`
+// 	Key        []byte `json:"5"`
+// 	Value      []byte `json:"6"`
+// 	Proof      []byte `json:"7"`
+// }
+//
+// func (nc *NSBClient) addMerkleProof(
+// 	w io.Writer,
+// 	iscAddress []byte, cid uint64, bid uint64,
+// 	rootHash []byte, key []byte, value []byte, proof []byte,
+// ) error {
+// 	var args ArgsAddMerkleProof
+// 	args.ISCAddress = iscAddress
+// 	args.Cid = cid
+// 	args.Bid = bid
+// 	args.RootHash = rootHash
+// 	args.Key = key
+// 	args.Value = value
+// 	args.Proof = proof
+// 	b, err := json.Marshal(args)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	// fmt.Println(PretiJson(args), b)
+// 	_, err = w.Write(b)
+// 	return err
+// }
+//
+// type ArgsGetMerkleProof struct {
+// 	ISCAddress []byte `json:"1"`
+// 	Cid        uint64 `json:"2"`
+// 	Bid        uint64 `json:"3"`
+// 	RootHash   []byte `json:"4"`
+// 	Key        []byte `json:"5"`
+// }
+//
+// func (nc *NSBClient) GetMerkleProof(
+// 	user Ed25519SignableAccount, toAddress []byte,
+// 	iscAddress []byte, cid uint64, bid uint64,
+// ) ([]byte, error) {
+// 	var txHeader cmn.TransactionHeader
+// 	var buf = bytes.NewBuffer(make([]byte, 65535))
+// 	buf.Reset()
+// 	// fmt.Println(string(buf.Bytes()))
+// 	err := nc.getMerkleProof(buf, iscAddress, cid, bid)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	var fap appl.FAPair
+// 	fap.FuncName = "getMerkleProof"
+// 	fap.Args = buf.Bytes()
+// 	txHeader.Data, err = json.Marshal(fap)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	txHeader.ContractAddress = toAddress
+// 	txHeader.From = user.GetPublicKey()
+//
+// 	nonce := make([]byte, 32)
+// 	_, err = rand.Read(nonce)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	txHeader.Nonce = nmath.NewUint256FromBytes(nonce)
+// 	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
+// 	// bug: buf.Reset()
+// 	buf = bytes.NewBuffer(make([]byte, 65535))
+//
+// 	buf.Write(txHeader.From)
+// 	buf.Write(txHeader.ContractAddress)
+// 	buf.Write(txHeader.Data)
+// 	buf.Write(txHeader.Value.Bytes())
+// 	buf.Write(txHeader.Nonce.Bytes())
+// 	txHeader.Signature = user.Sign(buf.Bytes())
+// 	_, err = nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
+// 	// fmt.Println(PretiJson(ret), err)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return nil, nil
+// }
+//
+// func (nc *NSBClient) getMerkleProof(
+// 	w io.Writer,
+// 	iscAddress []byte, cid uint64, bid uint64,
+// ) error {
+// 	var args ArgsGetMerkleProof
+// 	args.ISCAddress = iscAddress
+// 	args.Cid = cid
+// 	args.Bid = bid
+// 	b, err := json.Marshal(args)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	// fmt.Println(PretiJson(args), b)
+// 	_, err = w.Write(b)
+// 	return err
+// }
 
 func (nc *NSBClient) UpdateTxInfo(
 	user Ed25519SignableAccount, contractAddress []byte,
