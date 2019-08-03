@@ -2,6 +2,7 @@ package eth_client
 
 import (
 	"encoding/json"
+	"fmt"
 
 	jsonrpc_client "github.com/Myriad-Dreamin/go-ves/net/rpc-client"
 	"github.com/tidwall/gjson"
@@ -55,6 +56,18 @@ func (eth *EthClient) PersonalUnlockAccout(addr string, passphrase string, durat
 
 func (eth *EthClient) SendTransaction(obj []byte) (string, error) {
 	b := jsonobj.GetSendTransaction(obj)
+	bb, err := eth.JsonRpcClient.PostWithBody(b)
+	jsonobj.ReturnBytes(b)
+	if err != nil {
+		return "", err
+	}
+
+	return gjson.ParseBytes(bb).String(), err
+}
+
+func (eth *EthClient) GetStorageAt(contractAddress, pos []byte, tag string) (string, error) {
+	b := jsonobj.GetStorageAt(contractAddress, pos, tag)
+	fmt.Println(string(b))
 	bb, err := eth.JsonRpcClient.PostWithBody(b)
 	jsonobj.ReturnBytes(b)
 	if err != nil {

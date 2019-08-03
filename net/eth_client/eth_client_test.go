@@ -1,6 +1,7 @@
 package eth_client
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 )
@@ -41,6 +42,22 @@ const objjj = `{"from":"0x0ac45f1e6b8d47ac4c73aee62c52794b5898da9f", "to": "0x98
 
 func TestSendTransaction(t *testing.T) {
 	b, err := NewEthClient(test_host).SendTransaction([]byte(objjj))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(string(b))
+}
+
+func TestGetStorageAt(t *testing.T) {
+	var addr = "1234567812345678123456781234567812345678"
+	baddr, err := hex.DecodeString(addr)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	var pos = []byte{1}
+	b, err := NewEthClient(test_host).GetStorageAt(baddr, pos, "latest")
 	if err != nil {
 		t.Error(err)
 		return

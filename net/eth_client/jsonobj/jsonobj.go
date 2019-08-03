@@ -2,6 +2,7 @@ package jsonobj
 
 import (
 	"bytes"
+	"encoding/hex"
 	"strconv"
 
 	bytespool "github.com/Myriad-Dreamin/object-pool/bytes-pool"
@@ -20,6 +21,7 @@ var (
 	reqGetAccount      = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_accounts","params":[]}`)
 	reqPersonalUnlock  = []byte(`{"id":64,"jsonrpc":"2.0","method":"personal_unlockAccount","params":["`)
 	reqSendTransaction = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_sendTransaction","params":[`)
+	reqGetStorageAt    = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_getStorageAt","params":[`)
 	bp                 = bytespool.NewMultiThreadBytesPool(1024)
 )
 
@@ -54,6 +56,29 @@ func GetSendTransaction(obj []byte) []byte {
 	buf.Reset()
 	buf.Write(reqSendTransaction)
 	buf.Write(obj)
+	buf.WriteByte(endParamByte)
+	buf.WriteByte(endJSONByte)
+	return buf.Bytes()
+}
+
+// GetStorageAt return whether unlocked
+// do not send too long obj
+func GetStorageAt(address, pos []byte, tag string) []byte {
+	var b = bp.Get()
+	var buf = bytes.NewBuffer(b)
+	buf.Reset()
+	buf.Write(reqGetStorageAt)
+	buf.WriteByte(ssplitByte)
+	buf.WriteByte('0')
+	buf.WriteByte('x')
+	buf.WriteString(hex.EncodeToString(address))
+	buf.WriteString(cbx)
+	buf.WriteByte('0')
+	buf.WriteByte('x')
+	buf.WriteString(hex.EncodeToString(pos))
+	buf.WriteString(cbx)
+	buf.WriteString(tag)
+	buf.WriteByte(ssplitByte)
 	buf.WriteByte(endParamByte)
 	buf.WriteByte(endJSONByte)
 	return buf.Bytes()
