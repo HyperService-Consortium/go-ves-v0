@@ -34,3 +34,11 @@ message Attestation {
     bytes content = 3;
     repeated Signature signatures = 4;
 }
+
+message MerkleProof {
+    uint64 merkleproof_type = 1;
+    // roothash is contented in proof
+    bytes proof = 2;
+    bytes key = 3;
+    bytes value = 4;
+}

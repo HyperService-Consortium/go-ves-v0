@@ -34,7 +34,7 @@ func cloneWithLen(b []byte, l int) []byte {
 }
 
 func decorate(p, b []byte) []byte {
-	var x = bytes.NewBuffer(make([]byte, len(p)+len(b)))
+	var x = bytes.NewBuffer(make([]byte, len(p)+2+len(b)))
 	x.Reset()
 	x.Write(p)
 	x.WriteByte('k')

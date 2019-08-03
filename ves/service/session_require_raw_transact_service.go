@@ -41,7 +41,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 		return nil, err
 	}
 	var b []byte
-	b, err = (&bni.BN{}).Translate(&transactionIntent, nil)
+	b, err = (&bni.BN{}).Translate(&transactionIntent, s.GetGetter(ses.GetGUID()))
 	if err != nil {
 		return nil, err
 	}

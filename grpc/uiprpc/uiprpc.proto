@@ -16,7 +16,9 @@ service VES {
     rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
     rpc SessionRequireRawTransact (SessionRequireRawTransactRequest) returns (SessionRequireRawTransactReply);
     rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
+    rpc MerkleProofReceive (MerkleProofReceiveRequest) returns (MerkleProofReceiveReply);
     rpc InformAttestation (AttestationReceiveRequest) returns (AttestationReceiveReply);
+    rpc InformMerkleProof (MerkleProofReceiveRequest) returns (MerkleProofReceiveReply);
 }
 
 service CenteredVES {
@@ -37,6 +39,15 @@ service CenteredVES {
 //     rpc SessionRequireTransact (SessionRequireTransactRequest) returns (SessionRequireTransactReply);
 //     rpc AttestationReceive (AttestationReceiveRequest) returns (AttestationReceiveReply);
 // }
+
+message ShortenContextMerkleProof {
+    bytes session_id = 1;
+    uint64 chain_id = 2;
+    uint64 merkleproof_type = 3;
+    bytes roothash = 4;
+    bytes key = 5;
+    bytes value = 6;
+}
 
 message UserRegisterRequest {
     uiprpc.base.Account account = 1;
@@ -95,6 +106,16 @@ message AttestationReceiveRequest {
 }
 
 message AttestationReceiveReply {
+    bool ok = 1;
+}
+
+message MerkleProofReceiveRequest {
+    bytes session_id = 1;
+    uint64 chain_id = 2;
+    uiprpc.base.MerkleProof merkleproof = 3;
+}
+
+message MerkleProofReceiveReply {
     bool ok = 1;
 }
 

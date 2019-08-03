@@ -139,6 +139,19 @@ func (server *Server) AttestationReceive(
 	}).Serve()
 }
 
+func (server *Server) MerkleProofReceive(
+	ctx context.Context,
+	in *uiprpc.MerkleProofReceiveRequest,
+) (*uiprpc.MerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.MerkleProofReceiveService{
+		VESDB:                     server.db,
+		Host:                      "http://47.251.2.73:26657",
+		Context:                   ctx,
+		MerkleProofReceiveRequest: in,
+	}).Serve()
+}
+
 func (server *Server) InformAttestation(
 	ctx context.Context,
 	in *uiprpc.AttestationReceiveRequest,
