@@ -1,13 +1,21 @@
 package service
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+
+	gjson "github.com/tidwall/gjson"
 
 	"golang.org/x/net/context"
 
 	bni "github.com/Myriad-Dreamin/go-uip/bni/eth"
+	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
+	transtype "github.com/Myriad-Dreamin/go-uip/const/trans_type"
+	value_type "github.com/Myriad-Dreamin/go-uip/const/value_type"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	types "github.com/Myriad-Dreamin/go-ves/types"
@@ -39,6 +47,52 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if transactionIntent.TransType == transtype.ContractInvoke {
+		var meta uiptypes.ContractInvokeMeta
+
+		err := json.Unmarshal(transactionIntent.Meta, &meta)
+		if err != nil {
+			return nil, err
+		}
+
+		var intDesc uint16
+		for _, param := range meta.Params {
+			if intDesc = value_type.FromString(param.Type); intDesc == value_type.Unknown {
+				return nil, errors.New("unknown type: " + param.Type)
+			}
+
+			result := gjson.ParseBytes(param.Value)
+			if !result.Get("constant").Exists() {
+				if result.Get("contract").Exists() &&
+					result.Get("pos").Exists() &&
+					result.Get("field").Exists() {
+					ca, err := hex.DecodeString(result.Get("contract").String())
+					if err != nil {
+						return nil, err
+					}
+					pos, err := hex.DecodeString(result.Get("contract").String())
+					if err != nil {
+						return nil, err
+					}
+					desc := []byte(result.Get("field").String())
+
+					v, err := new(ethbni.BN).GetStorageAt(transactionIntent.ChainID, intDesc, ca, pos, desc)
+					if err != nil {
+						return nil, err
+					}
+					vv, err := json.Marshal(v)
+					s.SetKV(ses.GetGUID(), desc, vv)
+					if err != nil {
+						return nil, err
+					}
+				} else {
+					return nil, errors.New("no enough info of source description")
+				}
+			}
+		}
+
 	}
 
 	var b []byte

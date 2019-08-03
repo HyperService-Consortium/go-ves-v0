@@ -126,7 +126,7 @@ func (vc *VesClient) read() {
 				requestComingRequest.GetAccount(),
 				requestComingRequest.GetSessionId(),
 				requestComingRequest.GetGrpcHost(),
-				signer.Sign(requestComingRequest.GetSessionId()),
+				signer.Sign(requestComingRequest.GetSessionId()).Bytes(),
 			); err != nil {
 				log.Errorln("VesClient.read.RequestComingRequest.sendAck:", err)
 				continue
@@ -178,14 +178,16 @@ func (vc *VesClient) read() {
 			var sendingAtte = vc.getReceiveAttestationReceiveRequest()
 			sendingAtte.SessionId = attestationSendingRequest.GetSessionId()
 			sendingAtte.GrpcHost = attestationSendingRequest.GetGrpcHost()
+
+			sigg := vc.signer.Sign(raw)
 			sendingAtte.Atte = &uipbase.Attestation{
 				Tid:     tid,
 				Aid:     TxState.Instantiating,
 				Content: raw,
 				Signatures: append(make([]*uipbase.Signature, 0, 1), &uipbase.Signature{
 					// todo use src.signer to sign
-					SignatureType: todo,
-					Content:       vc.signer.Sign(raw),
+					SignatureType: sigg.GetSignatureType(),
+					Content:       sigg.GetContent(),
 				}),
 			}
 			sendingAtte.Src = src
@@ -256,6 +258,7 @@ func (vc *VesClient) read() {
 				sendingAtte.GrpcHost = s.GetGrpcHost()
 
 				// todo: iter the atte (copy or refer it? )
+				sigg := signer.Sign(toSig)
 				sendingAtte.Atte = &uipbase.Attestation{
 					Tid: atte.GetTid(),
 					// todo: get nx -> more readable
@@ -263,8 +266,8 @@ func (vc *VesClient) read() {
 					Content: atte.GetContent(),
 					Signatures: append(sigs, &uipbase.Signature{
 						// todo signature
-						SignatureType: todo,
-						Content:       signer.Sign(toSig),
+						SignatureType: sigg.GetSignatureType(),
+						Content:       sigg.GetContent(),
 					}),
 				}
 				sendingAtte.Src = s.GetDst()

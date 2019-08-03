@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	bni "github.com/Myriad-Dreamin/go-uip/bni/eth"
+	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
@@ -48,7 +48,7 @@ func (s *InformAttestationService) Serve() (*uiprpc.AttestationReceiveReply, err
 		current_tx_id, _ := ses.GetTransactingTransaction()
 		success, helpInfo, err = ses.NotifyAttestation(
 			nsbi.NSBInterfaceImpl(s.Host, s.Signer),
-			&bni.BN{},
+			&ethbni.BN{},
 			&AtteAdapdator{s.GetAtte()},
 		)
 		fixed_tx_id, _ := ses.GetTransactingTransaction()

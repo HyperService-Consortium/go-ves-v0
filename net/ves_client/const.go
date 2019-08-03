@@ -5,8 +5,6 @@ const (
 	dataPrefix = "./data"
 )
 
-const todo = uint32(123456)
-
 const formatInsuranceClaim = `insurance claim %v {
 	info: %v,
 	data: %v,

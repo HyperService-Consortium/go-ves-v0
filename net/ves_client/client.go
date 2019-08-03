@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
+	signaturetype "github.com/Myriad-Dreamin/go-uip/const/signature_type"
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
@@ -448,8 +449,9 @@ func (signer *EthAccount) GetPublicKey() []byte {
 	return b
 }
 
-func (signer *EthAccount) Sign([]byte) []byte {
-	return nil
+func (signer *EthAccount) Sign(b []byte) uiptypes.Signature {
+	// todo: sign b
+	return signaturer.FromRaw(b, signaturetype.Secp256k1)
 }
 
 func (vc *VesClient) getRespSigner(acc *uipbase.Account) (uiptypes.Signer, error) {

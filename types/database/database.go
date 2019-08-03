@@ -35,7 +35,7 @@ func (db *Database) SetUserBase(logicDB types.UserBase) bool {
 	return true
 }
 
-func (db *Database) SetKVBase(logicDB types.SessionKVBase) bool {
+func (db *Database) SetSessionKVBase(logicDB types.SessionKVBase) bool {
 	db.kvdb = logicDB
 	return true
 }

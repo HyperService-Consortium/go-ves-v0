@@ -15,6 +15,7 @@ import (
 	log "github.com/Myriad-Dreamin/go-ves/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
+	kvdb "github.com/Myriad-Dreamin/go-ves/types/kvdb"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"
 	user "github.com/Myriad-Dreamin/go-ves/types/user"
 	service "github.com/Myriad-Dreamin/go-ves/ves/service"
@@ -273,6 +274,7 @@ func ListenAndServe(port, centerAddress string) error {
 
 	server.db.SetUserBase(new(user.XORMUserBase))
 	server.db.SetSessionBase(session.NewMultiThreadSerialSessionBase())
+	server.db.SetSessionKVBase(new(kvdb.Database))
 
 	s := grpc.NewServer()
 

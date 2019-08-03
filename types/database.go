@@ -78,6 +78,8 @@ type VESDB interface {
 
 	SetUserBase(UserBase) success_or_not
 
+	SetSessionKVBase(SessionKVBase) success_or_not
+
 	// insert accounts maps from guid to account
 	InsertSessionInfo(Session) error
 
