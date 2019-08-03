@@ -152,6 +152,45 @@ func (server *Server) MerkleProofReceive(
 	}).Serve()
 }
 
+func (server *Server) ShrotenMerkleProofReceive(
+	ctx context.Context,
+	in *uiprpc.ShortenMerkleProofReceiveRequest,
+) (*uiprpc.ShortenMerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.ShrotenMerkleProofReceiveService{
+		VESDB:                            server.db,
+		Host:                             "http://47.251.2.73:26657",
+		Context:                          ctx,
+		ShortenMerkleProofReceiveRequest: in,
+	}).Serve()
+}
+
+func (server *Server) InformMerkleProof(
+	ctx context.Context,
+	in *uiprpc.MerkleProofReceiveRequest,
+) (*uiprpc.MerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.InformMerkleProofService{
+		VESDB:                     server.db,
+		Host:                      "http://47.251.2.73:26657",
+		Context:                   ctx,
+		MerkleProofReceiveRequest: in,
+	}).Serve()
+}
+
+func (server *Server) InformShortenMerkleProof(
+	ctx context.Context,
+	in *uiprpc.ShortenMerkleProofReceiveRequest,
+) (*uiprpc.ShortenMerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.InformShortenMerkleProofService{
+		VESDB:                            server.db,
+		Host:                             "http://47.251.2.73:26657",
+		Context:                          ctx,
+		ShortenMerkleProofReceiveRequest: in,
+	}).Serve()
+}
+
 func (server *Server) InformAttestation(
 	ctx context.Context,
 	in *uiprpc.AttestationReceiveRequest,

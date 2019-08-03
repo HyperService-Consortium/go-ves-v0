@@ -42,3 +42,10 @@ message MerkleProof {
     bytes key = 3;
     bytes value = 4;
 }
+
+message ShortenMerkleProof {
+    uint64 merkleproof_type = 1;
+    bytes roothash = 2;
+    bytes key = 3;
+    bytes value = 4;
+}
