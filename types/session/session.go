@@ -152,7 +152,7 @@ func (ses *SerialSession) SetSigner(signer uiptypes.Signer) {
 }
 
 func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
-	intents, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
+	intents, _, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
 	if err != nil {
 		return false, err.Error(), nil
 	}
@@ -238,10 +238,7 @@ func (atte *IterateAttestation) GetSignatures() []uiptypes.Signature {
 }
 
 func iter(atte uiptypes.Attestation, signer uiptypes.Signer) uiptypes.Attestation {
-	return &IterateAttestation{atte, append(atte.GetSignatures(), &temSignature{
-		sigtype: todo,
-		content: signer.Sign(atte.GetSignatures()[len(atte.GetSignatures())-1].GetContent()),
-	})}
+	return &IterateAttestation{atte, append(atte.GetSignatures(), signer.Sign(atte.GetSignatures()[len(atte.GetSignatures())-1].GetContent()))}
 }
 
 const todo = 12333

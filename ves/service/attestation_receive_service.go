@@ -18,6 +18,7 @@ import (
 
 	// bni "github.com/Myriad-Dreamin/go-ves/types/bn-interface"
 	bni "github.com/Myriad-Dreamin/go-uip/bni/eth"
+	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	nsbi "github.com/Myriad-Dreamin/go-ves/types/nsb-interface"
 )
 
@@ -38,7 +39,7 @@ func (atte *AtteAdapdator) GetSignatures() []uiptypes.Signature {
 	var ss = atte.Attestation.GetSignatures()
 	ret := make([]uiptypes.Signature, len(ss))
 	for _, s := range ss {
-		ret = append(ret, uiptypes.Signature(s))
+		ret = append(ret, signaturer.FromBaseSignature(s))
 	}
 	return ret
 }

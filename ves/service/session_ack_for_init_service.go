@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
+	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
@@ -35,7 +36,7 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 	if err == nil {
 		var success bool
 		var help_info string
-		success, help_info, err = ses.AckForInit(s.GetUser(), s.GetUserSignature())
+		success, help_info, err = ses.AckForInit(s.GetUser(), signaturer.FromBaseSignature(s.GetUserSignature()))
 		if err != nil {
 			// todo, log
 			return nil, fmt.Errorf("internal error: %v", err)

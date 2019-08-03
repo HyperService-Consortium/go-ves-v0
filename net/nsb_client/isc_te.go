@@ -8,7 +8,39 @@ import (
 
 	tx "github.com/HyperServiceOne/NSB/contract/isc/transaction"
 	nmath "github.com/HyperServiceOne/NSB/math"
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 )
+
+type sigg struct {
+	sig []byte
+}
+
+func (s *sigg) GetSignatureType() uint32 {
+	return 0
+}
+func (s *sigg) GetContent() []byte {
+	return s.sig
+}
+
+func (s *sigg) Bytes() []byte {
+	return s.sig
+}
+func (s *sigg) String() string {
+	return hex.EncodeToString(s.sig)
+}
+func (s *sigg) FromBytes([]byte) bool {
+	return true
+}
+func (s *sigg) FromString(string) bool {
+	return true
+}
+
+func (s *sigg) Equal(uiptypes.HexType) bool {
+	return true
+}
+func (s *sigg) IsValid() bool {
+	return true
+}
 
 type eacc struct {
 	pbk []byte
@@ -19,7 +51,7 @@ func (e *eacc) GetPublicKey() []byte {
 	return e.pbk
 }
 
-func (e *eacc) Sign(b []byte) []byte { return e.sig }
+func (e *eacc) Sign(b []byte) uiptypes.Signature { return &sigg{e.sig} }
 
 type obj map[string]interface{}
 

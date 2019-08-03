@@ -90,6 +90,7 @@ func (db *Database) InvertFind(account uiptypes.Account) (string, error) {
 func (db *Database) ActivateSession(isc_address []byte) {
 	db.sesdb.ActivateSession(isc_address)
 }
+
 func (db *Database) InactivateSession(isc_address []byte) {
 	db.sesdb.InactivateSession(isc_address)
 }

@@ -21,6 +21,7 @@ import (
 	ISC "github.com/HyperServiceOne/NSB/contract/isc"
 	tx "github.com/HyperServiceOne/NSB/contract/isc/transaction"
 	nmath "github.com/HyperServiceOne/NSB/math"
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	jsonrpc_client "github.com/Myriad-Dreamin/go-ves/net/rpc-client"
 	bytespool "github.com/Myriad-Dreamin/object-pool/bytes-pool"
 )
@@ -362,12 +363,6 @@ func (nc *NSBClient) GetValidators(id int64) (*ValidatorsInfo, error) {
 	return &a, nil
 }
 
-type type_sig = uint64
-type Ed25519SignableAccount interface {
-	GetPublicKey() []byte
-	Sign([]byte) []byte
-}
-
 func (nc *NSBClient) sendContractTx(
 	transType, contractName []byte,
 	txContent *cmn.TransactionHeader,
@@ -390,7 +385,7 @@ func (nc *NSBClient) sendContractTx(
 }
 
 func (nc *NSBClient) CreateISC(
-	user Ed25519SignableAccount,
+	user uiptypes.Signer,
 	funds []uint32, iscOwners [][]byte,
 	bytesTransactionIntents [][]byte,
 	vesSig []byte,
@@ -471,7 +466,7 @@ func (nc *NSBClient) CreateISC(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("createContract"), []byte("isc"), &txHeader)
 	fmt.Println(PretiJson(ret), err)
 	if err != nil {
@@ -502,7 +497,7 @@ func (nc *NSBClient) createISC(
 }
 
 func (nc *NSBClient) AddAction(
-	user Ed25519SignableAccount, toAddress []byte,
+	user uiptypes.Signer, toAddress []byte,
 	iscAddress []byte, tid uint64, aid uint64, stype uint8, content []byte, signature []byte,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
@@ -539,7 +534,7 @@ func (nc *NSBClient) AddAction(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
 	fmt.Println(PretiJson(ret), err)
 	if err != nil {
@@ -570,7 +565,7 @@ func (nc *NSBClient) addAction(
 }
 
 func (nc *NSBClient) GetAction(
-	user Ed25519SignableAccount, toAddress []byte,
+	user uiptypes.Signer, toAddress []byte,
 	iscAddress []byte, tid uint64, aid uint64,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
@@ -607,7 +602,7 @@ func (nc *NSBClient) GetAction(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
 	fmt.Println(PretiJson(ret), err)
 	if err != nil {
@@ -636,7 +631,7 @@ func (nc *NSBClient) getAction(
 
 //
 // func (nc *NSBClient) AddMerkleProof(
-// 	user Ed25519SignableAccount, toAddress []byte,
+// 	user uiptypes.Signer, toAddress []byte,
 // 	iscAddress []byte, cid uint64, bid uint64,
 // 	rootHash []byte, key []byte, value []byte, proof []byte,
 // ) ([]byte, error) {
@@ -674,7 +669,7 @@ func (nc *NSBClient) getAction(
 // 	buf.Write(txHeader.Data)
 // 	buf.Write(txHeader.Value.Bytes())
 // 	buf.Write(txHeader.Nonce.Bytes())
-// 	txHeader.Signature = user.Sign(buf.Bytes())
+// 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 // 	_, err = nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
 // 	// fmt.Println(PretiJson(ret), err)
 // 	if err != nil {
@@ -725,7 +720,7 @@ func (nc *NSBClient) getAction(
 // }
 //
 // func (nc *NSBClient) GetMerkleProof(
-// 	user Ed25519SignableAccount, toAddress []byte,
+// 	user uiptypes.Signer, toAddress []byte,
 // 	iscAddress []byte, cid uint64, bid uint64,
 // ) ([]byte, error) {
 // 	var txHeader cmn.TransactionHeader
@@ -762,7 +757,7 @@ func (nc *NSBClient) getAction(
 // 	buf.Write(txHeader.Data)
 // 	buf.Write(txHeader.Value.Bytes())
 // 	buf.Write(txHeader.Nonce.Bytes())
-// 	txHeader.Signature = user.Sign(buf.Bytes())
+// 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 // 	_, err = nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
 // 	// fmt.Println(PretiJson(ret), err)
 // 	if err != nil {
@@ -790,7 +785,7 @@ func (nc *NSBClient) getAction(
 // }
 
 func (nc *NSBClient) UpdateTxInfo(
-	user Ed25519SignableAccount, contractAddress []byte,
+	user uiptypes.Signer, contractAddress []byte,
 	tid uint64, transactionIntent *tx.TransactionIntent,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
@@ -827,7 +822,7 @@ func (nc *NSBClient) UpdateTxInfo(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	_, err = nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
 	// fmt.Println(PretiJson(ret), err)
 	if err != nil {
@@ -854,7 +849,7 @@ func (nc *NSBClient) updateTxInfo(
 }
 
 func (nc *NSBClient) FreezeInfo(
-	user Ed25519SignableAccount, contractAddress []byte,
+	user uiptypes.Signer, contractAddress []byte,
 	tid uint64,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
@@ -891,7 +886,7 @@ func (nc *NSBClient) FreezeInfo(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	_, err = nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
 	// fmt.Println(PretiJson(ret), err)
 	if err != nil {
@@ -917,7 +912,7 @@ func (nc *NSBClient) freezeInfo(
 }
 
 func (nc *NSBClient) UserAck(
-	user Ed25519SignableAccount, contractAddress []byte,
+	user uiptypes.Signer, contractAddress []byte,
 	address, signature []byte,
 ) (*DeliverTx, error) {
 	var txHeader cmn.TransactionHeader
@@ -954,7 +949,7 @@ func (nc *NSBClient) UserAck(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
 	// fmt.Println(PretiJson(ret), err)
 	if err != nil {
@@ -981,7 +976,7 @@ func (nc *NSBClient) userAck(
 }
 
 func (nc *NSBClient) InsuranceClaim(
-	user Ed25519SignableAccount, contractAddress []byte,
+	user uiptypes.Signer, contractAddress []byte,
 	tid, aid uint64,
 ) (*DeliverTx, error) {
 	var txHeader cmn.TransactionHeader
@@ -1018,7 +1013,7 @@ func (nc *NSBClient) InsuranceClaim(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
 	// fmt.Println(PretiJson(ret), err)
 	if err != nil {
@@ -1047,7 +1042,7 @@ func (nc *NSBClient) insuranceClaim(
 }
 
 func (nc *NSBClient) SettleContract(
-	user Ed25519SignableAccount, contractAddress []byte,
+	user uiptypes.Signer, contractAddress []byte,
 ) (*DeliverTx, error) {
 	var txHeader cmn.TransactionHeader
 	var err error
@@ -1075,7 +1070,7 @@ func (nc *NSBClient) SettleContract(
 	buf.Write(txHeader.Data)
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
-	txHeader.Signature = user.Sign(buf.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("sendTransaction"), []byte("isc"), &txHeader)
 	// fmt.Println(PretiJson(ret), err)
 	if err != nil {

@@ -48,7 +48,7 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 		btxs = append(btxs, b)
 	}
 	// fmt.Println("accs, txs", owners, txs)
-	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})))
+	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
 }
 
 func (s *SerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
@@ -133,7 +133,7 @@ func (s *MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb type
 		btxs = append(btxs, b)
 	}
 	// fmt.Println("accs, txs", owners, txs)
-	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})))
+	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
 }
 
 func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {

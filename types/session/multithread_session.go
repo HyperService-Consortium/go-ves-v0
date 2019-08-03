@@ -134,7 +134,7 @@ func (ses *MultiThreadSerialSession) SetSigner(signer uiptypes.Signer) {
 }
 
 func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
-	intents, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
+	intents, _, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
 	if err != nil {
 		return false, err.Error(), nil
 	}
