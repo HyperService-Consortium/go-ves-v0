@@ -322,21 +322,30 @@ func (vc *VesClient) sayClientHello(name []byte) error {
 	return vc.postMessage(wsrpc.CodeClientHelloRequest, clientHello)
 }
 
-func (vc *VesClient) sendOpIntents(filepath, fileBuffer []byte) error {
-	type obj map[string]interface{}
-	var opintent = obj{
-		"name":    "Op1",
-		"op_type": "Payment",
-		"src": obj{
-			"domain":    2,
-			"user_name": "a1",
-		},
-		"dst": obj{
-			"domain":    1,
-			"user_name": "a2",
-		},
-		"amount": "02e0",
-		"unit":   "wei",
+type opIntents struct {
+	Intents      []json.RawMessage `json:"Op-intents"`
+	Dependencies []json.RawMessage `json:"dependencies"`
+}
+
+func convRaw(rs []json.RawMessage) (ret [][]byte) {
+	for _, rawMessage := range rs {
+		ret = append(ret, []byte(rawMessage))
+	}
+	return ret
+}
+
+func (vc *VesClient) sendOpIntents(filePath, fileBuffer []byte) error {
+
+	file, err := os.Open(string(filePath))
+	if err != nil {
+		return err
+	}
+
+	var n int
+	n, err = io.ReadFull(file, fileBuffer)
+	file.Close()
+	if err != nil && err != io.ErrUnexpectedEOF {
+		return err
 	}
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(mAddress, grpc.WithInsecure())
@@ -348,20 +357,18 @@ func (vc *VesClient) sendOpIntents(filepath, fileBuffer []byte) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	var b []byte
-	b, err = json.Marshal(opintent)
+	var intents opIntents
+	err = json.Unmarshal(fileBuffer[:n], &intents)
 	if err != nil {
-		return fmt.Errorf("Marshal failed: %v", err)
+		return fmt.Errorf("Unmarshal failed: %v", err)
 	}
-	fmt.Println(string(b))
+	fmt.Println(intents)
 	r, err := c.SessionStart(
 		ctx,
 		&uiprpc.SessionStartRequest{
 			Opintents: &uipbase.OpIntents{
-				Dependencies: nil,
-				Contents: [][]byte{
-					b,
-				},
+				Dependencies: convRaw(intents.Dependencies),
+				Contents:     convRaw(intents.Intents),
 			},
 		})
 	if err != nil {

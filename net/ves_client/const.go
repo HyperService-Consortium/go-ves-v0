@@ -5,13 +5,11 @@ const (
 	dataPrefix = "./data"
 )
 
-const todo = uint32(123456)
-
 const formatInsuranceClaim = `insurance claim %v {
-\tinfo: %v,
-\tdata: %v,
-\tlog: %v,
-tags: %v
+	info: %v,
+	data: %v,
+	log: %v,
+	tags: %v
 }`
 
 const (

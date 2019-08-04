@@ -15,6 +15,7 @@ import (
 	log "github.com/Myriad-Dreamin/go-ves/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
+	kvdb "github.com/Myriad-Dreamin/go-ves/types/kvdb"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"
 	user "github.com/Myriad-Dreamin/go-ves/types/user"
 	service "github.com/Myriad-Dreamin/go-ves/ves/service"
@@ -30,6 +31,7 @@ var (
 
 type Server struct {
 	db     types.VESDB
+	resp   *uipbase.Account
 	signer *signaturer.TendermintNSBSigner
 	cves   uiprpc.CenteredVESClient
 	// mutex sync.Mutex
@@ -118,6 +120,7 @@ func (server *Server) SessionRequireRawTransact(
 ) (*uiprpc.SessionRequireRawTransactReply, error) {
 	log.Infof("user request transact (computed)\n")
 	return service.SessionRequireRawTransactService{
+		Resp:                             server.resp,
 		VESDB:                            server.db,
 		Context:                          ctx,
 		SessionRequireRawTransactRequest: in,
@@ -136,6 +139,58 @@ func (server *Server) AttestationReceive(
 		Host:                      "http://47.251.2.73:26657",
 		Context:                   ctx,
 		AttestationReceiveRequest: in,
+	}).Serve()
+}
+
+func (server *Server) MerkleProofReceive(
+	ctx context.Context,
+	in *uiprpc.MerkleProofReceiveRequest,
+) (*uiprpc.MerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.MerkleProofReceiveService{
+		VESDB:                     server.db,
+		Host:                      "http://47.251.2.73:26657",
+		Context:                   ctx,
+		MerkleProofReceiveRequest: in,
+	}).Serve()
+}
+
+func (server *Server) ShrotenMerkleProofReceive(
+	ctx context.Context,
+	in *uiprpc.ShortenMerkleProofReceiveRequest,
+) (*uiprpc.ShortenMerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.ShrotenMerkleProofReceiveService{
+		VESDB:                            server.db,
+		Host:                             "http://47.251.2.73:26657",
+		Context:                          ctx,
+		ShortenMerkleProofReceiveRequest: in,
+	}).Serve()
+}
+
+func (server *Server) InformMerkleProof(
+	ctx context.Context,
+	in *uiprpc.MerkleProofReceiveRequest,
+) (*uiprpc.MerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.InformMerkleProofService{
+		VESDB:                     server.db,
+		Host:                      "http://47.251.2.73:26657",
+		Context:                   ctx,
+		MerkleProofReceiveRequest: in,
+	}).Serve()
+}
+
+func (server *Server) InformShortenMerkleProof(
+	ctx context.Context,
+	in *uiprpc.ShortenMerkleProofReceiveRequest,
+) (*uiprpc.ShortenMerkleProofReceiveReply, error) {
+	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
+	return (&service.InformShortenMerkleProofService{
+		VESDB:                            server.db,
+		Host:                             "http://47.251.2.73:26657",
+		Context:                          ctx,
+		ShortenMerkleProofReceiveRequest: in,
 	}).Serve()
 }
 
@@ -192,6 +247,7 @@ func ListenAndServe(port, centerAddress string) error {
 	b, _ := hex.DecodeString("2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")
 
 	server.signer = signaturer.NewTendermintNSBSigner(b)
+	server.resp = &uipbase.Account{Address: server.signer.GetPublicKey(), ChainId: 3}
 
 	conn, err := grpc.Dial(centerAddress, grpc.WithInsecure(), grpc.WithKeepaliveParams(keepalive.ClientParameters{}))
 	if err != nil {
@@ -221,6 +277,7 @@ func ListenAndServe(port, centerAddress string) error {
 
 	server.db.SetUserBase(new(user.XORMUserBase))
 	server.db.SetSessionBase(session.NewMultiThreadSerialSessionBase())
+	server.db.SetSessionKVBase(new(kvdb.Database))
 
 	s := grpc.NewServer()
 

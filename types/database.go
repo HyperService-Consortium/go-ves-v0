@@ -78,6 +78,8 @@ type VESDB interface {
 
 	SetUserBase(UserBase) success_or_not
 
+	SetSessionKVBase(SessionKVBase) success_or_not
+
 	// insert accounts maps from guid to account
 	InsertSessionInfo(Session) error
 
@@ -91,6 +93,7 @@ type VESDB interface {
 	FindTransaction(isc_address, transaction_id, getter) error
 
 	ActivateSession(isc_address)
+
 	InactivateSession(isc_address)
 
 	// insert accounts maps from guid to account
@@ -106,11 +109,18 @@ type VESDB interface {
 	FindUser(user_name) (User, error)
 
 	// find accounts which guid is corresponding to user
-	FindAccounts(user_name, uiptypes.ChainId) ([]uiptypes.Account, error)
+	FindAccounts(user_name, uint64) ([]uiptypes.Account, error)
 
 	// return true if user has this account
 	HasAccount(user_name, uiptypes.Account) (bool, error)
 
 	// return the user which has this account
 	InvertFind(uiptypes.Account) (user_name, error)
+
+	SetKV(isc_address, provedKey, provedValue) error
+
+	GetKV(isc_address, provedKey) (provedValue, error)
+
+	GetSetter(isc_address) KVSetter
+	GetGetter(isc_address) uiptypes.KVGetter
 }

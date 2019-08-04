@@ -14,13 +14,13 @@ var (
 )
 
 func SerializeAccountsInterfaceBuffer(buf io.ReadWriter, account types.Account) error {
-	err := binary.Write(buf, binary.LittleEndian, account.GetChainId())
+	err := binary.Write(buf, binary.BigEndian, account.GetChainId())
 	if err != nil {
 		return err
 	}
 
 	var bc = account.GetAddress()
-	err = binary.Write(buf, binary.LittleEndian, int64(len(bc)))
+	err = binary.Write(buf, binary.BigEndian, int64(len(bc)))
 	if err != nil {
 		return err
 	}
@@ -48,11 +48,11 @@ func SerializeAccountsInterface(accounts []types.Account) ([]byte, error) {
 func UnserializeAccountInterface(b []byte) (n int64, chainID uint64, address []byte, err error) {
 	var buf = bytes.NewBuffer(b)
 	var ilen int64
-	err = binary.Read(buf, binary.LittleEndian, &chainID)
+	err = binary.Read(buf, binary.BigEndian, &chainID)
 	if err != nil {
 		return
 	}
-	err = binary.Read(buf, binary.LittleEndian, &ilen)
+	err = binary.Read(buf, binary.BigEndian, &ilen)
 	if err != nil {
 		return
 	}
@@ -73,11 +73,11 @@ func UnserializeAccountInterface(b []byte) (n int64, chainID uint64, address []b
 
 func SerializeAttestationContent(chainID uint64, tag uint8, payload []byte) ([]byte, error) {
 	var buf = new(bytes.Buffer)
-	err := binary.Write(buf, binary.LittleEndian, chainID)
+	err := binary.Write(buf, binary.BigEndian, chainID)
 	if err != nil {
 		return nil, err
 	}
-	err = binary.Write(buf, binary.LittleEndian, tag)
+	err = binary.Write(buf, binary.BigEndian, tag)
 	if err != nil {
 		return nil, err
 	}
@@ -90,11 +90,11 @@ func SerializeAttestationContent(chainID uint64, tag uint8, payload []byte) ([]b
 
 func UnserializeAttestationContent(content []byte) (chainID uint64, tag uint8, payload []byte, err error) {
 	var buf = bytes.NewBuffer(content)
-	err = binary.Read(buf, binary.LittleEndian, &chainID)
+	err = binary.Read(buf, binary.BigEndian, &chainID)
 	if err != nil {
 		return
 	}
-	err = binary.Read(buf, binary.LittleEndian, &tag)
+	err = binary.Read(buf, binary.BigEndian, &tag)
 	if err != nil {
 		return
 	}

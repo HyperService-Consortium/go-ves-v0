@@ -9,13 +9,17 @@ import (
 
 	"golang.org/x/net/context"
 
+	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	log "github.com/Myriad-Dreamin/go-ves/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
-	bni "github.com/Myriad-Dreamin/go-ves/types/bn-interface"
+
+	// bni "github.com/Myriad-Dreamin/go-ves/types/bn-interface"
+
+	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	nsbi "github.com/Myriad-Dreamin/go-ves/types/nsb-interface"
 )
 
@@ -36,7 +40,7 @@ func (atte *AtteAdapdator) GetSignatures() []uiptypes.Signature {
 	var ss = atte.Attestation.GetSignatures()
 	ret := make([]uiptypes.Signature, len(ss))
 	for _, s := range ss {
-		ret = append(ret, uiptypes.Signature(s))
+		ret = append(ret, signaturer.FromBaseSignature(s))
 	}
 	return ret
 }
@@ -59,7 +63,7 @@ func (s *AttestationReceiveService) Serve() (*uiprpc.AttestationReceiveReply, er
 		current_tx_id, _ := ses.GetTransactingTransaction()
 		success, helpInfo, err = ses.ProcessAttestation(
 			nsbi.NSBInterfaceImpl(s.Host, s.Signer),
-			&bni.BN{},
+			&ethbni.BN{},
 			&AtteAdapdator{s.GetAtte()},
 		)
 
@@ -90,12 +94,12 @@ func (s *AttestationReceiveService) Serve() (*uiprpc.AttestationReceiveReply, er
 				var accs []*uipbase.Account
 				accs = append(accs, &uipbase.Account{
 					Address: kvs.Src,
-					ChainId: kvs.ChainId,
+					ChainId: kvs.ChainID,
 				})
-				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainId)
+				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainID)
 				// accs = append(accs, &uipbase.Account{
 				// 	Address: kvs.Dst,
-				// 	ChainId: kvs.ChainId,
+				// 	ChainID: kvs.ChainId,
 				// })
 				_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{
 					SessionId: ses.GetGUID(),

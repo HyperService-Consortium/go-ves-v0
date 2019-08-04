@@ -31,7 +31,7 @@ type UserBase interface {
 	FindUser(MultiIndex, user_name) (User, error)
 
 	// find accounts which guid is corresponding to user
-	FindAccounts(MultiIndex, user_name, uiptypes.ChainId) ([]uiptypes.Account, error)
+	FindAccounts(MultiIndex, user_name, uint64) ([]uiptypes.Account, error)
 
 	// return true if user has this account
 	HasAccount(MultiIndex, user_name, uiptypes.Account) (has, error)

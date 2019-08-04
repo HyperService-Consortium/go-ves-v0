@@ -8,6 +8,7 @@ import (
 	"time"
 
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -54,7 +55,7 @@ func main() {
 	r, err := c.SessionStart(
 		ctx,
 		&uiprpc.SessionStartRequest{
-			Opintents: &uiprpc.OpIntents{
+			Opintents: &uipbase.OpIntents{
 				Dependencies: nil,
 				Contents: [][]byte{
 					b,

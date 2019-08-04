@@ -1,6 +1,7 @@
 package eth_client
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 )
@@ -20,6 +21,7 @@ func TestGetEthAccounts(t *testing.T) {
 
 func TestUnlock(t *testing.T) {
 	ok, err := NewEthClient(test_host).PersonalUnlockAccout("0x0ac45f1e6b8d47ac4c73aee62c52794b5898da9f", "123456", 600)
+
 	if ok == false || err != nil {
 		if ok == false {
 			if err != nil {
@@ -34,4 +36,31 @@ func TestUnlock(t *testing.T) {
 		}
 		return
 	}
+}
+
+const objjj = `{"from":"0x0ac45f1e6b8d47ac4c73aee62c52794b5898da9f", "to": "0x981739a13593980763de3353340617ef16da6354", "value": "0x1"}`
+
+func TestSendTransaction(t *testing.T) {
+	b, err := NewEthClient(test_host).SendTransaction([]byte(objjj))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(string(b))
+}
+
+func TestGetStorageAt(t *testing.T) {
+	var addr = "1234567812345678123456781234567812345678"
+	baddr, err := hex.DecodeString(addr)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	var pos = []byte{1}
+	b, err := NewEthClient(test_host).GetStorageAt(baddr, pos, "latest")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(string(b))
 }

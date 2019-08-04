@@ -12,6 +12,7 @@ type Database struct {
 	muldb  types.MultiIndex
 	sesdb  types.SessionBase
 	userdb types.UserBase
+	kvdb   types.SessionKVBase
 }
 
 func (db *Database) SetIndex(phyDB types.Index) bool {
@@ -31,6 +32,11 @@ func (db *Database) SetSessionBase(logicDB types.SessionBase) bool {
 
 func (db *Database) SetUserBase(logicDB types.UserBase) bool {
 	db.userdb = logicDB
+	return true
+}
+
+func (db *Database) SetSessionKVBase(logicDB types.SessionKVBase) bool {
+	db.kvdb = logicDB
 	return true
 }
 
@@ -90,6 +96,23 @@ func (db *Database) InvertFind(account uiptypes.Account) (string, error) {
 func (db *Database) ActivateSession(isc_address []byte) {
 	db.sesdb.ActivateSession(isc_address)
 }
+
 func (db *Database) InactivateSession(isc_address []byte) {
 	db.sesdb.InactivateSession(isc_address)
+}
+
+func (db *Database) SetKV(isc_address, k, v []byte) error {
+	return db.kvdb.SetKV(db.sindb, isc_address, k, v)
+}
+
+func (db *Database) GetKV(isc_address, k []byte) ([]byte, error) {
+	return db.kvdb.GetKV(db.sindb, isc_address, k)
+}
+
+func (db *Database) GetGetter(isc_address []byte) uiptypes.KVGetter {
+	return db.kvdb.GetGetter(db.sindb, isc_address)
+}
+
+func (db *Database) GetSetter(isc_address []byte) types.KVSetter {
+	return db.kvdb.GetSetter(db.sindb, isc_address)
 }

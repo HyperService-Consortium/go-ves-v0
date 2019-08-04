@@ -5,14 +5,11 @@ import (
 	"time"
 
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"testing"
-)
-
-const (
-	m_address = "127.0.0.1:23351"
 )
 
 func TestUserRegister(t *testing.T) {
@@ -30,9 +27,9 @@ func TestUserRegister(t *testing.T) {
 	defer cancel()
 	r, err := c.UserRegister(
 		ctx,
-		&uiprpc.UserRegisterRequest{User: &uiprpc.Account{
-			ChainType: 1,
-			Address:   []byte{1},
+		&uiprpc.UserRegisterRequest{Account: &uipbase.Account{
+			ChainId: 1,
+			Address: []byte{1},
 		},
 		})
 	if err != nil {
