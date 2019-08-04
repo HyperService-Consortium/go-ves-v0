@@ -21,24 +21,18 @@ go run bin/ves-client/main.go
 进度：
 
 + 完整地运行一次跨链转账交易
-
-这周末 TODO List:
-
 + 完整地完成attestation的上链行为
-
 + 完整地完成merkle proof的上链行为
-
-下周 TODO List:
-
 + 完整地运行一次跨链合约交易
++ <del>完整地</del>完成merkle proof的value抽取功能
 
-+ 完整地完成merkle proof的value抽取功能
+这周 TODO List:
 
 + 考虑设计UI界面
 
 + 第一阶段完成，优化代码，压力测试，接口测试
 
-下下周 TODO List:
+下周 TODO List:
 
 + 将ISC功能完善化
 
