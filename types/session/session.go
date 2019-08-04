@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"unsafe"
 
+	TransType "github.com/Myriad-Dreamin/go-uip/const/trans_type"
 	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
@@ -170,7 +171,7 @@ func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool,
 		if c.Insert(intent.ChainID, intent.Src) {
 			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Src})
 		}
-		if c.Insert(intent.ChainID, intent.Dst) {
+		if intent.TransType == TransType.Payment && c.Insert(intent.ChainID, intent.Dst) {
 			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Dst})
 		}
 	}

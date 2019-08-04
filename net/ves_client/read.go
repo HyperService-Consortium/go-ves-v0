@@ -273,11 +273,14 @@ func (vc *VesClient) read() {
 				sendingAtte.Src = s.GetDst()
 				sendingAtte.Dst = s.GetSrc()
 
-				if aid == TxState.Open {
+				if aid == TxState.Instantiated {
 					acc := s.GetDst()
+
+					log.Infoln("the resp is", hex.EncodeToString(acc.GetAddress()), acc.GetChainId())
+
 					router := vc.getRouter(acc.ChainId)
 					if router == nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.getRespSigner:", errors.New("get router failed"))
+						log.Errorln("VesClient.read.AttestationReceiveRequest.getRouter:", errors.New("get router failed"))
 						continue
 					}
 

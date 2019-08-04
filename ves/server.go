@@ -31,6 +31,7 @@ var (
 
 type Server struct {
 	db     types.VESDB
+	resp   *uipbase.Account
 	signer *signaturer.TendermintNSBSigner
 	cves   uiprpc.CenteredVESClient
 	// mutex sync.Mutex
@@ -119,6 +120,7 @@ func (server *Server) SessionRequireRawTransact(
 ) (*uiprpc.SessionRequireRawTransactReply, error) {
 	log.Infof("user request transact (computed)\n")
 	return service.SessionRequireRawTransactService{
+		Resp:                             server.resp,
 		VESDB:                            server.db,
 		Context:                          ctx,
 		SessionRequireRawTransactRequest: in,
@@ -245,6 +247,7 @@ func ListenAndServe(port, centerAddress string) error {
 	b, _ := hex.DecodeString("2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")
 
 	server.signer = signaturer.NewTendermintNSBSigner(b)
+	server.resp = &uipbase.Account{Address: server.signer.GetPublicKey(), ChainId: 3}
 
 	conn, err := grpc.Dial(centerAddress, grpc.WithInsecure(), grpc.WithKeepaliveParams(keepalive.ClientParameters{}))
 	if err != nil {

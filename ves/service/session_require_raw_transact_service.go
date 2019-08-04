@@ -22,6 +22,7 @@ import (
 )
 
 type SessionRequireRawTransactService struct {
+	Resp *uipbase.Account
 	types.VESDB
 	context.Context
 	*uiprpc.SessionRequireRawTransactRequest
@@ -100,17 +101,34 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", transactionIntent.Dst)
-	return &uiprpc.SessionRequireRawTransactReply{
-		RawTransaction: b,
-		Tid:            uint64(underTransacting),
-		Src: &uipbase.Account{
-			Address: transactionIntent.Src,
-			ChainId: transactionIntent.ChainID,
-		},
-		Dst: &uipbase.Account{
-			Address: transactionIntent.Dst,
-			ChainId: transactionIntent.ChainID,
-		},
-	}, nil
+
+	if transactionIntent.TransType == transtype.Payment {
+
+		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", transactionIntent.Dst)
+		return &uiprpc.SessionRequireRawTransactReply{
+			RawTransaction: b,
+			Tid:            uint64(underTransacting),
+			Src: &uipbase.Account{
+				Address: transactionIntent.Src,
+				ChainId: transactionIntent.ChainID,
+			},
+			Dst: &uipbase.Account{
+				Address: transactionIntent.Dst,
+				ChainId: transactionIntent.ChainID,
+			},
+		}, nil
+	} else {
+
+		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", s.Resp.GetAddress())
+		return &uiprpc.SessionRequireRawTransactReply{
+			RawTransaction: b,
+			Tid:            uint64(underTransacting),
+			Src: &uipbase.Account{
+				Address: transactionIntent.Src,
+				ChainId: transactionIntent.ChainID,
+			},
+			Dst: s.Resp,
+		}, nil
+	}
+
 }

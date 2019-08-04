@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -37,6 +38,7 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 	// owners = append(owners, s.Signer.GetPublicKey())
 	for _, owner := range accs {
 		owners = append(owners, owner.GetAddress())
+		fmt.Println("waiting", hex.EncodeToString(owner.GetAddress()))
 	}
 	var txs = anyb.GetTransactions()
 	var btxs = make([][]byte, 0, len(txs))
@@ -122,6 +124,7 @@ func (s *MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb type
 	// owners = append(owners, s.Signer.GetPublicKey())
 	for _, owner := range accs {
 		owners = append(owners, owner.GetAddress())
+		fmt.Println("waiting", hex.EncodeToString(owner.GetAddress()))
 	}
 	var txs = anyb.GetTransactions()
 	var btxs = make([][]byte, 0, len(txs))
