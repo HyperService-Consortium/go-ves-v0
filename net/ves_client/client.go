@@ -9,7 +9,7 @@ import (
 	"log"
 	"sync"
 
-	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
+	ethbni "github.com/Myriad-Dreamin/blockchain-lib/bni/eth"
 	signaturetype "github.com/Myriad-Dreamin/go-uip/const/signature_type"
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"

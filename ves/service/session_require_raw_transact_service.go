@@ -10,8 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	bni "github.com/Myriad-Dreamin/go-uip/bni/eth"
-	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
+	ethbni "github.com/Myriad-Dreamin/blockchain-lib/bni/eth"
 	transtype "github.com/Myriad-Dreamin/go-uip/const/trans_type"
 	value_type "github.com/Myriad-Dreamin/go-uip/const/value_type"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
@@ -97,7 +96,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	}
 
 	var b []byte
-	b, err = (&bni.BN{}).Translate(&transactionIntent, s.GetGetter(ses.GetGUID()))
+	b, err = (&ethbni.BN{}).Translate(&transactionIntent, s.GetGetter(ses.GetGUID()))
 	if err != nil {
 		return nil, err
 	}
