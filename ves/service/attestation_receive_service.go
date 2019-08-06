@@ -9,12 +9,12 @@ import (
 
 	"golang.org/x/net/context"
 
-	ethbni "github.com/Myriad-Dreamin/blockchain-lib/bni/eth"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	log "github.com/Myriad-Dreamin/go-ves/log"
+	ethbni "github.com/Myriad-Dreamin/go-ves/lib/bni/eth"
+	log "github.com/Myriad-Dreamin/go-ves/lib/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
 	// bni "github.com/Myriad-Dreamin/go-ves/types/bn-interface"

@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	ethbni "github.com/Myriad-Dreamin/blockchain-lib/bni/eth"
+	ethbni "github.com/Myriad-Dreamin/go-ves/lib/bni/eth"
 	transtype "github.com/Myriad-Dreamin/go-uip/const/trans_type"
 	value_type "github.com/Myriad-Dreamin/go-uip/const/value_type"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"

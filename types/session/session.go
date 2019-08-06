@@ -16,9 +16,9 @@ import (
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 
-	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping"
-	const_prefix "github.com/Myriad-Dreamin/go-ves/database/const_prefix"
-	serial_helper "github.com/Myriad-Dreamin/go-ves/serial_helper"
+	bitmap "github.com/Myriad-Dreamin/go-ves/lib/bitmapping"
+	const_prefix "github.com/Myriad-Dreamin/go-ves/lib/database/const_prefix"
+	serial_helper "github.com/Myriad-Dreamin/go-ves/lib/serial_helper"
 
 	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
 )

@@ -15,11 +15,11 @@ import (
 	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	account "github.com/Myriad-Dreamin/go-uip/types/account"
-	bitmap "github.com/Myriad-Dreamin/go-ves/bitmapping/redis-bitmap"
-	const_prefix "github.com/Myriad-Dreamin/go-ves/database/const_prefix"
-	redispool "github.com/Myriad-Dreamin/go-ves/database/redis"
-	log "github.com/Myriad-Dreamin/go-ves/log"
-	serial_helper "github.com/Myriad-Dreamin/go-ves/serial_helper"
+	bitmap "github.com/Myriad-Dreamin/go-ves/lib/bitmapping/redis-bitmap"
+	const_prefix "github.com/Myriad-Dreamin/go-ves/lib/database/const_prefix"
+	redispool "github.com/Myriad-Dreamin/go-ves/lib/database/redis"
+	log "github.com/Myriad-Dreamin/go-ves/lib/log"
+	serial_helper "github.com/Myriad-Dreamin/go-ves/lib/serial_helper"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 
