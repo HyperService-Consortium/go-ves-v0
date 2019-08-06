@@ -219,6 +219,21 @@ func (nc *NSBClient) BroadcastTxCommit(body []byte) (*ResultInfo, error) {
 	return &a, nil
 }
 
+func (nc *NSBClient) BroadcastTxCommitReturnBytes(body []byte) ([]byte, error) {
+	b, err := nc.handler.Group("/broadcast_tx_commit").GetWithParams(request.Param{
+		"tx": "0x" + hex.EncodeToString(body),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJSONResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	return bb, nil
+}
+
 func (nc *NSBClient) GetConsensusState() (*ConsensusStateInfo, error) {
 	b, err := nc.handler.Group("/consensus_state").Get()
 	if err != nil {
