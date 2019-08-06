@@ -92,9 +92,9 @@ func (vc *VesClient) read() {
 				"resposible address:", hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
 			)
 
-			signer, err := vc.getSigner()
+			signer, err := vc.getNSBSigner()
 			if err != nil {
-				log.Errorln("VesClient.read.RequestComingRequest.getSigner:", err)
+				log.Errorln("VesClient.read.RequestComingRequest.getNSBSigner:", err)
 				continue
 			}
 
@@ -163,9 +163,9 @@ func (vc *VesClient) read() {
 				string(raw),
 			)
 
-			signer, err := vc.getSigner()
+			signer, err := vc.getNSBSigner()
 			if err != nil {
-				log.Errorln("VesClient.read.AttestationSendingRequest.getSigner:", err)
+				log.Errorln("VesClient.read.AttestationSendingRequest.getNSBSigner:", err)
 				continue
 			}
 
@@ -180,7 +180,7 @@ func (vc *VesClient) read() {
 			sendingAtte.SessionId = attestationSendingRequest.GetSessionId()
 			sendingAtte.GrpcHost = attestationSendingRequest.GetGrpcHost()
 
-			sigg := vc.signer.Sign(raw)
+			sigg := signer.Sign(raw)
 			sendingAtte.Atte = &uipbase.Attestation{
 				Tid:     tid,
 				Aid:     TxState.Instantiating,
@@ -245,9 +245,9 @@ func (vc *VesClient) read() {
 			default:
 				log.Infoln("must send attestation with status:", TxState.Description(aid+1))
 
-				signer, err := vc.getSigner()
+				signer, err := vc.getNSBSigner()
 				if err != nil {
-					log.Errorln("VesClient.read.AttestationReceiveRequest.getSigner:", err)
+					log.Errorln("VesClient.read.AttestationReceiveRequest.getNSBSigner:", err)
 					continue
 				}
 

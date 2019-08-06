@@ -7,6 +7,7 @@ import (
 
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
+	kvdb "github.com/Myriad-Dreamin/go-ves/types/kvdb"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"
 	user "github.com/Myriad-Dreamin/go-ves/types/user"
 
@@ -60,6 +61,7 @@ func makeDB() types.VESDB {
 
 	db.SetUserBase(new(user.XORMUserBase))
 	db.SetSessionBase(new(session.SerialSessionBase))
+	db.SetSessionKVBase(new(kvdb.Database))
 	return db
 }
 

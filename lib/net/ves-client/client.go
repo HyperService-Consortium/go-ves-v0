@@ -21,6 +21,7 @@ import (
 	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
 
 	ethbni "github.com/Myriad-Dreamin/go-ves/lib/bni/eth"
+	nsbbni "github.com/Myriad-Dreamin/go-ves/lib/bni/ten"
 	filedb "github.com/Myriad-Dreamin/go-ves/lib/database/filedb"
 	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
 )
@@ -421,7 +422,7 @@ func (vc *VesClient) getName() []byte {
 	return vc.name
 }
 
-func (vc *VesClient) getSigner() (uiptypes.Signer, error) {
+func (vc *VesClient) getNSBSigner() (uiptypes.Signer, error) {
 	if vc.signer != nil {
 		return vc.signer, nil
 	}
@@ -441,6 +442,8 @@ func (vc *VesClient) getRouter(chainID uint64) uiptypes.Router {
 	switch chainID {
 	case 1, 2:
 		return &ethbni.BN{}
+	case 3, 4:
+		return &nsbbni.BN{}
 	default:
 		return nil
 	}
@@ -469,7 +472,7 @@ func (vc *VesClient) getRespSigner(acc *uipbase.Account) (uiptypes.Signer, error
 				return &acc, nil
 			}
 		}
-	default:
+	case 3, 4:
 		for _, key := range vc.keys.Alias {
 			if key.ChainID != cid {
 				continue
