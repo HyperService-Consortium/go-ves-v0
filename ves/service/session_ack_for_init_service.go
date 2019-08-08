@@ -14,7 +14,7 @@ import (
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	log "github.com/Myriad-Dreamin/go-ves/log"
+	log "github.com/Myriad-Dreamin/go-ves/lib/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 )
 

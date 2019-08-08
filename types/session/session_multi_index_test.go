@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	index "github.com/Myriad-Dreamin/go-ves/database/index"
-	xorm_multi_index "github.com/Myriad-Dreamin/go-ves/database/multi_index"
+	index "github.com/Myriad-Dreamin/go-ves/lib/database/index"
+	xorm_multi_index "github.com/Myriad-Dreamin/go-ves/lib/database/multi_index"
 	mtest "github.com/Myriad-Dreamin/mydrest"
 )
 

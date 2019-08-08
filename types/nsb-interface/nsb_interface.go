@@ -2,7 +2,7 @@ package nsbi
 
 import (
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	nsbcli "github.com/Myriad-Dreamin/go-ves/net/nsb_client"
+	nsbcli "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
 )
 
 type NSBClientImpl struct {

@@ -13,7 +13,7 @@ import (
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	nsbcli "github.com/Myriad-Dreamin/go-ves/net/nsb_client"
+	nsbcli "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"
 )

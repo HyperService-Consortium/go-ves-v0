@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	vesclient "github.com/Myriad-Dreamin/go-ves/net/ves_client"
+	vesclient "github.com/Myriad-Dreamin/go-ves/lib/net/ves-client"
 )
 
 func main() {
