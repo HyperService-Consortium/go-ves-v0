@@ -724,8 +724,7 @@ func (nc *NSBClient) addMerkleProof(
 ) error {
 	var args appl.ArgsValidateMerkleProof
 
-	// todo: uint8 -> uint16
-	args.Type = uint8(merkletype)
+	args.Type = merkletype
 	args.RootHash = rootHash
 
 	args.Proof = proof
@@ -794,13 +793,13 @@ func (nc *NSBClient) AddBlockCheck(
 
 func (nc *NSBClient) addBlockCheck(
 	w io.Writer,
-	chainID uint64, blockID, rootHash []byte, rcType uint8,
+	chainID uint64, blockID, rootHash []byte, rtType uint8,
 ) error {
 	var args appl.ArgsAddBlockCheck
 	args.ChainID = chainID
 	args.BlockID = blockID
 	args.RootHash = rootHash
-	args.RcType = rcType
+	args.RtType = rtType
 	b, err := json.Marshal(args)
 	if err != nil {
 		return err
@@ -813,7 +812,7 @@ func (nc *NSBClient) addBlockCheck(
 
 func (nc *NSBClient) GetMerkleProof(
 	user uiptypes.Signer, toAddress []byte,
-	merkleProofType uint8, rootHash, key []byte, chainID uint64, blockID []byte, rcType uint8,
+	merkleProofType uint16, rootHash, key []byte, chainID uint64, blockID []byte, rcType uint8,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
 	var buf = bytes.NewBuffer(make([]byte, 65535))
@@ -860,7 +859,7 @@ func (nc *NSBClient) GetMerkleProof(
 
 func (nc *NSBClient) getMerkleProof(
 	w io.Writer,
-	merkleProofType uint8, rootHash, key []byte, chainID uint64, blockID []byte, rcType uint8,
+	merkleProofType uint16, rootHash, key []byte, chainID uint64, blockID []byte, rtType uint8,
 ) error {
 	var args appl.ArgsGetMerkleProof
 	args.Type = merkleProofType
@@ -868,7 +867,7 @@ func (nc *NSBClient) getMerkleProof(
 	args.Key = key
 	args.ChainID = chainID
 	args.BlockID = blockID
-	args.RcType = rcType
+	args.RtType = rtType
 	b, err := json.Marshal(args)
 	if err != nil {
 		return err

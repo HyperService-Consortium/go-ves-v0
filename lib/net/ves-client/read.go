@@ -341,7 +341,7 @@ func (vc *VesClient) read() {
 				ret, err := vc.nsbClient.InsuranceClaim(
 					signer,
 					s.GetSessionId(),
-					atte.GetTid(), aid,
+					atte.GetTid(), aid+1,
 				)
 				//sessionID, tid, Instantiated)
 				if err != nil {
@@ -350,8 +350,8 @@ func (vc *VesClient) read() {
 				}
 
 				fmt.Printf(
-					"insurance claiming %v {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n",
-					TxState.Description(aid+1), ret.Info, string(ret.Data), ret.Log, ret.Tags,
+					"insurance claiming %v, %v {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n",
+					atte.GetTid(), TxState.Description(aid+1), ret.Info, string(ret.Data), ret.Log, ret.Tags,
 				)
 
 				err = vc.postRawMessage(wsrpc.CodeAttestationReceiveRequest, s.GetSrc(), sendingAtte)
