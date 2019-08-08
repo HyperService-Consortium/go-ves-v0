@@ -307,6 +307,28 @@ func (nc *NSBClient) GetNetInfo() (*NetInfo, error) {
 	return &a, nil
 }
 
+func (nc *NSBClient) GetProof(txHeader []byte, subQuery string) (*ProofResponse, error) {
+	b, err := nc.handler.Group("/abci_query").GetWithParams(request.Param{
+		//todo: reduce cost of 0x
+		"data": "0x" + hex.EncodeToString(txHeader),
+		"path": subQuery,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJSONResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	var a ProofInfo
+	err = json.Unmarshal(bb, &a)
+	if err != nil {
+		return nil, err
+	}
+	return &a.Response, nil
+}
+
 func (nc *NSBClient) GetNumUnconfirmedTxs() (*NumUnconfirmedTxsInfo, error) {
 	b, err := nc.handler.Group("/net_info").Get()
 	if err != nil {

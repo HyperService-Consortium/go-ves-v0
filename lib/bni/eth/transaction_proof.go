@@ -12,6 +12,8 @@ import (
 
 	trie "github.com/Myriad-Dreamin/go-mpt"
 	"github.com/Myriad-Dreamin/go-rlp"
+	merkleproof "github.com/Myriad-Dreamin/go-uip/merkle-proof"
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	ethclient "github.com/Myriad-Dreamin/go-ves/lib/net/eth-client"
 	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/crypto/sha3"
@@ -269,7 +271,7 @@ func NewTxTrie(list DerivableList) (*trie.Trie, error) {
 	return txTrie, nil
 }
 
-func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []byte) ([][]byte, error) {
+func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
 	cinfo, err := SearchChainId(chainID)
 	if err != nil {
 		return nil, err
@@ -324,5 +326,5 @@ func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []b
 		return nil, err
 	}
 
-	return proof, nil
+	return merkleproof.NewMPTUsingKeccak256(proof, keybuf.Bytes(), txTrie.Get(keybuf.Bytes())), nil
 }

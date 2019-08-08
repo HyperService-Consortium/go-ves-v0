@@ -1,6 +1,8 @@
 package nsbcli
 
-import "time"
+import (
+	"time"
+)
 
 /******************************* abci_info ************************************/
 
@@ -354,4 +356,17 @@ type CheckTx struct {
 	Log  string `json:"log"`
 	Data []byte `json:"data"`
 	Tags []Tags `json:"tags"`
+}
+
+/**************************** proof_info ********************************/
+
+type ProofInfo struct {
+	Response ProofResponse `json:"response"`
+}
+
+type ProofResponse struct {
+	Log   string `json:"log"`
+	Info  string `json:"info"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
