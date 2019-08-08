@@ -64,3 +64,47 @@ func TestGetStorageAt(t *testing.T) {
 	}
 	fmt.Println(string(b))
 }
+
+func TestGetTransactionByHash(t *testing.T) {
+	txb, err := hex.DecodeString("a41d03fde4e7cf4c58870092c65709db7532956f7d0882156f11f503a6d88d2f")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	b, err := NewEthClient(testHost).GetTransactionByHash(txb)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(string(b))
+	b, err = NewEthClient(testHost).GetTransactionByStringHash("0xa41d03fde4e7cf4c58870092c65709db7532956f7d0882156f11f503a6d88d2f")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(string(b))
+
+}
+
+func TestGetBlockByHash(t *testing.T) {
+	txb, err := hex.DecodeString("8a8b9aaa48e0fb024abb7105798ad48057cf4fd14100505addabc319ed3d41c6")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	b, err := NewEthClient(testHost).GetBlockByHash(txb, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Println(string(b))
+
+	b, err = NewEthClient(testHost).GetBlockByHash(txb, false)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	fmt.Println(string(b))
+}

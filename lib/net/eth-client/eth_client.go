@@ -2,7 +2,6 @@ package ethclient
 
 import (
 	"encoding/json"
-	"fmt"
 
 	gjson "github.com/tidwall/gjson"
 
@@ -66,7 +65,7 @@ func (eth *EthClient) SendTransaction(obj []byte) (string, error) {
 // GetStorageAt return the value of position on the address
 func (eth *EthClient) GetStorageAt(contractAddress, pos []byte, tag string) (string, error) {
 	b := jsonobj.GetStorageAt(contractAddress, pos, tag)
-	fmt.Println(string(b))
+
 	bb, err := eth.JsonRpcClient.PostWithBody(b)
 	jsonobj.ReturnBytes(b)
 	if err != nil {
@@ -74,6 +73,39 @@ func (eth *EthClient) GetStorageAt(contractAddress, pos []byte, tag string) (str
 	}
 
 	return gjson.ParseBytes(bb).String(), err
+}
+
+func (eth *EthClient) GetTransactionByHash(transactionHash []byte) ([]byte, error) {
+	b := jsonobj.GetTransactionByHash(transactionHash)
+	bb, err := eth.JsonRpcClient.PostWithBody(b)
+
+	jsonobj.ReturnBytes(b)
+	if err != nil {
+		return nil, err
+	}
+	return bb, nil
+}
+
+func (eth *EthClient) GetTransactionByStringHash(transactionHash string) ([]byte, error) {
+	b := jsonobj.GetTransactionByStringHash(transactionHash)
+	bb, err := eth.JsonRpcClient.PostWithBody(b)
+
+	jsonobj.ReturnBytes(b)
+	if err != nil {
+		return nil, err
+	}
+	return bb, nil
+}
+
+func (eth *EthClient) GetBlockByHash(blockHash []byte, returnFull bool) ([]byte, error) {
+	b := jsonobj.GetBlockByHash(blockHash, returnFull)
+	bb, err := eth.JsonRpcClient.PostWithBody(b)
+
+	jsonobj.ReturnBytes(b)
+	if err != nil {
+		return nil, err
+	}
+	return bb, nil
 }
 
 // Do raw rpc invocation

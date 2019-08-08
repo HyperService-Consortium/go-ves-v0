@@ -1,0 +1,193 @@
+package bni
+
+import (
+	"bytes"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"math/big"
+	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/Myriad-Dreamin/go-rlp"
+	"github.com/ethereum/go-ethereum/common"
+	"golang.org/x/crypto/sha3"
+)
+
+type txResWrapper struct {
+	JSONrpc string `json:"jsonrpc"`
+	Id      string `json:"id"`
+	Result  Txdata `json:"result"`
+}
+
+type RPCReq struct {
+	Version string   `json:"jsonrpc"`
+	Method  string   `json:"method"`
+	Params  []string `json:"params"`
+	Id      string   `json:"id"`
+}
+
+func genRPCReqJSON(version string, method string, params []string, id string) (string, error) {
+	retobj := RPCReq{
+		Version: version,
+		Method:  method,
+		Params:  params,
+		Id:      id,
+	}
+	ret, err := json.Marshal(retobj)
+	return string(ret), err
+}
+
+func genTxReqJSON(txHash string) (string, error) {
+	return genRPCReqJSON("2.0", "eth_getTransactionByHash", []string{txHash}, "1")
+}
+
+func genBlockReqJSON(blockHash string) (string, error) {
+	return genRPCReqJSON("2.0", "eth_getBlockByHash", []string{blockHash, "true"}, "1")
+}
+
+func post(msg string) (string, error) {
+	res, err := http.Post("http://127.0.0.1:8545", "application/json", strings.NewReader(msg))
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	if res.Status == "200 OK" {
+		body, _ := ioutil.ReadAll(res.Body)
+		defer res.Body.Close()
+		return string(body), nil
+	} else {
+		fmt.Println(res.Status)
+		return "FAIL", nil
+	}
+	//return "FAIL", nil
+}
+
+func getTx(txHash string) {
+	//transactionhash := "0xe2ce7150b6db2b79e6e2be830250b8990e5a3ad941d731259a79657273be9fe6"
+
+	newReqJSON, _ := genTxReqJSON(txHash)
+	fmt.Println("reqjson", newReqJSON)
+	res, err := post(newReqJSON)
+	if err != nil {
+		fmt.Println("error", err)
+	}
+	fmt.Println("res", res)
+	fmt.Println("AAA", unMarshalTx(res))
+}
+
+func getBlock(blockHash string) {
+	newReqJSON, _ := genBlockReqJSON(blockHash)
+	fmt.Println(newReqJSON)
+	res, _ := post(newReqJSON)
+	fmt.Println("res", res)
+}
+
+/*
+{
+	"blockHash":"0xa5ff9c2c04bc14a53198755f76733a4d1d2425a4eb177b98cd6fd555a13650d4",
+	"blockNumber":"0x2",
+	"from":"0x7f49b5c4c1cae9ea898f856ea4c2e10f3d5a3456",
+	"gas":"0x15f90",
+	"gasPrice":"0x3b9aca00",
+	"hash":"0xe2ce7150b6db2b79e6e2be830250b8990e5a3ad941d731259a79657273be9fe6",
+	"input":"0x",
+	"nonce":"0x0",
+	"to":"0xd247126aa720779a4172b88405ec2ad29c6a22d4",
+	"transactionIndex":"0x0",
+	"value":"0x1bc16d674ec80000",
+	"v":"0x41",
+	"r":"0xc9278165c321b8c2181f363aa47a1337f01faf8487687b44bb42858b6a3d36bd",
+	"s":"0x2cdd7b1b6da2f1713d748031bd3fce14840f347e308e59aef1d73294a7c0b6f0"
+}*/
+func unMarshalTx(str string) *Transaction {
+	ret := new(Transaction)
+	retdata := new(Txdata)
+	var ori map[string]interface{}
+	json.Unmarshal([]byte(str), &ori)
+	fmt.Println(ori)
+
+	if ori["result"] == nil {
+		return nil
+	}
+
+	datamap := ori["result"].(map[string]interface{})
+	retdata.AccountNonce, _ = strconv.ParseUint(datamap["nonce"].(string)[2:], 16, 64)
+	retdata.Price, _ = big.NewInt(0).SetString(datamap["gasPrice"].(string)[2:], 16)
+	retdata.GasLimit, _ = strconv.ParseUint(datamap["gas"].(string)[2:], 16, 64)
+	too, _ := hex.DecodeString((datamap["to"].(string)[2:]))
+	retdata.Recipient = new(common.Address)
+	//var to [20]byte
+	for i := 0; i < 20; i++ {
+		retdata.Recipient[i] = too[i]
+	}
+	retdata.Amount, _ = big.NewInt(0).SetString(datamap["value"].(string)[2:], 16)
+	retdata.Payload, _ = hex.DecodeString(datamap["input"].(string)[2:])
+	retdata.V, _ = big.NewInt(0).SetString(datamap["v"].(string)[2:], 16)
+	retdata.R, _ = big.NewInt(0).SetString(datamap["r"].(string)[2:], 16)
+	retdata.S, _ = big.NewInt(0).SetString(datamap["s"].(string)[2:], 16)
+	hs, _ := hex.DecodeString((datamap["hash"].(string)[2:]))
+	retdata.Hash = new(common.Hash)
+	for i := 0; i < 32; i++ {
+		retdata.Hash[i] = hs[i]
+	}
+	fmt.Println("AccountNonce", retdata.AccountNonce)
+	fmt.Println("Price", retdata.Price)
+	fmt.Println("GasLimit", retdata.GasLimit)
+	fmt.Println("Recipient", hex.EncodeToString(retdata.Recipient.Bytes()))
+	fmt.Println("Amount", retdata.Amount)
+	fmt.Println("Payload", retdata.Payload)
+	fmt.Println("V", retdata.V)
+	fmt.Println("R", retdata.R)
+	fmt.Println("S", retdata.S)
+	fmt.Println("Hash", hex.EncodeToString(retdata.Hash.Bytes()))
+	ret.data = retdata
+	fmt.Println("rHash", hex.EncodeToString(ret.Hash().Bytes()))
+	ret.Size()
+	return ret
+}
+func (tx *Transaction) Hash() common.Hash {
+	if hash := tx.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	v := rlpHash(tx.data)
+	tx.hash.Store(v)
+	return v
+}
+
+type writeCounter common.StorageSize
+
+func (c *writeCounter) Write(b []byte) (int, error) {
+	*c += writeCounter(len(b))
+	return len(b), nil
+}
+
+// Size returns the true RLP encoded storage size of the transaction, either by
+// encoding and returning it, or returning a previsouly cached value.
+func (tx *Transaction) Size() common.StorageSize {
+	if size := tx.size.Load(); size != nil {
+		return size.(common.StorageSize)
+	}
+	c := writeCounter(0)
+	rlp.Encode(&c, &tx.data)
+	tx.size.Store(common.StorageSize(c))
+	return common.StorageSize(c)
+}
+func rlpHash(x interface{}) (h common.Hash) {
+
+	var buf = bytes.NewBuffer(make([]byte, 65536))
+	buf.Reset()
+	hw := sha3.NewLegacyKeccak256()
+	err := rlp.Encode(buf, x)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(buf.Bytes())
+	hw.Write(buf.Bytes())
+
+	hw.Sum(h[:0])
+	return h
+}

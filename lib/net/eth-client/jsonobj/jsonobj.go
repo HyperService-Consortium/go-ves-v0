@@ -20,12 +20,17 @@ const (
 )
 
 var (
-	reqGetAccount      = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_accounts","params":[]}`)
-	reqPersonalUnlock  = []byte(`{"id":64,"jsonrpc":"2.0","method":"personal_unlockAccount","params":["`)
-	reqSendTransaction = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_sendTransaction","params":[`)
-	reqGetStorageAt    = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_getStorageAt","params":[`)
-	hexPrefix          = "0x"
-	bp                 = bytespool.NewMultiThreadBytesPool(maxBytesSize)
+	reqGetAccount                 = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_accounts","params":[]}`)
+	reqPersonalUnlock             = []byte(`{"id":64,"jsonrpc":"2.0","method":"personal_unlockAccount","params":["`)
+	reqSendTransaction            = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_sendTransaction","params":[`)
+	reqGetStorageAt               = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_getStorageAt","params":[`)
+	reqGetTransactionByHash       = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_getTransactionByHash","params":["0x`)
+	reqGetTransactionByStringHash = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_getTransactionByHash","params":["`)
+	reqGetBlockByHash             = []byte(`{"id":1,"jsonrpc":"2.0","method":"eth_getBlockByHash","params":["0x`)
+	reqGetTransactionByHashEnd    = []byte(`"]}`)
+	reqGetBlockByHashEnd          = []byte(`]}`)
+	hexPrefix                     = "0x"
+	bp                            = bytespool.NewMultiThreadBytesPool(maxBytesSize)
 )
 
 // GetAccount return all accounts on eth
@@ -104,6 +109,46 @@ func GetStorageAt(address, pos []byte, tag string) []byte {
 	buf.WriteByte(endParamByte)
 	buf.WriteByte(endJSONByte)
 
+	return buf.Bytes()
+}
+
+func GetTransactionByHash(transactionHash []byte) []byte {
+	var b = bp.Get()
+	var buf = bytes.NewBuffer(b)
+	buf.Reset()
+
+	buf.Write(reqGetTransactionByHash)
+	buf.WriteString(hex.EncodeToString(transactionHash))
+	buf.Write(reqGetTransactionByHashEnd)
+	return buf.Bytes()
+}
+
+func GetTransactionByStringHash(transactionHash string) []byte {
+	var b = bp.Get()
+	var buf = bytes.NewBuffer(b)
+	buf.Reset()
+
+	buf.Write(reqGetTransactionByStringHash)
+	buf.WriteString(transactionHash)
+	buf.Write(reqGetTransactionByHashEnd)
+	return buf.Bytes()
+}
+
+func GetBlockByHash(blockHash []byte, returnFull bool) []byte {
+	var b = bp.Get()
+	var buf = bytes.NewBuffer(b)
+	buf.Reset()
+
+	buf.Write(reqGetBlockByHash)
+
+	buf.WriteString(hex.EncodeToString(blockHash))
+
+	buf.WriteByte(ssplitByte)
+	buf.WriteByte(splitByte)
+
+	buf.WriteString(strconv.FormatBool(returnFull))
+
+	buf.Write(reqGetBlockByHashEnd)
 	return buf.Bytes()
 }
 

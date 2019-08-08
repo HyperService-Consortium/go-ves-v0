@@ -1,0 +1,10 @@
+package bni
+
+import (
+	"testing"
+)
+
+func TestGetTx(t *testing.T) {
+	transactionhash := "0xa41d03fde4e7cf4c58870092c65709db7532956f7d0882156f11f503a6d88d2f"
+	getTx(transactionhash)
+}
