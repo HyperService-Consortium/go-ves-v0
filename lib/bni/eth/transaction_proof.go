@@ -9,13 +9,15 @@ import (
 	"math/big"
 	"strconv"
 	"sync/atomic"
+	"time"
 
 	trie "github.com/Myriad-Dreamin/go-mpt"
 	"github.com/Myriad-Dreamin/go-rlp"
 	merkleproof "github.com/Myriad-Dreamin/go-uip/merkle-proof"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	ethclient "github.com/Myriad-Dreamin/go-ves/lib/net/eth-client"
-	"github.com/syndtr/goleveldb/leveldb"
+	leveldb "github.com/syndtr/goleveldb/leveldb"
+	leveldbstorage "github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/crypto/sha3"
 
 	gjson "github.com/tidwall/gjson"
@@ -249,7 +251,7 @@ func (bn *BN) GetTransaction(host string, index []byte) (*Transaction, error) {
 }
 
 var emptyHash = trie.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421")
-var __op, _ = leveldb.OpenFile("./cachedb", nil)
+var __op, _ = leveldb.Open(leveldbstorage.NewMemStorage(), nil)
 var __v, _ = trie.NewNodeBasefromDB(__op)
 
 func NewVoidTrie() (*trie.Trie, error) {
@@ -301,6 +303,93 @@ func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []b
 		tx, err = bn.GetTransactionByStringHash(cinfo.GetHost(), rawTx.String())
 		if err != nil {
 			return nil, err
+		}
+		txs = append(txs, tx)
+	}
+
+	txTrie, err := NewTxTrie(txs)
+	if err != nil {
+		return nil, err
+	}
+	hash, err := txTrie.Commit(nil)
+	if err != nil {
+		return nil, err
+	}
+	if hash.Hex() != ret.Get("transactionsRoot").String() {
+		return nil, fmt.Errorf("debugging: hash.Hex()[%v] != transactionsRoot[%v]", hash.Hex(), ret.Get("transactionsRoot").String())
+	}
+
+	keybuf := new(bytes.Buffer)
+	keybuf.Reset()
+	rlp.Encode(keybuf, uint(index))
+
+	proof, err := txTrie.TryProve(keybuf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	return merkleproof.NewMPTUsingKeccak256(proof, keybuf.Bytes(), txTrie.Get(keybuf.Bytes())), nil
+}
+
+func (bn *BN) WaitForTransact(chainID uint64, receipt []byte, opt *uiptypes.WaitOption) ([]byte, []byte, error) {
+	cinfo, err := SearchChainId(chainID)
+	if err != nil {
+		return nil, nil, err
+	}
+	worker := ethclient.NewEthClient(cinfo.GetHost())
+	ddl := time.Now().Add(opt.Timeout)
+	for time.Now().Before(ddl) {
+		tx, err := worker.GetTransactionByHash(receipt)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmt.Println(string(tx))
+		if gjson.GetBytes(tx, "blockNumber").Type != gjson.Null {
+			b, _ := hex.DecodeString(gjson.GetBytes(tx, "blockHash").String()[2:])
+			idx, _ := strconv.ParseUint(gjson.GetBytes(tx, "transactionIndex").String()[2:], 16, 64)
+			var a = make([]byte, 8)
+			binary.BigEndian.PutUint64(a, idx)
+			return b, a, nil
+		}
+		time.Sleep(time.Millisecond * 500)
+
+	}
+	return nil, nil, errors.New("timeout")
+}
+
+func (bn *BN) GetTransactionProofByHash(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
+	cinfo, err := SearchChainId(chainID)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := ethclient.NewEthClient(cinfo.GetHost()).GetBlockByHash(blockID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	// b = bytes.Replace(b, []byte("0x"), nil, -1)
+	ret := gjson.ParseBytes(b)
+
+	if !ret.Exists() {
+		return nil, errors.New("block does not not exist")
+	}
+
+	rawTxs := ret.Get("transactions").Array()
+
+	// fmt.Println(ret.Get("transactionsRoot"), rawTxs)
+
+	var txs Transactions
+	var tx *Transaction
+	var index uint64
+	for idx, rawTx := range rawTxs {
+		tx, err = bn.GetTransactionByStringHash(cinfo.GetHost(), rawTx.String())
+		if err != nil {
+			return nil, err
+		}
+
+		if bytes.Equal(additional, tx.Hash()) {
+			index = uint64(idx)
 		}
 		txs = append(txs, tx)
 	}

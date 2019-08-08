@@ -65,7 +65,9 @@ type VesClient struct {
 
 	conn      *websocket.Conn
 	nsbClient *nsbclient.NSBClient
-	fdb       *filedb.FileDB
+	waitOpt   *uiptypes.WaitOption
+
+	fdb *filedb.FileDB
 
 	keys *ECCKeys
 	accs *EthAccounts
@@ -439,6 +441,17 @@ func (vc *VesClient) getNSBSigner() (uiptypes.Signer, error) {
 }
 
 func (vc *VesClient) getRouter(chainID uint64) uiptypes.Router {
+	switch chainID {
+	case 1, 2:
+		return &ethbni.BN{}
+	case 3, 4:
+		return &nsbbni.BN{}
+	default:
+		return nil
+	}
+}
+
+func (vc *VesClient) getBlockStorage(chainID uint64) uiptypes.Storage {
 	switch chainID {
 	case 1, 2:
 		return &ethbni.BN{}

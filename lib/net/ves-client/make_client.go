@@ -3,6 +3,7 @@ package vesclient
 import (
 	"net/url"
 
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	"github.com/gorilla/websocket"
 )
 
@@ -15,6 +16,8 @@ func VanilleMakeClient(name, addr string) (*VesClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	vcClient.waitOpt = uiptypes.NewWaitOption()
 
 	vcClient.name = []byte(name)
 

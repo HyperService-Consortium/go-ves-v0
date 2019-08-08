@@ -295,12 +295,46 @@ func (vc *VesClient) read() {
 						router = router.RouteWithSigner(respSigner)
 					}
 
-					cb, err := router.RouteRaw(acc.ChainId, atte.GetContent())
+					receipt, err := router.RouteRawTransaction(acc.ChainId, atte.GetContent())
 					if err != nil {
 						log.Errorln("VesClient.read.AttestationReceiveRequest.router.RouteRaw:", err)
 						continue
 					}
-					fmt.Println("route result:", cb)
+					fmt.Println("receipt:", hex.EncodeToString(receipt), string(receipt))
+
+					bid, additional, err := router.WaitForTransact(acc.ChainId, receipt, vc.waitOpt)
+					if err != nil {
+						log.Errorln("VesClient.read.AttestationReceiveRequest.router.WaitForTransact:", err)
+						continue
+					}
+					fmt.Println("route result:", bid)
+
+					blockStorage := vc.getBlockStorage(acc.ChainId)
+					if blockStorage == nil {
+						log.Errorln("VesClient.read.AttestationReceiveRequest.getBlockStorage:", errors.New("get BlockStorage failed"))
+						continue
+					}
+
+					proof, err := blockStorage.GetTransactionProof(acc.GetChainId(), bid, additional)
+					if err != nil {
+						log.Errorln("VesClient.read.AttestationReceiveRequest.blockStorage.GetTransactionProof:", err)
+						continue
+					}
+
+					cb, err := vc.nsbClient.AddMerkleProof(signer, nil, proof.GetType(), proof.GetRootHash(), proof.GetProof(), proof.GetKey(), proof.GetValue())
+					if err != nil {
+						log.Errorln("VesClient.read.AttestationReceiveRequest.nsbClient.AddMerkleProof:", err)
+						continue
+					}
+					fmt.Println("adding merkle proof", cb)
+
+					// todo: add const TransactionsRoot
+					cb, err = vc.nsbClient.AddBlockCheck(signer, nil, acc.ChainId, bid, proof.GetRootHash(), 1)
+					if err != nil {
+						log.Errorln("VesClient.read.AttestationReceiveRequest.nsbClient.AddBlockCheck:", err)
+						continue
+					}
+					fmt.Println("adding block check", cb)
 				}
 
 				// sendingAtte.GetAtte()

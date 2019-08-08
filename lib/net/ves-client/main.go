@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
+	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	log "github.com/Myriad-Dreamin/go-ves/lib/log"
 )
 
@@ -20,6 +21,9 @@ func Main() {
 		u             = url.URL{Scheme: "ws", Host: *addr, Path: "/"}
 		vcClient, err = NewVesClient()
 	)
+
+	vcClient.waitOpt = uiptypes.NewWaitOption()
+
 	if err != nil {
 		log.Println(err)
 		return

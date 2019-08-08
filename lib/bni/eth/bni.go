@@ -46,6 +46,28 @@ func (bn *BN) RouteRaw(destination uint64, payload []byte) ([]byte, error) {
 	return ethclient.Do((&url.URL{Scheme: "http", Host: ci.GetHost(), Path: "/"}).String(), payload)
 }
 
+func (bn *BN) RouteRawTransaction(destination uint64, payload []byte) ([]byte, error) {
+	b, err := bn.RouteRaw(destination, payload)
+	if err != nil {
+		return nil, err
+	}
+	var x string
+	err = json.Unmarshal(b, &x)
+	if err != nil {
+		return nil, err
+	}
+
+	if x == "" {
+		return nil, errors.New("deploy failed?")
+	}
+
+	b, err = hex.DecodeString(x[2:])
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
 func (bn *BN) Route(intent *types.TransactionIntent, kvGetter types.KVGetter) ([]byte, error) {
 	// todo
 	onChainTransaction, err := bn.Translate(intent, kvGetter)

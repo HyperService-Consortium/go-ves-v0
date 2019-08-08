@@ -77,6 +77,58 @@ func (bn *BN) RouteRaw(destination uint64, payload []byte) ([]byte, error) {
 	return nsbclient.NewNSBClient((&url.URL{Scheme: "http", Host: ci.GetHost(), Path: "/"}).String()).BroadcastTxCommitReturnBytes(buf.Bytes())
 }
 
+type RTxInfo struct {
+	ret                []byte
+	transactionReceipt []byte
+}
+
+func (bn *BN) RouteRawTransaction(destination uint64, payload []byte) ([]byte, error) {
+	ci, err := SearchChainId(destination)
+	if err != nil {
+		return nil, err
+	}
+
+	var txHeader MiddleHeader
+	err = json.Unmarshal(payload, &txHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	// bug: buf.Reset()
+	buf := bytes.NewBuffer(make([]byte, 65535))
+
+	buf.Write(txHeader.Header.From)
+	buf.Write(txHeader.Header.ContractAddress)
+	buf.Write(txHeader.Header.Data)
+	buf.Write(txHeader.Header.Value.Bytes())
+	buf.Write(txHeader.Header.Nonce.Bytes())
+	txHeader.Header.Signature = bn.signer.Sign(buf.Bytes()).Bytes()
+
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := json.Marshal(txHeader.Header)
+	if err != nil {
+		return nil, err
+	}
+
+	buf.Reset()
+	buf.Write(txHeader.PreHeader)
+	buf.Write(b)
+
+	var ret RTxInfo
+
+	ret.ret, err = nsbclient.NewNSBClient((&url.URL{Scheme: "http", Host: ci.GetHost(), Path: "/"}).String()).BroadcastTxCommitReturnBytes(buf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	ret.transactionReceipt = b
+	b, err = json.Marshal(ret)
+	return b, nil
+}
+
 func (bn *BN) Route(intent *types.TransactionIntent, kvGetter types.KVGetter) ([]byte, error) {
 	// todo
 	onChainTransaction, err := bn.Translate(intent, kvGetter)

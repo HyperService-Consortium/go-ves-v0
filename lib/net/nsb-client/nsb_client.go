@@ -673,8 +673,8 @@ func (nc *NSBClient) getAction(
 
 func (nc *NSBClient) AddMerkleProof(
 	user uiptypes.Signer, toAddress []byte,
-	merkletype uint8, rootHash, proof, key, value []byte,
-) ([]byte, error) {
+	merkletype uint16, rootHash, proof, key, value []byte,
+) (*ResultInfo, error) {
 	var txHeader cmn.TransactionHeader
 	var buf = bytes.NewBuffer(make([]byte, 65535))
 	buf.Reset()
@@ -715,15 +715,17 @@ func (nc *NSBClient) AddMerkleProof(
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return ret, nil
 }
 
 func (nc *NSBClient) addMerkleProof(
 	w io.Writer,
-	merkletype uint8, rootHash []byte, proof []byte, key []byte, value []byte,
+	merkletype uint16, rootHash []byte, proof []byte, key []byte, value []byte,
 ) error {
 	var args appl.ArgsValidateMerkleProof
-	args.Type = merkletype
+
+	// todo: uint8 -> uint16
+	args.Type = uint8(merkletype)
 	args.RootHash = rootHash
 
 	args.Proof = proof
@@ -746,7 +748,7 @@ rootHash []byte,
 func (nc *NSBClient) AddBlockCheck(
 	user uiptypes.Signer, toAddress []byte,
 	chainID uint64, blockID, rootHash []byte, rcType uint8,
-) ([]byte, error) {
+) (*ResultInfo, error) {
 	var txHeader cmn.TransactionHeader
 	var buf = bytes.NewBuffer(make([]byte, 65535))
 	buf.Reset()
@@ -787,7 +789,7 @@ func (nc *NSBClient) AddBlockCheck(
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return ret, nil
 }
 
 func (nc *NSBClient) addBlockCheck(
