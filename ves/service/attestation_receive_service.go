@@ -9,7 +9,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	ethbni "github.com/Myriad-Dreamin/go-uip/bni/eth"
 	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
