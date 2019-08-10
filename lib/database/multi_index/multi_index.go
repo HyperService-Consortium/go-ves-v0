@@ -110,3 +110,12 @@ func GetXORMMultiIndex(tp string, pth string) (*XORMMultiIndexImpl, error) {
 	// ret.regTable = make(map[string]types.KVObject)
 	return ret, nil
 }
+
+func XORMMigrate(muldb types.MultiIndex, obj types.KVObject) (err error) {
+	var xorm_muldb = muldb.(*XORMMultiIndexImpl)
+	err = xorm_muldb.Register(obj)
+	if err != nil {
+		return
+	}
+	return nil
+}

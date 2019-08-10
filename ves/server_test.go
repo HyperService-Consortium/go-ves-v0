@@ -1,12 +1,16 @@
 package ves
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"time"
 
+	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
+	index "github.com/Myriad-Dreamin/go-ves/lib/database/index"
+	multi_index "github.com/Myriad-Dreamin/go-ves/lib/database/multi_index"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -14,27 +18,57 @@ import (
 )
 
 const (
-	m_port        = ":23351"
-	m_address     = "127.0.0.1:23351"
+	mPort         = ":23351"
+	mAddress      = "127.0.0.1:23351"
 	centerAddress = "127.0.0.1:23452"
 )
 
 func TestUserRegister(t *testing.T) {
+
+	var err error
+
+	//TODO: SetEnv
+	var muldb *multi_index.XORMMultiIndexImpl
+	muldb, err = multi_index.GetXORMMultiIndex("mysql", "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8")
+	if err != nil {
+		t.Errorf("failed to get muldb: %v", err)
+		return
+	}
+	var sindb *index.LevelDBIndex
+	sindb, err = index.GetIndex("./data")
+	if err != nil {
+		t.Errorf("failed to get sindb: %v", err)
+		return
+	}
+
+	b, err := hex.DecodeString("2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	signer := signaturer.NewTendermintNSBSigner(b)
+
+	var server *Server
+	if server, err = NewServer(
+		muldb, sindb, multi_index.XORMMigrate, signer,
+	); err != nil {
+		log.Fatal(err)
+	}
 	go func() {
-		if err := ListenAndServe(m_port, centerAddress); err != nil {
+		if err := server.ListenAndServe(mPort, centerAddress); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(m_address, grpc.WithInsecure())
+	conn, err := grpc.Dial(mAddress, grpc.WithInsecure())
 	if err != nil {
 		t.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
 	c := uiprpc.NewVESClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	r, err := c.UserRegister(
 		ctx,

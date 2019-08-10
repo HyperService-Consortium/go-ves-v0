@@ -1,34 +1,24 @@
 package ves
 
 import (
-	"encoding/hex"
-	"errors"
 	"fmt"
 	"net"
-	"time"
 
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
 	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	index "github.com/Myriad-Dreamin/go-ves/lib/database/index"
-	multi_index "github.com/Myriad-Dreamin/go-ves/lib/database/multi_index"
 	log "github.com/Myriad-Dreamin/go-ves/lib/log"
 	types "github.com/Myriad-Dreamin/go-ves/types"
 	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
 	kvdb "github.com/Myriad-Dreamin/go-ves/types/kvdb"
 	session "github.com/Myriad-Dreamin/go-ves/types/session"
 	user "github.com/Myriad-Dreamin/go-ves/types/user"
-	service "github.com/Myriad-Dreamin/go-ves/ves/service"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 )
 
-var (
-	migrate_function = XORMMigrate
-)
-
+// Server provides the basic service of session
 type Server struct {
 	db     types.VESDB
 	resp   *uipbase.Account
@@ -46,231 +36,40 @@ type Server struct {
 // 	}
 // }
 
-func XORMMigrate(muldb types.MultiIndex) (err error) {
-	var xorm_muldb = muldb.(*multi_index.XORMMultiIndexImpl)
-	err = xorm_muldb.Register(&user.XORMUserAdapter{})
-	if err != nil {
-		return
+// MigrateFunction is used to make migration by passing kv-objects
+type MigrateFunction = func(types.MultiIndex, types.KVObject) error
+
+func migrate(
+	muldb types.MultiIndex,
+	makeMigrate MigrateFunction,
+) error {
+	if err := makeMigrate(muldb, &user.XORMUserAdapter{}); err != nil {
+		return err
 	}
-	err = xorm_muldb.Register(&session.MultiThreadSerialSession{})
-	if err != nil {
-		return
-	}
-	return nil
-}
-
-func (server *Server) migrate(muldb types.MultiIndex, mfunc func(types.MultiIndex) error) error {
-	return mfunc(muldb)
-}
-
-func (server *Server) UserRegister(
-	ctx context.Context,
-	in *uiprpc.UserRegisterRequest,
-) (*uiprpc.UserRegisterReply, error) {
-	log.Infof("registering: %v\n", hex.EncodeToString(in.GetAccount().GetAddress()))
-	return service.UserRegisterService{
-		VESDB:               server.db,
-		Context:             ctx,
-		UserRegisterRequest: in,
-	}.Serve()
-}
-
-func (server *Server) SessionStart(
-	ctx context.Context,
-	in *uiprpc.SessionStartRequest,
-) (*uiprpc.SessionStartReply, error) {
-	log.Infof("session start requesting\n")
-	return (&service.SessionStartService{
-		Signer:              server.signer,
-		CVes:                server.cves,
-		VESDB:               server.db,
-		Context:             ctx,
-		SessionStartRequest: in,
-	}).Serve()
-}
-
-func (server *Server) SessionAckForInit(
-	ctx context.Context,
-	in *uiprpc.SessionAckForInitRequest,
-) (*uiprpc.SessionAckForInitReply, error) {
-	log.Infof("user acknowledged: %v\n", hex.EncodeToString(in.GetUser().GetAddress()))
-	return service.SessionAckForInitService{
-		CVes:                     server.cves,
-		Signer:                   server.signer,
-		VESDB:                    server.db,
-		Context:                  ctx,
-		SessionAckForInitRequest: in,
-	}.Serve()
-}
-
-func (server *Server) SessionRequireTransact(
-	ctx context.Context,
-	in *uiprpc.SessionRequireTransactRequest,
-) (*uiprpc.SessionRequireTransactReply, error) {
-	log.Infof("user request transact\n")
-	return service.SessionRequireTransactService{
-		VESDB:                         server.db,
-		Context:                       ctx,
-		SessionRequireTransactRequest: in,
-	}.Serve()
-}
-func (server *Server) SessionRequireRawTransact(
-	ctx context.Context,
-	in *uiprpc.SessionRequireRawTransactRequest,
-) (*uiprpc.SessionRequireRawTransactReply, error) {
-	log.Infof("user request transact (computed)\n")
-	return service.SessionRequireRawTransactService{
-		Resp:                             server.resp,
-		VESDB:                            server.db,
-		Context:                          ctx,
-		SessionRequireRawTransactRequest: in,
-	}.Serve()
-}
-
-func (server *Server) AttestationReceive(
-	ctx context.Context,
-	in *uiprpc.AttestationReceiveRequest,
-) (*uiprpc.AttestationReceiveReply, error) {
-	log.Infof("attestation recevied: %v, %v\n", in.GetAtte().GetTid(), in.GetAtte().GetAid())
-	return (&service.AttestationReceiveService{
-		Signer:                    server.signer,
-		CVes:                      server.cves,
-		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
-		Context:                   ctx,
-		AttestationReceiveRequest: in,
-	}).Serve()
-}
-
-func (server *Server) MerkleProofReceive(
-	ctx context.Context,
-	in *uiprpc.MerkleProofReceiveRequest,
-) (*uiprpc.MerkleProofReceiveReply, error) {
-	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
-	return (&service.MerkleProofReceiveService{
-		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
-		Context:                   ctx,
-		MerkleProofReceiveRequest: in,
-	}).Serve()
-}
-
-func (server *Server) ShrotenMerkleProofReceive(
-	ctx context.Context,
-	in *uiprpc.ShortenMerkleProofReceiveRequest,
-) (*uiprpc.ShortenMerkleProofReceiveReply, error) {
-	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
-	return (&service.ShrotenMerkleProofReceiveService{
-		VESDB:                            server.db,
-		Host:                             "http://47.251.2.73:26657",
-		Context:                          ctx,
-		ShortenMerkleProofReceiveRequest: in,
-	}).Serve()
-}
-
-func (server *Server) InformMerkleProof(
-	ctx context.Context,
-	in *uiprpc.MerkleProofReceiveRequest,
-) (*uiprpc.MerkleProofReceiveReply, error) {
-	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
-	return (&service.InformMerkleProofService{
-		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
-		Context:                   ctx,
-		MerkleProofReceiveRequest: in,
-	}).Serve()
-}
-
-func (server *Server) InformShortenMerkleProof(
-	ctx context.Context,
-	in *uiprpc.ShortenMerkleProofReceiveRequest,
-) (*uiprpc.ShortenMerkleProofReceiveReply, error) {
-	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
-	return (&service.InformShortenMerkleProofService{
-		VESDB:                            server.db,
-		Host:                             "http://47.251.2.73:26657",
-		Context:                          ctx,
-		ShortenMerkleProofReceiveRequest: in,
-	}).Serve()
-}
-
-func (server *Server) InformAttestation(
-	ctx context.Context,
-	in *uiprpc.AttestationReceiveRequest,
-) (*uiprpc.AttestationReceiveReply, error) {
-	log.Infof("informing attestation: %v, %v\n", in.GetAtte().GetTid(), in.GetAtte().GetAid())
-	return (&service.InformAttestationService{
-		Signer:                    server.signer,
-		CVes:                      server.cves,
-		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
-		Context:                   ctx,
-		AttestationReceiveRequest: in,
-	}).Serve()
-}
-
-func (server *Server) requestSendSessionInfo(sessionID []byte, requestingAccount []*uipbase.Account) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	r, err := server.cves.InternalRequestComing(
-		ctx,
-		&uiprpc.InternalRequestComingRequest{
-			SessionId: sessionID,
-			Host:      []byte("todo"),
-			Accounts: func() []*uipbase.Account {
-				return nil
-			}(),
-		})
-	if err != nil {
-		return fmt.Errorf("could not request: %v", err)
-	}
-	if !r.GetOk() {
-		return errors.New("internal failed")
+	if err := makeMigrate(muldb, &session.MultiThreadSerialSession{}); err != nil {
+		return err
 	}
 	return nil
 }
 
-func ListenAndServe(port, centerAddress string) error {
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		return fmt.Errorf("failed to listen: %v", err)
-	}
-
+// NewServer return a pointer of Server
+func NewServer(
+	muldb types.MultiIndex,
+	sindb types.Index,
+	migrateFunction MigrateFunction,
+	signer *signaturer.TendermintNSBSigner,
+) (*Server, error) {
 	var server = new(Server)
-	server.db = new(vesdb.Database)
-	// server.signer = signaturer.NewTendermintNSBSigner([]byte{
-	// 	233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
-	// 	233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
-	// 	233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
-	// 	233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66, 233, 66,
-	// })
-	b, _ := hex.DecodeString("2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")
 
-	server.signer = signaturer.NewTendermintNSBSigner(b)
+	server.signer = signer
 	server.resp = &uipbase.Account{Address: server.signer.GetPublicKey(), ChainId: 3}
 
-	conn, err := grpc.Dial(centerAddress, grpc.WithInsecure(), grpc.WithKeepaliveParams(keepalive.ClientParameters{}))
+	err := migrate(muldb, migrateFunction)
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		return nil, fmt.Errorf("failed to migrate: %v", err)
 	}
-	defer conn.Close()
-	server.cves = uiprpc.NewCenteredVESClient(conn)
 
-	//TODO: SetEnv
-	var muldb *multi_index.XORMMultiIndexImpl
-	muldb, err = multi_index.GetXORMMultiIndex("mysql", "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8")
-	if err != nil {
-		return fmt.Errorf("failed to get muldb: %v", err)
-	}
-	var sindb *index.LevelDBIndex
-	sindb, err = index.GetIndex("./data")
-	if err != nil {
-		return fmt.Errorf("failed to get sindb: %v", err)
-	}
-	err = server.migrate(muldb, migrate_function)
-	if err != nil {
-		return fmt.Errorf("failed to migrate: %v", err)
-	}
+	server.db = new(vesdb.Database)
 
 	server.db.SetMultiIndex(muldb)
 	server.db.SetIndex(sindb)
@@ -278,6 +77,24 @@ func ListenAndServe(port, centerAddress string) error {
 	server.db.SetUserBase(new(user.XORMUserBase))
 	server.db.SetSessionBase(session.NewMultiThreadSerialSessionBase())
 	server.db.SetSessionKVBase(new(kvdb.Database))
+
+	return server, nil
+}
+
+// ListenAndServe listen the port `port` and connect with remote central-ves with
+// address `centerAddress`
+func (server *Server) ListenAndServe(port, centerAddress string) error {
+	lis, err := net.Listen("tcp", port)
+	if err != nil {
+		return fmt.Errorf("failed to listen: %v", err)
+	}
+
+	conn, err := grpc.Dial(centerAddress, grpc.WithInsecure(), grpc.WithKeepaliveParams(keepalive.ClientParameters{}))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+	server.cves = uiprpc.NewCenteredVESClient(conn)
 
 	s := grpc.NewServer()
 
