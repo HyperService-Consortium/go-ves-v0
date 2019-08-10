@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 
 	"encoding/hex"
@@ -8,29 +10,53 @@ import (
 	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
 	index "github.com/Myriad-Dreamin/go-ves/lib/database/index"
 	multi_index "github.com/Myriad-Dreamin/go-ves/lib/database/multi_index"
+	types "github.com/Myriad-Dreamin/go-ves/types"
 
 	ves_server "github.com/Myriad-Dreamin/go-ves/ves"
 )
 
-const port = ":23351"
-const centerAddress = "127.0.0.1:23352"
+var (
+	cfgPath = flag.String("config", "ves-server-config.toml", "configuration of ves server")
+)
 
 func main() {
-
+	if *cfgPath != cfgContext {
+		ResetPath(*cfgPath)
+	}
+	var config = Config()
 	var err error
 
-	//TODO: SetEnv
-	var muldb *multi_index.XORMMultiIndexImpl
-	muldb, err = multi_index.GetXORMMultiIndex("mysql", "ves:123456@tcp(127.0.0.1:3306)/ves?charset=utf8")
-	if err != nil {
-		log.Fatalf("failed to get muldb: %v", err)
+	var muldb types.MultiIndex
+	switch config.DatabaseConfig.Engine {
+	case "xorm":
+		var dbConfig = config.DatabaseConfig
+		var reqString = fmt.Sprintf(
+			"%s:%s@%s(%s)/%s?charset=%s",
+			dbConfig.UserName, dbConfig.Password,
+			dbConfig.ConnectionType, dbConfig.RemoteHost,
+			dbConfig.BaseName, dbConfig.Encoding,
+		)
+
+		muldb, err = multi_index.GetXORMMultiIndex(dbConfig.Type, reqString)
+		if err != nil {
+			log.Fatalf("failed to get muldb: %v", err)
+			return
+		}
+	default:
+		log.Fatal("unrecognized database engine")
 		return
 	}
-	var sindb *index.LevelDBIndex
-	sindb, err = index.GetIndex("./data")
-	if err != nil {
-		log.Fatalf("failed to get sindb: %v", err)
-		return
+
+	var sindb types.Index
+	switch config.KVDBConfig.Type {
+	case "leveldb":
+		sindb, err = index.GetIndex(config.KVDBConfig.Path)
+		if err != nil {
+			log.Fatalf("failed to get sindb: %v", err)
+			return
+		}
+	default:
+		log.Fatal("unrecognized kvdb type")
 	}
 
 	b, err := hex.DecodeString("2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")
@@ -47,7 +73,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := server.ListenAndServe(port, centerAddress); err != nil {
+	if err := server.ListenAndServe(config.ServerConfig.Port, config.ServerConfig.CentralVesAddress); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func init() {
+	flag.Parse()
 }
