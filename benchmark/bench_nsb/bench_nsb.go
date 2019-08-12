@@ -118,7 +118,7 @@ func main() {
 		"bad session count: %v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n UpLoaded: %vKB, Downloaded: %vKB, base %vs\n",
 		badSession.value,
 		float64(nsbclient.SentBytes)/base, float64(nsbclient.ReceivedBytes)/base,
-		float64(nsbclient.SentBytes), float64(nsbclient.ReceivedBytes),
+		float64(nsbclient.SentBytes)/1024.0, float64(nsbclient.ReceivedBytes)/1024.0,
 		consumed,
 	)
 
