@@ -21,8 +21,18 @@ import (
 	opintent "github.com/Myriad-Dreamin/go-uip/op-intent"
 	types "github.com/Myriad-Dreamin/go-uip/types"
 
+	chaininfo "github.com/Myriad-Dreamin/go-uip/temporary-chain-info"
+
 	ethclient "github.com/Myriad-Dreamin/go-ves/lib/net/eth-client"
 )
+
+func decoratePrefix(hexs string) string {
+	if strings.HasPrefix(hexs, "0x") {
+		return hexs
+	} else {
+		return "0x" + hexs
+	}
+}
 
 type BN struct {
 	signer types.Signer
@@ -39,7 +49,7 @@ func (bn *BN) RouteWithSigner(signer types.Signer) types.Router {
 }
 
 func (bn *BN) RouteRaw(destination uint64, payload []byte) ([]byte, error) {
-	ci, err := SearchChainId(destination)
+	ci, err := chaininfo.SearchChainId(destination)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +146,7 @@ func (bn *BN) CheckAddress(addr []byte) bool {
 
 func (bn *BN) GetStorageAt(chainID uint64, typeID uint16, contractAddress []byte, pos []byte, desc []byte) (interface{}, error) {
 
-	ci, err := SearchChainId(chainID)
+	ci, err := chaininfo.SearchChainId(chainID)
 	if err != nil {
 		return nil, err
 	}

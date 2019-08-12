@@ -11,6 +11,7 @@ import (
 	"io"
 	"math/big"
 	"strings"
+	"sync/atomic"
 
 	gjson "github.com/tidwall/gjson"
 
@@ -25,6 +26,12 @@ import (
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 
 	bytespool "github.com/Myriad-Dreamin/go-ves/lib/bytes-pool"
+)
+
+var SentBytes, ReceivedBytes uint64
+
+const (
+	mxBytes = 6000
 )
 
 func decorateHost(host string) string {
@@ -46,11 +53,12 @@ func (nc *NSBClient) preloadJSONResponse(bb io.ReadCloser) ([]byte, error) {
 	var b = nc.bufferPool.Get()
 	defer nc.bufferPool.Put(b)
 
-	_, err := bb.Read(b)
+	n, err := bb.Read(b)
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	bb.Close()
+	atomic.AddUint64(&ReceivedBytes, uint64(n))
 
 	var jm = gjson.ParseBytes(b)
 	if s := jm.Get("jsonrpc"); !s.Exists() || s.String() != "2.0" {
@@ -200,6 +208,7 @@ func (nc *NSBClient) GetConsensusParamsInfo(id int64) (*ConsensusParamsInfo, err
 }
 
 func (nc *NSBClient) BroadcastTxCommit(body []byte) (*ResultInfo, error) {
+	atomic.AddUint64(&SentBytes, uint64(len(body)*2))
 	b, err := nc.handler.Group("/broadcast_tx_commit").GetWithParams(request.Param{
 		"tx": "0x" + hex.EncodeToString(body),
 	})
@@ -409,7 +418,7 @@ func (nc *NSBClient) sendContractTx(
 	transType, contractName []byte,
 	txContent *cmn.TransactionHeader,
 ) (*ResultInfo, error) {
-	var b = make([]byte, 0, 65535)
+	var b = make([]byte, 0, mxBytes)
 	var buf = bytes.NewBuffer(b)
 	buf.Write(transType)
 	buf.WriteByte(0x19)
@@ -433,7 +442,7 @@ func (nc *NSBClient) CreateISC(
 	vesSig []byte,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	var transactionIntents []*iscTransactionIntent.TransactionIntent
@@ -501,7 +510,7 @@ func (nc *NSBClient) CreateISC(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -510,7 +519,7 @@ func (nc *NSBClient) CreateISC(
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("createContract"), []byte("isc"), &txHeader)
-	fmt.Println(PretiStruct(ret), err)
+	// fmt.Println(PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -543,7 +552,7 @@ func (nc *NSBClient) AddAction(
 	iscAddress []byte, tid uint64, aid uint64, stype uint8, content []byte, signature []byte,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.addAction(buf, iscAddress, tid, aid, stype, content, signature)
@@ -569,7 +578,7 @@ func (nc *NSBClient) AddAction(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -577,8 +586,8 @@ func (nc *NSBClient) AddAction(
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
-	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
-	fmt.Println(PretiStruct(ret), err)
+	_, err = nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
+	// fmt.Println(PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -611,7 +620,7 @@ func (nc *NSBClient) GetAction(
 	iscAddress []byte, tid uint64, aid uint64,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.getAction(buf, iscAddress, tid, aid)
@@ -637,7 +646,7 @@ func (nc *NSBClient) GetAction(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -645,8 +654,8 @@ func (nc *NSBClient) GetAction(
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
-	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
-	fmt.Println(PretiStruct(ret), err)
+	_, err = nc.sendContractTx([]byte("systemCall"), []byte("system.action"), &txHeader)
+	// fmt.Println(PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -676,7 +685,7 @@ func (nc *NSBClient) AddMerkleProof(
 	merkletype uint16, rootHash, proof, key, value []byte,
 ) (*ResultInfo, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.addMerkleProof(buf, merkletype, rootHash, proof, key, value)
@@ -702,7 +711,7 @@ func (nc *NSBClient) AddMerkleProof(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -711,7 +720,7 @@ func (nc *NSBClient) AddMerkleProof(
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
-	fmt.Println(PretiStruct(ret), err)
+	// fmt.Println(PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -749,7 +758,7 @@ func (nc *NSBClient) AddBlockCheck(
 	chainID uint64, blockID, rootHash []byte, rcType uint8,
 ) (*ResultInfo, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.addBlockCheck(buf, chainID, blockID, rootHash, rcType)
@@ -775,7 +784,7 @@ func (nc *NSBClient) AddBlockCheck(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -784,7 +793,7 @@ func (nc *NSBClient) AddBlockCheck(
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
-	fmt.Println(PretiStruct(ret), err)
+	// fmt.Println(PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -815,7 +824,7 @@ func (nc *NSBClient) GetMerkleProof(
 	merkleProofType uint16, rootHash, key []byte, chainID uint64, blockID []byte, rcType uint8,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.getMerkleProof(buf, merkleProofType, rootHash, key, chainID, blockID, rcType)
@@ -841,7 +850,7 @@ func (nc *NSBClient) GetMerkleProof(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -885,7 +894,7 @@ func (nc *NSBClient) getMerkleProof(
 // 	rootHash []byte, key []byte, value []byte, proof []byte,
 // ) ([]byte, error) {
 // 	var txHeader cmn.TransactionHeader
-// 	var buf = bytes.NewBuffer(make([]byte, 65535))
+// 	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 // 	buf.Reset()
 // 	// fmt.Println(string(buf.Bytes()))
 // 	err := nc.addMerkleProof(buf, iscAddress, cid, bid, rootHash, key, value, proof)
@@ -911,7 +920,7 @@ func (nc *NSBClient) getMerkleProof(
 // 	txHeader.Nonce = nmath.NewUint256FromBytes(nonce)
 // 	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
 // 	// bug: buf.Reset()
-// 	buf = bytes.NewBuffer(make([]byte, 65535))
+// 	buf = bytes.NewBuffer(make([]byte, mxBytes))
 //
 // 	buf.Write(txHeader.From)
 // 	buf.Write(txHeader.ContractAddress)
@@ -973,7 +982,7 @@ func (nc *NSBClient) getMerkleProof(
 // 	iscAddress []byte, cid uint64, bid uint64,
 // ) ([]byte, error) {
 // 	var txHeader cmn.TransactionHeader
-// 	var buf = bytes.NewBuffer(make([]byte, 65535))
+// 	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 // 	buf.Reset()
 // 	// fmt.Println(string(buf.Bytes()))
 // 	err := nc.getMerkleProof(buf, iscAddress, cid, bid)
@@ -999,7 +1008,7 @@ func (nc *NSBClient) getMerkleProof(
 // 	txHeader.Nonce = nmath.NewUint256FromBytes(nonce)
 // 	txHeader.Value = nmath.NewUint256FromBytes([]byte{0})
 // 	// bug: buf.Reset()
-// 	buf = bytes.NewBuffer(make([]byte, 65535))
+// 	buf = bytes.NewBuffer(make([]byte, mxBytes))
 //
 // 	buf.Write(txHeader.From)
 // 	buf.Write(txHeader.ContractAddress)
@@ -1038,7 +1047,7 @@ func (nc *NSBClient) UpdateTxInfo(
 	tid uint64, transactionIntent *iscTransactionIntent.TransactionIntent,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.updateTxInfo(buf, tid, transactionIntent)
@@ -1064,7 +1073,7 @@ func (nc *NSBClient) UpdateTxInfo(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -1102,7 +1111,7 @@ func (nc *NSBClient) FreezeInfo(
 	tid uint64,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.freezeInfo(buf, tid)
@@ -1128,7 +1137,7 @@ func (nc *NSBClient) FreezeInfo(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -1165,7 +1174,7 @@ func (nc *NSBClient) UserAck(
 	address, signature []byte,
 ) (*DeliverTx, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.userAck(buf, address, signature)
@@ -1191,7 +1200,7 @@ func (nc *NSBClient) UserAck(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -1229,7 +1238,7 @@ func (nc *NSBClient) InsuranceClaim(
 	tid, aid uint64,
 ) (*DeliverTx, error) {
 	var txHeader cmn.TransactionHeader
-	var buf = bytes.NewBuffer(make([]byte, 65535))
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
 	buf.Reset()
 	// fmt.Println(string(buf.Bytes()))
 	err := nc.insuranceClaim(buf, tid, aid)
@@ -1255,7 +1264,7 @@ func (nc *NSBClient) InsuranceClaim(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf = bytes.NewBuffer(make([]byte, 65535))
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)
@@ -1312,7 +1321,7 @@ func (nc *NSBClient) SettleContract(
 	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
 	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
 	// bug: buf.Reset()
-	buf := bytes.NewBuffer(make([]byte, 65535))
+	buf := bytes.NewBuffer(make([]byte, mxBytes))
 
 	buf.Write(txHeader.From)
 	buf.Write(txHeader.ContractAddress)

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/url"
+	"strings"
 
 	appl "github.com/HyperServiceOne/NSB/application"
 	cmn "github.com/HyperServiceOne/NSB/common"
@@ -18,7 +19,17 @@ import (
 	"github.com/Myriad-Dreamin/go-uip/types"
 	ethclient "github.com/Myriad-Dreamin/go-ves/lib/net/eth-client"
 	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+
+	chaininfo "github.com/Myriad-Dreamin/go-uip/temporary-chain-info"
 )
+
+func decoratePrefix(hexs string) string {
+	if strings.HasPrefix(hexs, "0x") {
+		return hexs
+	} else {
+		return "0x" + hexs
+	}
+}
 
 type BN struct {
 	signer types.Signer
@@ -40,7 +51,7 @@ func (bn *BN) RouteWithSigner(signer types.Signer) types.Router {
 }
 
 func (bn *BN) RouteRaw(destination uint64, payload []byte) ([]byte, error) {
-	ci, err := SearchChainId(destination)
+	ci, err := chaininfo.SearchChainId(destination)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +94,7 @@ type RTxInfo struct {
 }
 
 func (bn *BN) RouteRawTransaction(destination uint64, payload []byte) ([]byte, error) {
-	ci, err := SearchChainId(destination)
+	ci, err := chaininfo.SearchChainId(destination)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +236,7 @@ func (bn *BN) CheckAddress(addr []byte) bool {
 
 func (bn *BN) GetStorageAt(chainID uint64, typeID uint16, contractAddress []byte, pos []byte, desc []byte) (interface{}, error) {
 
-	ci, err := SearchChainId(chainID)
+	ci, err := chaininfo.SearchChainId(chainID)
 	if err != nil {
 		return nil, err
 	}

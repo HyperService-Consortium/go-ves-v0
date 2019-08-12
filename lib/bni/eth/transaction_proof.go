@@ -20,6 +20,8 @@ import (
 	leveldbstorage "github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/crypto/sha3"
 
+	chaininfo "github.com/Myriad-Dreamin/go-uip/temporary-chain-info"
+
 	gjson "github.com/tidwall/gjson"
 )
 
@@ -274,7 +276,7 @@ func NewTxTrie(list DerivableList) (*trie.Trie, error) {
 }
 
 func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
-	cinfo, err := SearchChainId(chainID)
+	cinfo, err := chaininfo.SearchChainId(chainID)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +334,7 @@ func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []b
 }
 
 func (bn *BN) WaitForTransact(chainID uint64, receipt []byte, opt *uiptypes.WaitOption) ([]byte, []byte, error) {
-	cinfo, err := SearchChainId(chainID)
+	cinfo, err := chaininfo.SearchChainId(chainID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -358,7 +360,7 @@ func (bn *BN) WaitForTransact(chainID uint64, receipt []byte, opt *uiptypes.Wait
 }
 
 func (bn *BN) GetTransactionProofByHash(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
-	cinfo, err := SearchChainId(chainID)
+	cinfo, err := chaininfo.SearchChainId(chainID)
 	if err != nil {
 		return nil, err
 	}

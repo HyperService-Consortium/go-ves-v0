@@ -6,6 +6,8 @@ import (
 	merkleproof "github.com/Myriad-Dreamin/go-uip/merkle-proof"
 	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
 	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+
+	chaininfo "github.com/Myriad-Dreamin/go-uip/temporary-chain-info"
 )
 
 type MerkleProofInfo struct {
@@ -15,7 +17,7 @@ type MerkleProofInfo struct {
 }
 
 func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
-	cinfo, err := SearchChainId(chainID)
+	cinfo, err := chaininfo.SearchChainId(chainID)
 
 	if err != nil {
 		return nil, err
