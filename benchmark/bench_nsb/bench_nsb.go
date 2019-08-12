@@ -31,7 +31,7 @@ func (i *Int) Add(inc int32) {
 	atomic.AddInt32(&i.value, inc)
 }
 
-const SessionLimit = 150
+const SessionLimit = 170
 
 var bb = make([]byte, 65)
 var bg = bb[0:64]
@@ -52,7 +52,7 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 	}
 	_ = iscAddress
 	var bbg = make([]byte, 8)
-	for idx := 0; idx < 10; idx++ {
+	for idx := 0; idx < 20; idx++ {
 		_, err := cli.AddAction(signer, nil,
 			iscAddress, uint64(index), 0, 1, []byte{uint8(1 + idx)}, bb)
 		if err != nil {
