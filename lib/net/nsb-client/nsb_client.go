@@ -69,7 +69,7 @@ func (nc *NSBClient) preloadJSONResponse(bb io.ReadCloser) ([]byte, error) {
 	}
 	if s := jm.Get("result"); s.Exists() {
 		if s.Index > 0 {
-			return b[s.Index : s.Index+len(s.Raw)], nil
+			return []byte(s.Raw), nil
 		}
 	}
 	return nil, errBadJSON

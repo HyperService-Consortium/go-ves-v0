@@ -31,7 +31,7 @@ func (i *Int) Add(inc int32) {
 	atomic.AddInt32(&i.value, inc)
 }
 
-const SessionLimit = 99
+const SessionLimit = 150
 
 var bb = make([]byte, 65)
 var bg = bb[0:64]
@@ -47,7 +47,7 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 	iscAddress, err := cli.CreateISC(signer, []uint32{0}, [][]byte{signer.GetPublicKey()}, nil, txpadding)
 	if err != nil {
 		badSession.Add(1)
-		fmt.Println(err)
+		// fmt.Println(err)
 		return
 	}
 	_ = iscAddress
@@ -57,7 +57,7 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 			iscAddress, uint64(index), 0, 1, []byte{uint8(1 + idx)}, bb)
 		if err != nil {
 			badSession.Add(1)
-			fmt.Println(err)
+			// fmt.Println(err)
 			return
 		}
 	}
@@ -69,7 +69,7 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 		)
 		if err != nil {
 			badSession.Add(1)
-			fmt.Println(err)
+			// fmt.Println(err)
 			return
 		}
 
@@ -78,7 +78,7 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 		)
 		if err != nil {
 			badSession.Add(1)
-			fmt.Println(err)
+			// fmt.Println(err)
 			return
 		}
 	}
@@ -112,11 +112,14 @@ func main() {
 		<-U
 	}
 
-	var base = 1.024 * float64(time.Now().Sub(costing))
+	var consumed = time.Now().Sub(costing).Seconds()
+	var base = 1024 * consumed
 	fmt.Printf(
-		"bad session count: %v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n",
+		"bad session count: %v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n UpLoaded: %vKB, Downloaded: %vKB, base %vs\n",
 		badSession.value,
 		float64(nsbclient.SentBytes)/base, float64(nsbclient.ReceivedBytes)/base,
+		float64(nsbclient.SentBytes), float64(nsbclient.ReceivedBytes),
+		consumed,
 	)
 
 }
