@@ -370,3 +370,12 @@ type ProofResponse struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+/****************************** receipt *********************************/
+
+type TransactionReceipt struct {
+	Code int    `json:"code"`
+	Data string `json:"data"`
+	Log  string `json:"log"`
+	Hash string `json:"hash"`
+}

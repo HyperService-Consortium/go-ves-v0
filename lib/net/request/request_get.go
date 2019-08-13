@@ -6,14 +6,9 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"time"
 
 	"github.com/google/go-querystring/query"
 	"github.com/imroc/req"
-)
-
-var (
-	request_timeout = 5 * time.Second
 )
 
 type QueryParam = req.QueryParam

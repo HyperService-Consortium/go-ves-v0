@@ -12,6 +12,7 @@ import (
 	"math/big"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	gjson "github.com/tidwall/gjson"
 
@@ -29,6 +30,23 @@ import (
 )
 
 var SentBytes, ReceivedBytes uint64
+
+type AsyncOption struct {
+	Retry   int
+	Timeout time.Duration
+}
+
+var defaultOption = &AsyncOption{
+	Retry:   5,
+	Timeout: 10 * time.Second,
+}
+
+func NewAsyncOption() *AsyncOption {
+	return &AsyncOption{
+		Retry:   5,
+		Timeout: 10 * time.Second,
+	}
+}
 
 const (
 	mxBytes = 6000
@@ -228,6 +246,28 @@ func (nc *NSBClient) BroadcastTxCommit(body []byte) (*ResultInfo, error) {
 	return &a, nil
 }
 
+func (nc *NSBClient) BroadcastTxAsync(body []byte) ([]byte, error) {
+	atomic.AddUint64(&SentBytes, uint64(len(body)*2))
+	b, err := nc.handler.Group("/broadcast_tx_async").GetWithParams(request.Param{
+		"tx": "0x" + hex.EncodeToString(body),
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJSONResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(bb))
+	// var a ResultInfo
+	// err = json.Unmarshal(bb, &a)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return bb, nil
+}
+
 func (nc *NSBClient) BroadcastTxCommitReturnBytes(body []byte) ([]byte, error) {
 	b, err := nc.handler.Group("/broadcast_tx_commit").GetWithParams(request.Param{
 		"tx": "0x" + hex.EncodeToString(body),
@@ -289,6 +329,7 @@ func (nc *NSBClient) GetHealth() (interface{}, error) {
 	bb, err = nc.preloadJSONResponse(b)
 	if err != nil {
 		return nil, err
+		fmt.Println(string(bb))
 	}
 	var a interface{}
 	err = json.Unmarshal(bb, &a)
@@ -414,6 +455,48 @@ func (nc *NSBClient) GetValidators(id int64) (*ValidatorsInfo, error) {
 	return &a, nil
 }
 
+func (nc *NSBClient) GetTransaction(hash string) ([]byte, error) {
+	b, err := nc.handler.Group("/tx").GetWithParams(request.Param{
+		"hash": hash,
+		//"prove":false,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var bb []byte
+	bb, err = nc.preloadJSONResponse(b)
+	if err != nil {
+		return nil, err
+	}
+	// var a NumUnconfirmedTxsInfo
+	// err = json.Unmarshal(bb, &a)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return bb, nil
+}
+
+// func (nc *NSBClient) sendContractTx(
+// 	transType, contractName []byte,
+// 	txContent *cmn.TransactionHeader,
+// ) (*ResultInfo, error) {
+// 	var b = make([]byte, 0, mxBytes)
+// 	var buf = bytes.NewBuffer(b)
+// 	buf.Write(transType)
+// 	buf.WriteByte(0x19)
+// 	buf.Write(contractName)
+// 	buf.WriteByte(0x18)
+// 	c, err := json.Marshal(txContent)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	buf.Write(c)
+// 	// fmt.Println(string(c))
+// 	json.Unmarshal(c, txContent)
+
+// 	return nc.BroadcastTxCommit(buf.Bytes())
+// }
+
 func (nc *NSBClient) sendContractTx(
 	transType, contractName []byte,
 	txContent *cmn.TransactionHeader,
@@ -433,6 +516,59 @@ func (nc *NSBClient) sendContractTx(
 	json.Unmarshal(c, txContent)
 
 	return nc.BroadcastTxCommit(buf.Bytes())
+}
+
+func (nc *NSBClient) sendContractTxAsync(
+	transType, contractName []byte,
+	txContent *cmn.TransactionHeader,
+	option *AsyncOption,
+) ([]byte, error) {
+	var b = make([]byte, 0, mxBytes)
+	var buf = bytes.NewBuffer(b)
+	buf.Write(transType)
+	buf.WriteByte(0x19)
+	buf.Write(contractName)
+	buf.WriteByte(0x18)
+	c, err := json.Marshal(txContent)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(c)
+	// fmt.Println(string(c))
+	json.Unmarshal(c, txContent)
+
+	bb, err := nc.BroadcastTxAsync(buf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	var receipt TransactionReceipt
+	err = json.Unmarshal(bb, &receipt)
+	if err != nil {
+		return nil, err
+	}
+
+	if receipt.Code != 0 {
+		return nil, fmt.Errorf("errorcode: %d, data:%s, log:%s", receipt.Code, receipt.Data, receipt.Log)
+	}
+
+	if option == nil {
+		option = NewAsyncOption()
+	}
+
+	var hash = "0x" + receipt.Hash
+	for t := option.Retry; t != 0; t-- {
+		bb, err = nc.GetTransaction(hash)
+		fmt.Println(string(bb), "...")
+		if err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		return bb, nil
+	}
+
+	return bb, nil
 }
 
 func (nc *NSBClient) CreateISC(
@@ -519,11 +655,103 @@ func (nc *NSBClient) CreateISC(
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("createContract"), []byte("isc"), &txHeader)
-	// fmt.Println(PretiStruct(ret), err)
+	// fmt.Println("create", PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}
 	return ret.DeliverTx.Data, nil
+}
+
+func (nc *NSBClient) CreateISCAsync(
+	user uiptypes.Signer,
+	funds []uint32, iscOwners [][]byte,
+	bytesTransactionIntents [][]byte,
+	vesSig []byte,
+	option *AsyncOption,
+) ([]byte, error) {
+	var txHeader cmn.TransactionHeader
+	var buf = bytes.NewBuffer(make([]byte, mxBytes))
+	buf.Reset()
+	// fmt.Println(string(buf.Bytes()))
+	var transactionIntents []*iscTransactionIntent.TransactionIntent
+	var txm map[string]interface{}
+	for idx, txb := range bytesTransactionIntents {
+		err := json.Unmarshal(txb, &txm)
+		if err != nil {
+			return nil, err
+		}
+		var txi = new(iscTransactionIntent.TransactionIntent)
+		if txm["src"] == nil && txm["from"] == nil {
+			return nil, errNilSrc
+		}
+		if txm["src"] != nil {
+			txi.Fr, err = base64.StdEncoding.DecodeString(txm["src"].(string))
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			txi.Fr, err = base64.StdEncoding.DecodeString(txm["from"].(string))
+			if err != nil {
+				return nil, err
+			}
+		}
+		if txm["dst"] != nil {
+			txi.To, err = base64.StdEncoding.DecodeString(txm["dst"].(string))
+			if err != nil {
+				return nil, err
+			}
+		} else if txm["from"] != nil {
+			txi.To, err = base64.StdEncoding.DecodeString(txm["from"].(string))
+			if err != nil {
+				return nil, err
+			}
+		}
+		if txm["meta"] != nil {
+			txi.Meta, err = base64.StdEncoding.DecodeString(txm["meta"].(string))
+			if err != nil {
+				return nil, err
+			}
+		}
+		txi.Seq = nsbmath.NewUint256FromBigInt(big.NewInt(int64(idx)))
+		if txm["amt"] != nil {
+			b, _ := hex.DecodeString(txm["amt"].(string))
+			txi.Amt = nsbmath.NewUint256FromBytes(b)
+		} else {
+			txi.Amt = nsbmath.NewUint256FromBytes([]byte{0})
+		}
+		transactionIntents = append(transactionIntents, txi)
+		// fmt.Println("encoding", txm)
+	}
+
+	err := nc.createISC(buf, funds, iscOwners, transactionIntents, vesSig)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.Data = buf.Bytes()
+	txHeader.From = user.GetPublicKey()
+
+	nonce := make([]byte, 32)
+	_, err = rand.Read(nonce)
+	if err != nil {
+		return nil, err
+	}
+	txHeader.Nonce = nsbmath.NewUint256FromBytes(nonce)
+	txHeader.Value = nsbmath.NewUint256FromBytes([]byte{0})
+	// bug: buf.Reset()
+	buf = bytes.NewBuffer(make([]byte, mxBytes))
+
+	buf.Write(txHeader.From)
+	buf.Write(txHeader.ContractAddress)
+	buf.Write(txHeader.Data)
+	buf.Write(txHeader.Value.Bytes())
+	buf.Write(txHeader.Nonce.Bytes())
+	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
+	ret, err := nc.sendContractTxAsync([]byte("createContract"), []byte("isc"), &txHeader, option)
+	fmt.Println("create", PretiStruct(ret), err)
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
 func (nc *NSBClient) createISC(
@@ -858,8 +1086,8 @@ func (nc *NSBClient) GetMerkleProof(
 	buf.Write(txHeader.Value.Bytes())
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
-	ret, err := nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
-	fmt.Println(PretiStruct(ret), err)
+	_, err = nc.sendContractTx([]byte("systemCall"), []byte("system.merkleproof"), &txHeader)
+	// fmt.Println(PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}
@@ -1294,7 +1522,7 @@ func (nc *NSBClient) insuranceClaim(
 	}
 	err = binary.Write(w, binary.BigEndian, aid)
 
-	// fmt.Println(PretiStruct(args), b)
+	// .Println(PretiStruct(args), b)
 	// _, err = w.Write(b)
 	return err
 }

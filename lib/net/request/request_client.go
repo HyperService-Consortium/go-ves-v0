@@ -2,8 +2,13 @@ package request
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/imroc/req"
+)
+
+var (
+	request_timeout = 50 * time.Second
 )
 
 type RequestClient struct {

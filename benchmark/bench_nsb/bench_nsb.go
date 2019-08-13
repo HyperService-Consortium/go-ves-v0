@@ -31,36 +31,43 @@ func (i *Int) Add(inc int32) {
 	atomic.AddInt32(&i.value, inc)
 }
 
-const SessionLimit = 170
+const SessionLimit = 1
 
-var bb = make([]byte, 65)
-var bg = bb[0:64]
+const sign_size = 65
+const hash_size = 64
+const node_size = 400
+const proof_size = hash_size*8 + node_size*7
+const tx_intent_size = 64*5 + 100
+const txpadding_size = 5 * tx_intent_size
+
+var bb = make([]byte, sign_size)
+var bg = bb[0:hash_size]
 var idleProof, _ = json.Marshal(map[string]interface{}{
 	"r": bg,
-	"h": [][]byte{make([]byte, 64*8+400*7)},
+	"h": [][]byte{make([]byte, 4*proof_size)},
 })
 
-var txpadding = make([]byte, 5*(64*5+100))
+var txpadding = make([]byte, 4*txpadding_size)
 
 func NSBRoutine(signer uiptypes.Signer, index int) {
 	// info, err := cli.GetAbciInfo()
 	iscAddress, err := cli.CreateISC(signer, []uint32{0}, [][]byte{signer.GetPublicKey()}, nil, txpadding)
 	if err != nil {
 		badSession.Add(1)
-		// fmt.Println(err)
+		fmt.Println(err)
 		return
 	}
 	_ = iscAddress
 	var bbg = make([]byte, 8)
-	for idx := 0; idx < 20; idx++ {
-		_, err := cli.AddAction(signer, nil,
-			iscAddress, uint64(index), 0, 1, []byte{uint8(1 + idx)}, bb)
-		if err != nil {
-			badSession.Add(1)
-			// fmt.Println(err)
-			return
-		}
-	}
+	// for idx := 0; idx < 20; idx++ {
+	// 	_, err := cli.AddAction(signer, nil,
+	// 		iscAddress, uint64(index), 0, 1, []byte{uint8(1 + idx)}, bb)
+	// 	if err != nil {
+	// 		badSession.Add(1)
+	// 		fmt.Println(err)
+	// 		return
+	// 	}
+	// }
 
 	for idx := 0; idx < 5; idx++ {
 		binary.BigEndian.PutUint64(bbg, uint64(index<<8|idx))
@@ -69,7 +76,7 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 		)
 		if err != nil {
 			badSession.Add(1)
-			// fmt.Println(err)
+			fmt.Println(err)
 			return
 		}
 
@@ -78,7 +85,7 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 		)
 		if err != nil {
 			badSession.Add(1)
-			// fmt.Println(err)
+			fmt.Println(err)
 			return
 		}
 	}
@@ -103,6 +110,7 @@ func main() {
 
 	var U = make(chan bool, SessionLimit)
 	for idx := 0; idx < SessionLimit; idx++ {
+		time.Sleep(20 * time.Millisecond)
 		go func(index int) {
 			NSBRoutine(signer, index)
 			U <- true
@@ -115,8 +123,8 @@ func main() {
 	var consumed = time.Now().Sub(costing).Seconds()
 	var base = 1024 * consumed
 	fmt.Printf(
-		"bad session count: %v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n UpLoaded: %vKB, Downloaded: %vKB, base %vs\n",
-		badSession.value,
+		"bad session count: %v/%v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n UpLoaded: %vKB, Downloaded: %vKB, base %vs\n",
+		badSession.value, SessionLimit,
 		float64(nsbclient.SentBytes)/base, float64(nsbclient.ReceivedBytes)/base,
 		float64(nsbclient.SentBytes)/1024.0, float64(nsbclient.ReceivedBytes)/1024.0,
 		consumed,
