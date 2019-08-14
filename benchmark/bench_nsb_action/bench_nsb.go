@@ -31,15 +31,6 @@ var signContentSize = flag.Int("con", 400, "signature content size")
 var OffchainTransactionSize int
 var offchainTransactionSize *int // = flag.Int("oc", 200, "off-chain transaction size(in op-intent)")
 
-var NodeSize int
-var nodeSize = flag.Int("node.siz", 1, "average size of merkle proof nodes")
-
-var ProofDepth int
-var proofDepth = flag.Int("node.dep", 4, "arverage depth of merkle proof nodes")
-
-var AverageCountOfTxInEachOpIntent int
-var averageCountOfTxInEachOpIntent *int //= flag.Int("txcount", 1, "arverage count of tx in each op-intent")
-
 const signSize = 65
 const hashSize = 64
 
@@ -134,13 +125,7 @@ func init() {
 	flag.Parse()
 	SessionLimit = *sessionLimit
 	SignContentSize = *signContentSize
-	ProofDepth = *proofDepth
-	NodeSize = *nodeSize
-	// OffchainTransactionSize = *offchainTransactionSize
-	// AverageCountOfTxInEachOpIntent = *averageCountOfTxInEachOpIntent
 
-	ProofSize = hashSize*ProofDepth + NodeSize*(ProofDepth-1)
-	const chainidSize, numberSize = 8, 32
 	TxIntentSize = 1
 	TxpaddingSize = 1
 

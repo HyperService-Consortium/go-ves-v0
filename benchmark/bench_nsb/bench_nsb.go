@@ -33,7 +33,7 @@ var OffchainTransactionSize int
 var offchainTransactionSize = flag.Int("oc", 200, "off-chain transaction size(in op-intent)")
 
 var NodeSize int
-var nodeSize = flag.Int("node.siz", 1, "average size of merkle proof nodes")
+var nodeSize = flag.Int("node.siz", 200, "average size of merkle proof nodes")
 
 var ProofDepth int
 var proofDepth = flag.Int("node.dep", 4, "arverage depth of merkle proof nodes")
@@ -142,7 +142,7 @@ func init() {
 
 	ProofSize = hashSize*ProofDepth + NodeSize*(ProofDepth-1)
 	const chainidSize, numberSize = 8, 32
-	TxIntentSize = hashSize*4 + 8*2 + 32*2 + OffchainTransactionSize
+	TxIntentSize = hashSize*4 + chainidSize*2 + numberSize*2 + OffchainTransactionSize
 	TxpaddingSize = AverageCountOfTxInEachOpIntent * TxIntentSize
 
 	// fmt.Println(signSize, hashSize, ProofSize, TxpaddingSize)
