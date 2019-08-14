@@ -23,31 +23,30 @@ var (
 	badSession = new(Int)
 )
 
-type Int struct {
-	value int32
-}
+var SessionLimit int
+var sessionLimit = flag.Int("ses", 1, "max count of go-routine")
 
-func (i *Int) Add(inc int32) {
-	atomic.AddInt32(&i.value, inc)
-}
+var SignContentSize int
+var signContentSize = flag.Int("con", 400, "signature content size")
 
-const SessionLimit = 1
+var OffchainTransactionSize int
+var offchainTransactionSize = flag.Int("oc", 200, "off-chain transaction size(in op-intent)")
 
-const sign_size = 65
-const hash_size = 64
-const node_size = 400
-const proof_size = hash_size*8 + node_size*7
-const tx_intent_size = 64*5 + 100
-const txpadding_size = 5 * tx_intent_size
+var NodeSize int
+var nodeSize = flag.Int("node.siz", 1, "average size of merkle proof nodes")
 
-var bb = make([]byte, sign_size)
-var bg = bb[0:hash_size]
-var idleProof, _ = json.Marshal(map[string]interface{}{
-	"r": bg,
-	"h": [][]byte{make([]byte, 4*proof_size)},
-})
+var ProofDepth int
+var proofDepth = flag.Int("node.dep", 4, "arverage depth of merkle proof nodes")
 
-var txpadding = make([]byte, 4*txpadding_size)
+var AverageCountOfTxInEachOpIntent int
+var averageCountOfTxInEachOpIntent = flag.Int("txcount", 1, "arverage count of tx in each op-intent")
+
+const signSize = 65
+const hashSize = 64
+
+var ProofSize, TxIntentSize, TxpaddingSize int
+
+var bb, bg, idleProof, txpadding []byte
 
 func NSBRoutine(signer uiptypes.Signer, index int) {
 	// info, err := cli.GetAbciInfo()
@@ -58,16 +57,16 @@ func NSBRoutine(signer uiptypes.Signer, index int) {
 		return
 	}
 	_ = iscAddress
-	var bbg = make([]byte, 8)
-	// for idx := 0; idx < 20; idx++ {
-	// 	_, err := cli.AddAction(signer, nil,
-	// 		iscAddress, uint64(index), 0, 1, []byte{uint8(1 + idx)}, bb)
-	// 	if err != nil {
-	// 		badSession.Add(1)
-	// 		fmt.Println(err)
-	// 		return
-	// 	}
-	// }
+	var bbg, cont = make([]byte, 8), make([]byte, SignContentSize-1, SignContentSize)
+	for idx := 0; idx < 20; idx++ {
+		_, err := cli.AddAction(signer, nil,
+			iscAddress, uint64(index), 0, 1, append(cont, uint8(1+idx)), bb)
+		if err != nil {
+			badSession.Add(1)
+			fmt.Println(err)
+			return
+		}
+	}
 
 	for idx := 0; idx < 5; idx++ {
 		binary.BigEndian.PutUint64(bbg, uint64(index<<8|idx))
@@ -134,5 +133,35 @@ func main() {
 
 func init() {
 	flag.Parse()
+	SessionLimit = *sessionLimit
+	SignContentSize = *signContentSize
+	ProofDepth = *proofDepth
+	NodeSize = *nodeSize
+	OffchainTransactionSize = *offchainTransactionSize
+	AverageCountOfTxInEachOpIntent = *averageCountOfTxInEachOpIntent
+
+	ProofSize = hashSize*ProofDepth + NodeSize*(ProofDepth-1)
+	const chainidSize, numberSize = 8, 32
+	TxIntentSize = hashSize*4 + 8*2 + 32*2 + OffchainTransactionSize
+	TxpaddingSize = AverageCountOfTxInEachOpIntent * TxIntentSize
+
+	// fmt.Println(signSize, hashSize, ProofSize, TxpaddingSize)
+
+	bb = make([]byte, signSize)
+	bg = bb[0:hashSize]
+	idleProof, _ = json.Marshal(map[string]interface{}{
+		"r": bg,
+		"h": [][]byte{make([]byte, ProofSize)},
+	})
+	txpadding = make([]byte, TxpaddingSize)
+
 	cli = nsbclient.NewNSBClient(host)
+}
+
+type Int struct {
+	value int32
+}
+
+func (i *Int) Add(inc int32) {
+	atomic.AddInt32(&i.value, inc)
 }
