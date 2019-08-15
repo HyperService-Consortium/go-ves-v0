@@ -21,6 +21,7 @@ type task struct {
 }
 
 const signSize = 65
+const validated = false
 
 var idleSignature = make([]byte, signSize)
 
@@ -84,7 +85,7 @@ func (tasker *task) nsbRoutine(
 
 // Header csv when file is being created
 func Header(f *os.File) error {
-	_, err := f.Write([]byte("action size, bad session, total session, batched, tps, added action, planning action, upload (KB/s), download (KB/s), uploaded (KB), downloaded (KB), time used (s)\n"))
+	_, err := f.Write([]byte("action size, validated, bad session, total session, batched, tps, added action, planning action, upload (KB/s), download (KB/s), uploaded (KB), downloaded (KB), time used (s)\n"))
 	return err
 }
 
@@ -129,8 +130,8 @@ func Main(cli *nsbclient.NSBClient, SessionLimit, SignContentSize, ActionLong in
 	var base = 1024 * consumed
 	fmt.Println("================================================================================")
 	fmt.Printf(
-		"\naction size %v, bad session count: %v/%v,\n batched: %v, addedAction: %v/%v\n tps: %v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n UpLoaded: %vKB, Downloaded: %vKB, base %vs\n",
-		32+8+8+1+SignContentSize+64, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, SessionLimit*ActionLong, float64(tasker.tps.value)/base,
+		"\naction size: %v, validated: %v\n bad session count: %v/%v\n batched: %v, addedAction: %v/%v\n tps: %v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n UpLoaded: %vKB, Downloaded: %vKB, base %vs\n",
+		32+8+8+1+SignContentSize+64, validated, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, SessionLimit*ActionLong, float64(tasker.tps.value)/base,
 		float64(nsbclient.SentBytes)/base, float64(nsbclient.ReceivedBytes)/base,
 		float64(nsbclient.SentBytes)/1024.0, float64(nsbclient.ReceivedBytes)/1024.0,
 		consumed,
@@ -139,8 +140,8 @@ func Main(cli *nsbclient.NSBClient, SessionLimit, SignContentSize, ActionLong in
 	if f != nil {
 		f.Write([]byte(
 			fmt.Sprintf(
-				"%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
-				32+8+8+1+SignContentSize+64, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, SessionLimit*ActionLong, float64(tasker.tps.value)/base,
+				"%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
+				32+8+8+1+SignContentSize+64, validated, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, SessionLimit*ActionLong, float64(tasker.tps.value)/base,
 				float64(nsbclient.SentBytes)/base, float64(nsbclient.ReceivedBytes)/base,
 				float64(nsbclient.SentBytes)/1024.0, float64(nsbclient.ReceivedBytes)/1024.0,
 				consumed,
