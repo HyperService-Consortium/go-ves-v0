@@ -1,0 +1,12 @@
+[
+    {
+        "address": "47a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e",
+        "chain_id": 1,
+        "alias": "eth1"
+    },
+    {
+        "address": "981739a13593980763de3353340617ef16da6354",
+        "chain_id": 2,
+        "alias": "eth2"
+    }
+]

@@ -102,7 +102,7 @@ func (nc *NSBClient) CreateISC(
 	buf.Write(txHeader.Nonce.Bytes())
 	txHeader.Signature = user.Sign(buf.Bytes()).Bytes()
 	ret, err := nc.sendContractTx([]byte("createContract"), []byte("isc"), &txHeader)
-	// fmt.Println("create", PretiStruct(ret), err)
+	fmt.Println("create", PretiStruct(ret), err)
 	if err != nil {
 		return nil, err
 	}

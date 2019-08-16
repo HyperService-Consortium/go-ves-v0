@@ -10,7 +10,7 @@ import (
 
 var s mtest.TestHelper
 
-const host = "47.251.2.73:26657"
+const host = "47.88.101.45:26657"
 
 //  PretiStruct helps read struct
 func PretiStruct(minterface interface{}) string {

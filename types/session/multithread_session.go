@@ -143,7 +143,7 @@ func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpInte
 
 	ses.Accounts = nil
 	c := makeComparator()
-	ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: 3, Address: ses.Signer.GetPublicKey()})
+	ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: 4, Address: ses.Signer.GetPublicKey()})
 	for _, intent := range intents {
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
 

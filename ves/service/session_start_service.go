@@ -152,7 +152,7 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 	}
 	ses.ISCAddress, err = s.RequestNSBForNewSession(ses)
 	if ses.ISCAddress == nil {
-		return nil, nil, errors.New("request isc failed")
+		return nil, nil, fmt.Errorf("request isc failed: %v", err)
 	}
 	if err != nil {
 		return nil, nil, err

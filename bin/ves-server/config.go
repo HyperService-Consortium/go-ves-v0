@@ -33,7 +33,7 @@ var (
 		defaultServerConfig,
 	}
 	cfg         *Configuration
-	cfgContext  = "./ves-server-config.toml"
+	cfgContext  string //= flag.String("config", "./ves-server-config.toml", "configurate")
 	cfgLock     sync.RWMutex
 	parseConfig sync.Once
 )

@@ -59,7 +59,7 @@ func main() {
 		log.Fatal("unrecognized kvdb type")
 	}
 
-	b, err := hex.DecodeString("2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")
+	b, err := hex.DecodeString("2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")
 	if err != nil {
 		log.Fatal(err)
 		return
