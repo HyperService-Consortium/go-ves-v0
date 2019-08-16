@@ -17,6 +17,7 @@ import (
 type task struct {
 	badSession  Int
 	addedAction Int
+	action      Int
 	tps         Int
 }
 
@@ -47,31 +48,38 @@ func (tasker *task) nsbRoutine(
 	var bytesIdx = make([]byte, 8)
 
 	if batch {
-		batcher := cli.AddActions(signer, nil, ActionLong)
-		for idx := 0; idx < ActionLong; idx++ {
-			binary.BigEndian.PutUint64(bytesIdx, uint64(idx+1))
-			batcher.Insert(iscAddress, uint64(index), 0, 1, append(cont, bytesIdx...), idleSignature)
-		}
+		for idf := 0; idf < 60; idf++ {
+			tasker.action.Add(int32(ActionLong))
+			batcher := cli.AddActions(signer, nil, ActionLong)
+			for idx := 0; idx < ActionLong; idx++ {
+				binary.BigEndian.PutUint64(bytesIdx, uint64(idx+1))
+				batcher.Insert(iscAddress, uint64(index), 0, 1, append(cont, bytesIdx...), idleSignature)
+			}
 
-		_, err := batcher.Commit()
-		if err != nil {
-			badSessionFlag = true
-			fmt.Println(err)
-		} else {
-			tasker.tps.Add(1)
-		}
-		localAddedAction += int32(ActionLong)
-	} else {
-		for idx := 0; idx < ActionLong; idx++ {
-			binary.BigEndian.PutUint64(bytesIdx, uint64(idx+1))
-			_, err := cli.AddAction(signer, nil,
-				iscAddress, uint64(index), 0, 1, append(cont, bytesIdx...), idleSignature)
+			_, err := batcher.Commit()
 			if err != nil {
 				badSessionFlag = true
 				fmt.Println(err)
 			} else {
-				localAddedAction++
 				tasker.tps.Add(1)
+				localAddedAction += int32(ActionLong)
+			}
+		}
+		// localAddedAction += int32(ActionLong)
+	} else {
+		for idf := 0; idf < 60; idf++ {
+			tasker.action.Add(int32(ActionLong))
+			for idx := 0; idx < ActionLong; idx++ {
+				binary.BigEndian.PutUint64(bytesIdx, uint64(idx+1))
+				_, err := cli.AddAction(signer, nil,
+					iscAddress, uint64(index), 0, 1, append(cont, bytesIdx...), idleSignature)
+				if err != nil {
+					badSessionFlag = true
+					fmt.Println(err)
+				} else {
+					localAddedAction++
+					tasker.tps.Add(1)
+				}
 			}
 		}
 	}
@@ -85,7 +93,7 @@ func (tasker *task) nsbRoutine(
 
 // Header csv when file is being created
 func Header(f *os.File) error {
-	_, err := f.Write([]byte("action size, validated, bad session, total session, batched, tps, added action, planning action, upload (KB/s), download (KB/s), uploaded (KB), downloaded (KB), time used (s)\n"))
+	_, err := f.Write([]byte("action size, validated, bad session, total session, batched, added action, planning action, tps, upload (KB/s), download (KB/s), uploaded (KB), downloaded (KB), time used (s)\n"))
 	return err
 }
 
@@ -125,13 +133,12 @@ func Main(cli *nsbclient.NSBClient, SessionLimit, SignContentSize, ActionLong in
 	for idx := 0; idx < SessionLimit; idx++ {
 		<-U
 	}
-
 	var consumed = time.Now().Sub(costing).Seconds()
 	var base = 1024 * consumed
 	fmt.Println("================================================================================")
 	fmt.Printf(
 		"\naction size: %v, validated: %v\n bad session count: %v/%v\n batched: %v, addedAction: %v/%v\n tps: %v\n UpLoaded: %vKB/s, Downloaded: %vKB/s\n UpLoaded: %vKB, Downloaded: %vKB, base %vs\n",
-		32+8+8+1+SignContentSize+64, validated, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, SessionLimit*ActionLong, float64(tasker.tps.value)/base,
+		32+8+8+1+SignContentSize+64, validated, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, tasker.action.value, float64(tasker.tps.value)/consumed,
 		float64(nsbclient.SentBytes)/base, float64(nsbclient.ReceivedBytes)/base,
 		float64(nsbclient.SentBytes)/1024.0, float64(nsbclient.ReceivedBytes)/1024.0,
 		consumed,
@@ -141,7 +148,7 @@ func Main(cli *nsbclient.NSBClient, SessionLimit, SignContentSize, ActionLong in
 		f.Write([]byte(
 			fmt.Sprintf(
 				"%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v,%v\n",
-				32+8+8+1+SignContentSize+64, validated, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, SessionLimit*ActionLong, float64(tasker.tps.value)/base,
+				32+8+8+1+SignContentSize+64, validated, tasker.badSession.value, SessionLimit, Batched, tasker.addedAction.value, tasker.action.value, float64(tasker.tps.value)/consumed,
 				float64(nsbclient.SentBytes)/base, float64(nsbclient.ReceivedBytes)/base,
 				float64(nsbclient.SentBytes)/1024.0, float64(nsbclient.ReceivedBytes)/1024.0,
 				consumed,
