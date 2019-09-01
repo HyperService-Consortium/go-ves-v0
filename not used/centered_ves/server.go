@@ -1,7 +1,7 @@
 package main
 
 import (
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	"golang.org/x/net/context"
 )
 

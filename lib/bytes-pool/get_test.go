@@ -209,7 +209,7 @@ func BenchmarkMGSet2(b *testing.B) {
 --- PASS: TestBBBytesPool (0.35s)
 goos: windows
 goarch: amd64
-pkg: github.com/Myriad-Dreamin/object-pool/bytes-pool
+pkg: github.com/HyperService-Consortium/object-pool/bytes-pool
 BenchmarkGetSet-12              20000000                74.1 ns/op            32 B/op          1 allocs/op
 BenchmarkMGetSet-12             50000000                37.1 ns/op             0 B/op          0 allocs/op
 BenchmarkMGetSet2-12            50000000                36.3 ns/op             0 B/op          0 allocs/op

@@ -9,18 +9,18 @@ import (
 
 	"golang.org/x/net/context"
 
-	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	ethbni "github.com/Myriad-Dreamin/go-ves/lib/bni/eth"
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	tx "github.com/HyperService-Consortium/go-uip/op-intent"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
+	types "github.com/HyperService-Consortium/go-ves/types"
 
-	// bni "github.com/Myriad-Dreamin/go-ves/types/bn-interface"
+	// bni "github.com/HyperService-Consortium/go-ves/types/bn-interface"
 
-	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
-	nsbi "github.com/Myriad-Dreamin/go-ves/types/nsb-interface"
+	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
+	nsbi "github.com/HyperService-Consortium/go-ves/types/nsb-interface"
 )
 
 type AttestationReceiveService struct {

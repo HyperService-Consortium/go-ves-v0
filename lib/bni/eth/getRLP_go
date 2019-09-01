@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Myriad-Dreamin/go-rlp"
+	"github.com/HyperService-Consortium/go-rlp"
 	"github.com/ethereum/go-ethereum/common"
 	"golang.org/x/crypto/sha3"
 )

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	TransType "github.com/Myriad-Dreamin/go-uip/const/trans_type"
-	valuetype "github.com/Myriad-Dreamin/go-uip/const/value_type"
-	types "github.com/Myriad-Dreamin/go-uip/types"
+	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
+	valuetype "github.com/HyperService-Consortium/go-uip/const/value_type"
+	types "github.com/HyperService-Consortium/go-uip/types"
 )
 
 type testdata struct {

@@ -1,5 +1,5 @@
 package bni
 
-import uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+import uiptypes "github.com/HyperService-Consortium/go-uip/types"
 
 var _ uiptypes.BlockChainInterface = new(BN)

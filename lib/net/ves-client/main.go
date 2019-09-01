@@ -9,8 +9,8 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
 )
 
 // Main is the origin main of ves client

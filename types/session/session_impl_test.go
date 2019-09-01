@@ -1,6 +1,6 @@
 package session
 
-import types "github.com/Myriad-Dreamin/go-ves/types"
+import types "github.com/HyperService-Consortium/go-ves/types"
 
 var testsession_impl types.Session = &SerialSession{}
 

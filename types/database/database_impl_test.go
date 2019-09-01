@@ -1,6 +1,6 @@
 package vesdb
 
-import types "github.com/Myriad-Dreamin/go-ves/types"
+import types "github.com/HyperService-Consortium/go-ves/types"
 
 var testdb_impl types.VESDB = &Database{}
 

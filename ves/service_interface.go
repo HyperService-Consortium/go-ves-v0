@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
-	service "github.com/Myriad-Dreamin/go-ves/ves/service"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
+	service "github.com/HyperService-Consortium/go-ves/ves/service"
 	"golang.org/x/net/context"
 )
 

@@ -3,7 +3,7 @@ package vesclient
 import (
 	"net/url"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 	"github.com/gorilla/websocket"
 )
 

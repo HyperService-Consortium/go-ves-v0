@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"testing"
 
-	iscTransactionIntent "github.com/HyperServiceOne/NSB/contract/isc/transaction"
-	nsbmath "github.com/HyperServiceOne/NSB/math"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	iscTransactionIntent "github.com/HyperService-Consortium/NSB/contract/isc/transaction"
+	nsbmath "github.com/HyperService-Consortium/NSB/math"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 )
 
 type sigg struct {

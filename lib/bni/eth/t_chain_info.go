@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	chainType "github.com/Myriad-Dreamin/go-uip/const/chain_type"
+	chainType "github.com/HyperService-Consortium/go-uip/const/chain_type"
 )
 
 type ChainInfo struct {

@@ -54,11 +54,11 @@ fileDescriptor_4b7b69f611a15cdb	grpc\uip.pb.go	110;"	v	access:private	language:G
 fileload	go-uiputils\file-load\file_load.go	1;"	p	language:Go	line:1
 fmt	grpc\uip.pb.go	8;"	i	language:Go	line:8
 fmt	op_intent.go	4;"	i	language:Go	line:4
-github.com/Myriad-Dreamin/go-py	go-uiputils\file-load\file_load.go	4;"	i	language:Go	line:4
-github.com/Myriad-Dreamin/go-py	go-uiputils\op-intent\op_intent.go	3;"	i	language:Go	line:3
-github.com/Myriad-Dreamin/go-py	op_intent.go	6;"	i	language:Go	line:6
-github.com/Myriad-Dreamin/go-ves/go-uiputils/file-load	op_intent.go	9;"	i	language:Go	line:9
-github.com/Myriad-Dreamin/go-ves/go-uiputils/op-intent	op_intent.go	8;"	i	language:Go	line:8
+github.com/HyperService-Consortium/go-py	go-uiputils\file-load\file_load.go	4;"	i	language:Go	line:4
+github.com/HyperService-Consortium/go-py	go-uiputils\op-intent\op_intent.go	3;"	i	language:Go	line:3
+github.com/HyperService-Consortium/go-py	op_intent.go	6;"	i	language:Go	line:6
+github.com/HyperService-Consortium/go-ves/go-uiputils/file-load	op_intent.go	9;"	i	language:Go	line:9
+github.com/HyperService-Consortium/go-ves/go-uiputils/op-intent	op_intent.go	8;"	i	language:Go	line:8
 github.com/golang/protobuf/proto	grpc\uip.pb.go	9;"	i	language:Go	line:9
 google.golang.org/grpc	grpc\uip.pb.go	10;"	i	language:Go	line:10
 greeterClient	grpc\uip.pb.go	137;"	t	access:private	language:Go	line:137	type:struct

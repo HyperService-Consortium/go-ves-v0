@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package uiprpc.base;
 
-option go_package = "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base";
+option go_package = "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base";
 
 message OpIntents {
     repeated bytes contents = 1;

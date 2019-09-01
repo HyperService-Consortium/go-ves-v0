@@ -3,9 +3,9 @@ package bni
 import (
 	"encoding/json"
 
-	merkleproof "github.com/Myriad-Dreamin/go-uip/merkle-proof"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+	merkleproof "github.com/HyperService-Consortium/go-uip/merkle-proof"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	nsbclient "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 type MerkleProofInfo struct {

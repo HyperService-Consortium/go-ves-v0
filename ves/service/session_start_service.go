@@ -10,12 +10,12 @@ import (
 
 	"golang.org/x/net/context"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	nsbcli "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
-	types "github.com/Myriad-Dreamin/go-ves/types"
-	session "github.com/Myriad-Dreamin/go-ves/types/session"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
+	types "github.com/HyperService-Consortium/go-ves/types"
+	session "github.com/HyperService-Consortium/go-ves/types/session"
 )
 
 var nsbClient = nsbcli.NewNSBClient("47.251.2.73:26657")

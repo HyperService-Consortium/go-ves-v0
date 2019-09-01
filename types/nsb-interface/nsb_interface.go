@@ -1,8 +1,8 @@
 package nsbi
 
 import (
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	nsbcli "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 type NSBClientImpl struct {

@@ -14,17 +14,17 @@ import (
 
 	gjson "github.com/tidwall/gjson"
 
-	request "github.com/Myriad-Dreamin/go-ves/lib/net/request"
-	jsonrpcclient "github.com/Myriad-Dreamin/go-ves/lib/net/rpc-client"
+	request "github.com/HyperService-Consortium/go-ves/lib/net/request"
+	jsonrpcclient "github.com/HyperService-Consortium/go-ves/lib/net/rpc-client"
 
-	appl "github.com/HyperServiceOne/NSB/application"
-	cmn "github.com/HyperServiceOne/NSB/common"
-	ISC "github.com/HyperServiceOne/NSB/contract/isc"
-	iscTransactionIntent "github.com/HyperServiceOne/NSB/contract/isc/transaction"
-	nsbmath "github.com/HyperServiceOne/NSB/math"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	appl "github.com/HyperService-Consortium/NSB/application"
+	cmn "github.com/HyperService-Consortium/NSB/common"
+	ISC "github.com/HyperService-Consortium/NSB/contract/isc"
+	iscTransactionIntent "github.com/HyperService-Consortium/NSB/contract/isc/transaction"
+	nsbmath "github.com/HyperService-Consortium/NSB/math"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 
-	bytespool "github.com/Myriad-Dreamin/go-ves/lib/bytes-pool"
+	bytespool "github.com/HyperService-Consortium/go-ves/lib/bytes-pool"
 )
 
 func decorateHost(host string) string {

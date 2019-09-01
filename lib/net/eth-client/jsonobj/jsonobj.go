@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	bytespool "github.com/Myriad-Dreamin/object-pool/bytes-pool"
+	bytespool "github.com/HyperService-Consortium/object-pool/bytes-pool"
 )
 
 const (

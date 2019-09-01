@@ -12,7 +12,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
 )
 
 const (

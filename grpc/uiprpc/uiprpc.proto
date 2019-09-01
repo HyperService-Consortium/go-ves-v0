@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package uiprpc;
 
-option go_package = "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc";
+option go_package = "github.com/HyperService-Consortium/go-ves/grpc/uiprpc";
 
 import "base.proto";
 

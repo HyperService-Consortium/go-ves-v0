@@ -3,8 +3,8 @@ package service
 import (
 	"golang.org/x/net/context"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
 type SessionRequireTransactService struct {

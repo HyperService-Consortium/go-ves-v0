@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/Myriad-Dreamin/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types"
 )
 
 func GetValue(rawValue interface{}) (interface{}, error) {

@@ -10,17 +10,17 @@ import (
 	"math/rand"
 	"unsafe"
 
-	TransType "github.com/Myriad-Dreamin/go-uip/const/trans_type"
-	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	account "github.com/Myriad-Dreamin/go-uip/types/account"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
+	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	account "github.com/HyperService-Consortium/go-uip/types/account"
+	types "github.com/HyperService-Consortium/go-ves/types"
 
-	bitmap "github.com/Myriad-Dreamin/go-ves/lib/bitmapping"
-	const_prefix "github.com/Myriad-Dreamin/go-ves/lib/database/const_prefix"
-	serial_helper "github.com/Myriad-Dreamin/go-ves/lib/serial_helper"
+	bitmap "github.com/HyperService-Consortium/go-ves/lib/bitmapping"
+	const_prefix "github.com/HyperService-Consortium/go-ves/lib/database/const_prefix"
+	serial_helper "github.com/HyperService-Consortium/go-ves/lib/serial_helper"
 
-	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
+	opintents "github.com/HyperService-Consortium/go-uip/op-intent"
 )
 
 const (

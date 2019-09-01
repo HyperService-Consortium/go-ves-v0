@@ -1,10 +1,10 @@
 package user
 
 import (
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 )
 
-// an implementation of types.Account is uiprpc.Account from "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
+// an implementation of types.Account is uiprpc.Account from "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 
 type User struct {
 	ID       int64              `xorm:"pk autoincr 'id'"`
