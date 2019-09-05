@@ -10,19 +10,19 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
 
 	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
 
-	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
+	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 
-	helper "github.com/Myriad-Dreamin/go-ves/lib/net/help-func"
-	nsbcli "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
+	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 func (vc *VesClient) read() {

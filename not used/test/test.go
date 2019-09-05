@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	kvs "github.com/Myriad-Dreamin/go-ves/kvserialize"
-	"github.com/Myriad-Dreamin/go-ves/types"
+	kvs "github.com/HyperService-Consortium/go-ves/kvserialize"
+	"github.com/HyperService-Consortium/go-ves/types"
 )
 
 type OAO struct {

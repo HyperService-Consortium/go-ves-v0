@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Myriad-Dreamin/go-ves/types"
-	mtest "github.com/Myriad-Dreamin/mydrest"
+	"github.com/HyperService-Consortium/go-ves/types"
+	mtest "github.com/HyperService-Consortium/mydrest"
 )
 
 type TT struct {

@@ -1,6 +1,6 @@
 package types
 
-import uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+import uiptypes "github.com/HyperService-Consortium/go-uip/types"
 
 type SessionKVBase interface {
 	SetKV(Index, isc_address, provedKey, provedValue) error

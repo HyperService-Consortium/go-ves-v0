@@ -5,7 +5,7 @@ package wsrpc
 
 import (
 	fmt "fmt"
-	uiprpc_base "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
+	uiprpc_base "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	proto "github.com/golang/protobuf/proto"
 	math "math"
 )

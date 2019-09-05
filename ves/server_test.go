@@ -6,11 +6,11 @@ import (
 	"log"
 	"time"
 
-	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	index "github.com/Myriad-Dreamin/go-ves/lib/database/index"
-	multi_index "github.com/Myriad-Dreamin/go-ves/lib/database/multi_index"
+	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	index "github.com/HyperService-Consortium/go-ves/lib/database/index"
+	multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 

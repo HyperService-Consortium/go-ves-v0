@@ -10,14 +10,14 @@ import (
 
 	"golang.org/x/net/context"
 
-	transtype "github.com/Myriad-Dreamin/go-uip/const/trans_type"
-	value_type "github.com/Myriad-Dreamin/go-uip/const/value_type"
-	tx "github.com/Myriad-Dreamin/go-uip/op-intent"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	ethbni "github.com/Myriad-Dreamin/go-ves/lib/bni/eth"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	transtype "github.com/HyperService-Consortium/go-uip/const/trans_type"
+	value_type "github.com/HyperService-Consortium/go-uip/const/value_type"
+	tx "github.com/HyperService-Consortium/go-uip/op-intent"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
+	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
 type SessionRequireRawTransactService struct {

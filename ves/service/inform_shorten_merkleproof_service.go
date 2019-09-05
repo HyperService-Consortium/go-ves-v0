@@ -3,9 +3,9 @@ package service
 import (
 	"golang.org/x/net/context"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	types "github.com/Myriad-Dreamin/go-ves/types"
-	// bni "github.com/Myriad-Dreamin/go-ves/types/bn-interface"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	types "github.com/HyperService-Consortium/go-ves/types"
+	// bni "github.com/HyperService-Consortium/go-ves/types/bn-interface"
 )
 
 type InformShortenMerkleProofService struct {

@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package wsrpc;
 
-option go_package = "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc";
+option go_package = "github.com/HyperService-Consortium/go-ves/grpc/wsrpc";
 
 import "base.proto";
 

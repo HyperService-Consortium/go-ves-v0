@@ -1,5 +1,5 @@
 package kvdb
 
-import "github.com/Myriad-Dreamin/go-ves/types"
+import "github.com/HyperService-Consortium/go-ves/types"
 
 var _ types.SessionKVBase = new(Database)

@@ -3,9 +3,9 @@ package kvdb
 import (
 	"bytes"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
 type Database struct {

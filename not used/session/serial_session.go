@@ -1,6 +1,6 @@
 package session
 
-import "github.com/Myriad-Dreamin/go-ves/types"
+import "github.com/HyperService-Consortium/go-ves/types"
 
 type SerialSession struct {
 	SessionId []byte

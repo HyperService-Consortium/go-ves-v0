@@ -12,12 +12,12 @@ import (
 
 	gjson "github.com/tidwall/gjson"
 
-	request "github.com/Myriad-Dreamin/go-ves/lib/net/request"
-	jsonrpcclient "github.com/Myriad-Dreamin/go-ves/lib/net/rpc-client"
+	request "github.com/HyperService-Consortium/go-ves/lib/net/request"
+	jsonrpcclient "github.com/HyperService-Consortium/go-ves/lib/net/rpc-client"
 
-	cmn "github.com/HyperServiceOne/NSB/common"
+	cmn "github.com/HyperService-Consortium/NSB/common"
 
-	bytespool "github.com/Myriad-Dreamin/go-ves/lib/bytes-pool"
+	bytespool "github.com/HyperService-Consortium/go-ves/lib/bytes-pool"
 )
 
 var SentBytes, ReceivedBytes uint64

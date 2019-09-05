@@ -12,18 +12,18 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 
-	signaturetype "github.com/Myriad-Dreamin/go-uip/const/signature_type"
-	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	signaturetype "github.com/HyperService-Consortium/go-uip/const/signature_type"
+	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 
-	ethbni "github.com/Myriad-Dreamin/go-ves/lib/bni/eth"
-	nsbbni "github.com/Myriad-Dreamin/go-ves/lib/bni/ten"
-	filedb "github.com/Myriad-Dreamin/go-ves/lib/database/filedb"
-	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
+	nsbbni "github.com/HyperService-Consortium/go-ves/lib/bni/ten"
+	filedb "github.com/HyperService-Consortium/go-ves/lib/database/filedb"
+	nsbclient "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 // VesClient is the web socket client interactive with veses

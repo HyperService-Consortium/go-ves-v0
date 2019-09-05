@@ -4,7 +4,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/Myriad-Dreamin/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 )

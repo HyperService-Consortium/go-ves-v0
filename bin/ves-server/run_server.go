@@ -7,12 +7,12 @@ import (
 
 	"encoding/hex"
 
-	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
-	index "github.com/Myriad-Dreamin/go-ves/lib/database/index"
-	multi_index "github.com/Myriad-Dreamin/go-ves/lib/database/multi_index"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
+	index "github.com/HyperService-Consortium/go-ves/lib/database/index"
+	multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
+	types "github.com/HyperService-Consortium/go-ves/types"
 
-	ves_server "github.com/Myriad-Dreamin/go-ves/ves"
+	ves_server "github.com/HyperService-Consortium/go-ves/ves"
 )
 
 var (

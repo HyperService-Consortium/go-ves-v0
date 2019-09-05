@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"log"
 
-	types "github.com/Myriad-Dreamin/go-ves/types"
-	vesdb "github.com/Myriad-Dreamin/go-ves/types/database"
-	kvdb "github.com/Myriad-Dreamin/go-ves/types/kvdb"
-	session "github.com/Myriad-Dreamin/go-ves/types/session"
-	user "github.com/Myriad-Dreamin/go-ves/types/user"
+	types "github.com/HyperService-Consortium/go-ves/types"
+	vesdb "github.com/HyperService-Consortium/go-ves/types/database"
+	kvdb "github.com/HyperService-Consortium/go-ves/types/kvdb"
+	session "github.com/HyperService-Consortium/go-ves/types/session"
+	user "github.com/HyperService-Consortium/go-ves/types/user"
 
-	index "github.com/Myriad-Dreamin/go-ves/lib/database/index"
-	multi_index "github.com/Myriad-Dreamin/go-ves/lib/database/multi_index"
+	index "github.com/HyperService-Consortium/go-ves/lib/database/index"
+	multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
 
-	centered_ves_server "github.com/Myriad-Dreamin/go-ves/central-ves"
+	centered_ves_server "github.com/HyperService-Consortium/go-ves/central-ves"
 )
 
 const port = ":23352"

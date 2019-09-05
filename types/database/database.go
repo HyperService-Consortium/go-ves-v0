@@ -3,8 +3,8 @@ package vesdb
 import (
 	"fmt"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
 type Database struct {

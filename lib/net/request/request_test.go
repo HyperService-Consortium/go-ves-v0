@@ -4,7 +4,7 @@ import (
 	"io"
 	"testing"
 
-	mtest "github.com/Myriad-Dreamin/mydrest"
+	mtest "github.com/HyperService-Consortium/mydrest"
 )
 
 var s mtest.TestHelper

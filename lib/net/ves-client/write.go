@@ -14,15 +14,15 @@ import (
 
 	"google.golang.org/grpc"
 
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 
-	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
+	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
 
-	helper "github.com/Myriad-Dreamin/go-ves/lib/net/help-func"
+	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
 )
 
 func (vc *VesClient) write() {

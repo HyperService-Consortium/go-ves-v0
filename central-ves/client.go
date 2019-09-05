@@ -16,12 +16,12 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
 
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	types "github.com/HyperService-Consortium/go-ves/types"
 
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 )
 
 const (

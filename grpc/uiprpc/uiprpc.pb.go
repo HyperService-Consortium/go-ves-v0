@@ -6,7 +6,7 @@ package uiprpc
 import (
 	context "context"
 	fmt "fmt"
-	uiprpc_base "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
+	uiprpc_base "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	math "math"

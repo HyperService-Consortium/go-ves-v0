@@ -10,17 +10,17 @@ import (
 	"math/rand"
 	"sync"
 
-	TransType "github.com/Myriad-Dreamin/go-uip/const/trans_type"
-	TxState "github.com/Myriad-Dreamin/go-uip/const/transaction_state_type"
-	opintents "github.com/Myriad-Dreamin/go-uip/op-intent"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	account "github.com/Myriad-Dreamin/go-uip/types/account"
-	bitmap "github.com/Myriad-Dreamin/go-ves/lib/bitmapping/redis-bitmap"
-	const_prefix "github.com/Myriad-Dreamin/go-ves/lib/database/const_prefix"
-	redispool "github.com/Myriad-Dreamin/go-ves/lib/database/redis"
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
-	serial_helper "github.com/Myriad-Dreamin/go-ves/lib/serial_helper"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
+	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
+	opintents "github.com/HyperService-Consortium/go-uip/op-intent"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	account "github.com/HyperService-Consortium/go-uip/types/account"
+	bitmap "github.com/HyperService-Consortium/go-ves/lib/bitmapping/redis-bitmap"
+	const_prefix "github.com/HyperService-Consortium/go-ves/lib/database/const_prefix"
+	redispool "github.com/HyperService-Consortium/go-ves/lib/database/redis"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
+	serial_helper "github.com/HyperService-Consortium/go-ves/lib/serial_helper"
+	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
 type MultiThreadSerialSession struct {

@@ -9,18 +9,17 @@ import (
 	"net/url"
 	"strings"
 
-	appl "github.com/HyperServiceOne/NSB/application"
-	cmn "github.com/HyperServiceOne/NSB/common"
-	nsbmath "github.com/HyperServiceOne/NSB/math"
-	"github.com/Myriad-Dreamin/go-ethabi"
-	TransType "github.com/Myriad-Dreamin/go-uip/const/trans_type"
-	valuetype "github.com/Myriad-Dreamin/go-uip/const/value_type"
-	opintent "github.com/Myriad-Dreamin/go-uip/op-intent"
-	"github.com/Myriad-Dreamin/go-uip/types"
-	ethclient "github.com/Myriad-Dreamin/go-ves/lib/net/eth-client"
-	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
-
-	chaininfo "github.com/Myriad-Dreamin/go-uip/temporary-chain-info"
+	appl "github.com/HyperService-Consortium/NSB/application"
+	cmn "github.com/HyperService-Consortium/NSB/common"
+	nsbmath "github.com/HyperService-Consortium/NSB/math"
+	"github.com/HyperService-Consortium/go-ethabi"
+	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
+	valuetype "github.com/HyperService-Consortium/go-uip/const/value_type"
+	opintent "github.com/HyperService-Consortium/go-uip/op-intent"
+	chaininfo "github.com/HyperService-Consortium/go-uip/temporary-chain-info"
+	"github.com/HyperService-Consortium/go-uip/types"
+	ethclient "github.com/HyperService-Consortium/go-ves/lib/net/eth-client"
+	nsbclient "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 func decoratePrefix(hexs string) string {

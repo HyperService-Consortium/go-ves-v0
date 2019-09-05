@@ -12,18 +12,17 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Myriad-Dreamin/go-ethabi"
+	"github.com/HyperService-Consortium/go-ethabi"
 	gjson "github.com/tidwall/gjson"
 	"golang.org/x/crypto/sha3"
 
-	TransType "github.com/Myriad-Dreamin/go-uip/const/trans_type"
-	valuetype "github.com/Myriad-Dreamin/go-uip/const/value_type"
-	opintent "github.com/Myriad-Dreamin/go-uip/op-intent"
-	types "github.com/Myriad-Dreamin/go-uip/types"
+	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
+	valuetype "github.com/HyperService-Consortium/go-uip/const/value_type"
+	opintent "github.com/HyperService-Consortium/go-uip/op-intent"
+	types "github.com/HyperService-Consortium/go-uip/types"
 
-	chaininfo "github.com/Myriad-Dreamin/go-uip/temporary-chain-info"
-
-	ethclient "github.com/Myriad-Dreamin/go-ves/lib/net/eth-client"
+	chaininfo "github.com/HyperService-Consortium/go-uip/temporary-chain-info"
+	ethclient "github.com/HyperService-Consortium/go-ves/lib/net/eth-client"
 )
 
 func decoratePrefix(hexs string) string {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Myriad-Dreamin/go-rlp"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	"github.com/HyperService-Consortium/go-rlp"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 )
 
 func TestGetTransaction(t *testing.T) {

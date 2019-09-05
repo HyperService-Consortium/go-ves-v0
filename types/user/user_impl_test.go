@@ -1,8 +1,8 @@
 package user
 
 import (
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
 var testuser_impl types.User = &User{}

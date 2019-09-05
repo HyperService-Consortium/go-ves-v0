@@ -14,14 +14,14 @@ import (
 	grpc "google.golang.org/grpc"
 	reflection "google.golang.org/grpc/reflection"
 
-	log "github.com/Myriad-Dreamin/go-ves/lib/log"
+	log "github.com/HyperService-Consortium/go-ves/lib/log"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
-	types "github.com/Myriad-Dreamin/go-ves/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	types "github.com/HyperService-Consortium/go-ves/types"
 
-	uiprpc "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc"
-	uipbase "github.com/Myriad-Dreamin/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/Myriad-Dreamin/go-ves/grpc/wsrpc"
+	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 )
 
 // func serveHome(w http.ResponseWriter, r *http.Request) {
