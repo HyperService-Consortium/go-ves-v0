@@ -10,12 +10,12 @@ import (
 	"io"
 	"math/big"
 
-	appl "github.com/HyperServiceOne/NSB/application"
-	cmn "github.com/HyperServiceOne/NSB/common"
-	ISC "github.com/HyperServiceOne/NSB/contract/isc"
-	iscTransactionIntent "github.com/HyperServiceOne/NSB/contract/isc/transaction"
-	nsbmath "github.com/HyperServiceOne/NSB/math"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	appl "github.com/HyperService-Consortium/NSB/application"
+	cmn "github.com/HyperService-Consortium/NSB/common"
+	ISC "github.com/HyperService-Consortium/NSB/contract/isc"
+	iscTransactionIntent "github.com/HyperService-Consortium/NSB/contract/isc/transaction"
+	nsbmath "github.com/HyperService-Consortium/NSB/math"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 )
 
 func (nc *NSBClient) CreateISC(
@@ -230,7 +230,7 @@ type AddActionsBatcher struct {
 }
 
 func (batcher *AddActionsBatcher) Insert(
-	iscAddress []byte, tid uint64, aid uint64, stype uint8,
+	iscAddress []byte, tid uint64, aid uint64, stype uint32,
 	content []byte, signature []byte,
 ) *AddActionsBatcher {
 	batcher.argss = append(batcher.argss, appl.ArgsAddAction{
@@ -305,7 +305,7 @@ func (nc *NSBClient) AddActions(
 
 func (nc *NSBClient) AddAction(
 	user uiptypes.Signer, toAddress []byte,
-	iscAddress []byte, tid uint64, aid uint64, stype uint8, content []byte, signature []byte,
+	iscAddress []byte, tid uint64, aid uint64, stype uint32, content []byte, signature []byte,
 ) ([]byte, error) {
 	var txHeader cmn.TransactionHeader
 	var buf = bytes.NewBuffer(make([]byte, mxBytes))
@@ -352,7 +352,7 @@ func (nc *NSBClient) AddAction(
 
 func (nc *NSBClient) addAction(
 	w io.Writer,
-	iscAddress []byte, tid uint64, aid uint64, stype uint8, content []byte, signature []byte,
+	iscAddress []byte, tid uint64, aid uint64, stype uint32, content []byte, signature []byte,
 ) error {
 	var args appl.ArgsAddAction
 	args.ISCAddress = iscAddress

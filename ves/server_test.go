@@ -11,6 +11,7 @@ import (
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	index "github.com/HyperService-Consortium/go-ves/lib/database/index"
 	multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
+	"github.com/gogo/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -24,6 +25,12 @@ const (
 )
 
 func TestUserRegister(t *testing.T) {
+	var userReq uiprpc.UserRegisterRequest
+	userReq.Account = new(uipbase.Account)
+	userReq.Account.Address = []byte{0x01, 0x23}
+	userReq.Account.ChainId = 1
+	userReq.UserName = "000123"
+	fmt.Println(proto.Marshal(&userReq))
 
 	var err error
 
@@ -55,13 +62,14 @@ func TestUserRegister(t *testing.T) {
 		log.Fatal(err)
 	}
 	go func() {
-		if err := server.ListenAndServe(mPort, centerAddress); err != nil {
+		if err := server.ListenAndServe(mAddress, centerAddress); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(mAddress, grpc.WithInsecure())
+
 	if err != nil {
 		t.Fatalf("did not connect: %v", err)
 	}

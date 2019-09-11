@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	scrlog "github.com/HyperService-Consortium/screenrus"
+	scrlog "github.com/Myriad-Dreamin/screenrus"
 	log "github.com/sirupsen/logrus"
 )
 

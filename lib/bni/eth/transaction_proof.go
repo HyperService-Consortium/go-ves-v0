@@ -20,7 +20,7 @@ import (
 	leveldbstorage "github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/crypto/sha3"
 
-	chaininfo "github.com/Myriad-Dreamin/go-uip/temporary-chain-info"
+	chaininfo "github.com/HyperService-Consortium/go-uip/temporary-chain-info"
 
 	gjson "github.com/tidwall/gjson"
 )

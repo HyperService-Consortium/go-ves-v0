@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"io"
 
-	appl "github.com/HyperServiceOne/NSB/application"
-	cmn "github.com/HyperServiceOne/NSB/common"
-	nsbmath "github.com/HyperServiceOne/NSB/math"
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	appl "github.com/HyperService-Consortium/NSB/application"
+	cmn "github.com/HyperService-Consortium/NSB/common"
+	nsbmath "github.com/HyperService-Consortium/NSB/math"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 )
 
 func (nc *NSBClient) InsuranceClaim(
