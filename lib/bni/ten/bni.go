@@ -9,8 +9,10 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
+	"github.com/gogo/protobuf/proto"
+
 	appl "github.com/HyperService-Consortium/NSB/application"
-	cmn "github.com/HyperService-Consortium/NSB/common"
 	nsbmath "github.com/HyperService-Consortium/NSB/math"
 	"github.com/HyperService-Consortium/go-ethabi"
 	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
@@ -35,8 +37,8 @@ type BN struct {
 }
 
 type MiddleHeader struct {
-	Header    cmn.TransactionHeader `json:"h"`
-	PreHeader []byte                `json:"p"`
+	Header    nsbrpc.TransactionHeader `json:"h"`
+	PreHeader []byte                   `json:"p"`
 }
 
 func (bn *BN) MustWithSigner() bool {
@@ -64,11 +66,11 @@ func (bn *BN) RouteRaw(destination uint64, payload []byte) ([]byte, error) {
 	// bug: buf.Reset()
 	buf := bytes.NewBuffer(make([]byte, 65535))
 
-	buf.Write(txHeader.Header.From)
-	buf.Write(txHeader.Header.ContractAddress)
+	buf.Write(txHeader.Header.Src)
+	buf.Write(txHeader.Header.Dst)
 	buf.Write(txHeader.Header.Data)
-	buf.Write(txHeader.Header.Value.Bytes())
-	buf.Write(txHeader.Header.Nonce.Bytes())
+	buf.Write(txHeader.Header.Value)
+	buf.Write(txHeader.Header.Nonce)
 	txHeader.Header.Signature = bn.signer.Sign(buf.Bytes()).Bytes()
 
 	if err != nil {
@@ -107,18 +109,18 @@ func (bn *BN) RouteRawTransaction(destination uint64, payload []byte) ([]byte, e
 	// bug: buf.Reset()
 	buf := bytes.NewBuffer(make([]byte, 65535))
 
-	buf.Write(txHeader.Header.From)
-	buf.Write(txHeader.Header.ContractAddress)
+	buf.Write(txHeader.Header.Src)
+	buf.Write(txHeader.Header.Dst)
 	buf.Write(txHeader.Header.Data)
-	buf.Write(txHeader.Header.Value.Bytes())
-	buf.Write(txHeader.Header.Nonce.Bytes())
+	buf.Write(txHeader.Header.Value)
+	buf.Write(txHeader.Header.Nonce)
 	txHeader.Header.Signature = bn.signer.Sign(buf.Bytes()).Bytes()
 
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := json.Marshal(txHeader.Header)
+	b, err := proto.Marshal(&txHeader.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +164,7 @@ func (bn *BN) Translate(
 		if err != nil {
 			return nil, err
 		}
-		txHeader.Header.Nonce = nsbmath.NewUint256FromBytes(nonce)
+		txHeader.Header.Nonce = nonce
 
 		// Data
 		var args appl.ArgsTransfer
@@ -187,9 +189,9 @@ func (bn *BN) Translate(
 		}
 
 		// Rest
-		txHeader.Header.ContractAddress = intent.Dst
-		txHeader.Header.From = intent.Src
-		txHeader.Header.Value = args.Value
+		txHeader.Header.Src = intent.Dst
+		txHeader.Header.Dst = intent.Src
+		txHeader.Header.Value = args.Value.Bytes()
 		txHeader.PreHeader = []byte("systemCall\x19system.token\x18")
 
 		return json.Marshal(txHeader)

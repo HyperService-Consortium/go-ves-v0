@@ -17,6 +17,7 @@ import (
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
+	tenbni "github.com/HyperService-Consortium/go-ves/lib/bni/ten"
 	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
@@ -25,6 +26,13 @@ type SessionRequireRawTransactService struct {
 	types.VESDB
 	context.Context
 	*uiprpc.SessionRequireRawTransactRequest
+}
+
+var bnis = map[uint64]uiptypes.BlockChainInterface{
+	1: new(ethbni.BN),
+	2: new(ethbni.BN),
+	3: new(tenbni.BN),
+	4: new(tenbni.BN),
 }
 
 func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTransactReply, error) {
@@ -40,6 +48,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	if err != nil {
 		return nil, err
 	}
+
 	var transactionIntent tx.TransactionIntent
 	err = s.FindTransaction(ses.GetGUID(), uint64(underTransacting), func(arg1 []byte) error {
 		err := json.Unmarshal(arg1, &transactionIntent)
@@ -48,6 +57,8 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	if err != nil {
 		return nil, err
 	}
+
+	bn := bnis[transactionIntent.ChainID]
 
 	if transactionIntent.TransType == transtype.ContractInvoke {
 		var meta uiptypes.ContractInvokeMeta
@@ -72,13 +83,13 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 					if err != nil {
 						return nil, err
 					}
-					pos, err := hex.DecodeString(result.Get("contract").String())
+					pos, err := hex.DecodeString(result.Get("pos").String())
 					if err != nil {
 						return nil, err
 					}
 					desc := []byte(result.Get("field").String())
 
-					v, err := new(ethbni.BN).GetStorageAt(transactionIntent.ChainID, intDesc, ca, pos, desc)
+					v, err := bn.GetStorageAt(transactionIntent.ChainID, intDesc, ca, pos, desc)
 					if err != nil {
 						return nil, err
 					}
@@ -92,11 +103,10 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 				}
 			}
 		}
-
 	}
 
 	var b []byte
-	b, err = (&ethbni.BN{}).Translate(&transactionIntent, s.GetGetter(ses.GetGUID()))
+	b, err = bn.Translate(&transactionIntent, s.GetGetter(ses.GetGUID()))
 	if err != nil {
 		return nil, err
 	}
