@@ -5,17 +5,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
+	"github.com/golang/protobuf/proto"
 	"io"
 	"strings"
 	"sync/atomic"
 	"time"
 
-	gjson "github.com/tidwall/gjson"
+	"github.com/tidwall/gjson"
 
-	request "github.com/HyperService-Consortium/go-ves/lib/net/request"
+	"github.com/HyperService-Consortium/go-ves/lib/net/request"
 	jsonrpcclient "github.com/HyperService-Consortium/go-ves/lib/net/rpc-client"
-
-	cmn "github.com/HyperService-Consortium/NSB/common"
 
 	bytespool "github.com/HyperService-Consortium/go-ves/lib/bytes-pool"
 )
@@ -489,44 +489,35 @@ func (nc *NSBClient) GetTransaction(hash string) ([]byte, error) {
 // }
 
 func (nc *NSBClient) sendContractTx(
-	transType, contractName []byte,
-	txContent *cmn.TransactionHeader,
+	transType uint8,
+	txContent *nsbrpc.TransactionHeader,
 ) (*ResultInfo, error) {
-	var b = make([]byte, 0, mxBytes)
-	var buf = bytes.NewBuffer(b)
-	buf.Write(transType)
-	buf.WriteByte(0x19)
-	buf.Write(contractName)
-	buf.WriteByte(0x18)
-	c, err := json.Marshal(txContent)
+	x, err := proto.Marshal(txContent)
 	if err != nil {
 		return nil, err
 	}
-	buf.Write(c)
-	// fmt.Println(string(c))
-	json.Unmarshal(c, txContent)
+	var b = make([]byte, 0, len(x)+1)
+	var buf = bytes.NewBuffer(b)
+	buf.WriteByte(transType)
+	buf.Write(x)
 
 	return nc.BroadcastTxCommit(buf.Bytes())
 }
 
 func (nc *NSBClient) sendContractTxAsync(
-	transType, contractName []byte,
-	txContent *cmn.TransactionHeader,
+	transType uint8,
+	txContent *nsbrpc.TransactionHeader,
 	option *AsyncOption,
 ) ([]byte, error) {
-	var b = make([]byte, 0, mxBytes)
-	var buf = bytes.NewBuffer(b)
-	buf.Write(transType)
-	buf.WriteByte(0x19)
-	buf.Write(contractName)
-	buf.WriteByte(0x18)
-	c, err := json.Marshal(txContent)
+
+	x, err := proto.Marshal(txContent)
 	if err != nil {
 		return nil, err
 	}
-	buf.Write(c)
-	// fmt.Println(string(c))
-	json.Unmarshal(c, txContent)
+	var b = make([]byte, 0, len(x)+1)
+	var buf = bytes.NewBuffer(b)
+	buf.WriteByte(transType)
+	buf.Write(x)
 
 	bb, err := nc.BroadcastTxAsync(buf.Bytes())
 	if err != nil {
