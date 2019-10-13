@@ -9,42 +9,41 @@ import (
 	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 )
 
-func (nc *NSBClient) UserAck(
+func (nc *NSBClient) FreezeInfo(
 	user uiptypes.Signer, contractAddress []byte,
-	address, signature []byte,
-) (*DeliverTx, error) {
+	tid uint64,
+) ([]byte, error) {
 	// fmt.Println(string(buf.Bytes()))
-	fap, err := nc.userAck(address, signature)
+	fap, err := nc.freezeInfo(tid)
 	if err != nil {
 		return nil, err
 	}
-	txHeader, err := nc.CreateContractPacket(user, contractAddress, []byte{0}, fap)
+	txHeader, err := nc.CreateContractPacket(user, nil, []byte{0}, fap)
 	if err != nil {
 		return nil, err
 	}
-	ret, err := nc.sendContractTx(transactiontype.SendTransaction, txHeader)
+	_, err = nc.sendContractTx(transactiontype.SendTransaction, txHeader)
 	if err != nil {
 		return nil, err
 	}
 	// fmt.Println(PretiStruct(ret), err)
-	return &ret.DeliverTx, nil
+	return nil, nil
 }
 
-func (nc *NSBClient) userAck(
-	address, signature []byte,
+func (nc *NSBClient) freezeInfo(
+	tid uint64,
 ) (*nsbrpc.FAPair, error) {
-
-	var args ISC.ArgsUserAck
-	args.Address = address
-	args.Signature = signature
+	var args ISC.ArgsFreezeInfo
+	args.Tid = tid
 	b, err := json.Marshal(args)
 	if err != nil {
 		return nil, err
 	}
 
 	var fap = new(nsbrpc.FAPair)
-	fap.FuncName = "UserAck"
+	fap.FuncName = "SettleContract"
 	fap.Args = b
 	// fmt.Println(PretiStruct(args), b)
-	return fap, err
+	return fap, nil
 }
+

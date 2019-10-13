@@ -21,7 +21,7 @@ func (nc *NSBClient) InsuranceClaim(
 	if err != nil {
 		return nil, err
 	}
-	ret, err := nc.sendContractTx(transactiontype.CreateContract, txHeader)
+	ret, err := nc.sendContractTx(transactiontype.SendTransaction, txHeader)
 	if err != nil {
 		return nil, err
 	}
