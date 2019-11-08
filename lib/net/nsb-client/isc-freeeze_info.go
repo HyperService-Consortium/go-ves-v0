@@ -18,7 +18,7 @@ func (nc *NSBClient) FreezeInfo(
 	if err != nil {
 		return nil, err
 	}
-	txHeader, err := nc.CreateContractPacket(user, nil, []byte{0}, fap)
+	txHeader, err := nc.CreateContractPacket(user, contractAddress, []byte{0}, fap)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (nc *NSBClient) freezeInfo(
 	}
 
 	var fap = new(nsbrpc.FAPair)
-	fap.FuncName = "SettleContract"
+	fap.FuncName = "FreezeInfo"
 	fap.Args = b
 	// fmt.Println(PretiStruct(args), b)
 	return fap, nil

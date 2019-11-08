@@ -1,5 +1,5 @@
 {
-    "Op-intent": [{
+    "op-intents": [{
 		"name":    "Op1",
 		"op_type": "Payment",
 		"src": {

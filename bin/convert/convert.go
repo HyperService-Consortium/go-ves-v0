@@ -13,7 +13,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	dst := make([]byte, 200)
+	dst := make([]byte, 20000)
 	base64.StdEncoding.Encode(dst, b)
 	fmt.Println(string(dst[:base64.StdEncoding.EncodedLen(len(b))]))
 }

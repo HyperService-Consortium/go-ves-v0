@@ -311,7 +311,7 @@ func (vc *VesClient) SayClientHello(name []byte) error {
 }
 
 type opIntents struct {
-	Intents      []json.RawMessage `json:"Op-intents"`
+	Intents      []json.RawMessage `json:"op-intents"`
 	Dependencies []json.RawMessage `json:"dependencies"`
 }
 
@@ -322,19 +322,32 @@ func convRaw(rs []json.RawMessage) (ret [][]byte) {
 	return ret
 }
 
-func (vc *VesClient) SendOpIntents(filePath string, fileBuffer []byte) error {
-
+func (vc *VesClient) readOpIntents(filePath string, fileBuffer []byte)  (opIntents, error) {
+	var intents opIntents
 	file, err := os.Open(filePath)
 	if err != nil {
-		return err
+		return intents, err
 	}
 
 	var n int
 	n, err = io.ReadFull(file, fileBuffer)
-	file.Close()
+	_ = file.Close()
 	if err != nil && err != io.ErrUnexpectedEOF {
+		return intents, err
+	}
+	err = json.Unmarshal(fileBuffer[:n], &intents)
+	if err != nil {
+		return intents, fmt.Errorf("Unmarshal failed: %v", err)
+	}
+	return intents, nil
+}
+
+func (vc *VesClient) SendOpIntents(filePath string, fileBuffer []byte) error {
+	intents, err := vc.readOpIntents(filePath, fileBuffer)
+	if err != nil {
 		return err
 	}
+
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(mAddress, grpc.WithInsecure())
 	if err != nil {
@@ -343,13 +356,8 @@ func (vc *VesClient) SendOpIntents(filePath string, fileBuffer []byte) error {
 	defer conn.Close()
 	c := uiprpc.NewVESClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	var intents opIntents
-	err = json.Unmarshal(fileBuffer[:n], &intents)
-	if err != nil {
-		return fmt.Errorf("Unmarshal failed: %v", err)
-	}
 	fmt.Println(filePath, "intents", intents)
 	r, err := c.SessionStart(
 		ctx,

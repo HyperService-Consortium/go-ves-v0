@@ -155,15 +155,18 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 		return nil, nil, fmt.Errorf("request isc failed: %v", err)
 	}
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("request isc failed on request: %v", err)
 	}
 	err = ses.AfterInitGUID()
-	fmt.Println("after init guid...")
+	fmt.Println("after init guid...", ses.ISCAddress, hex.EncodeToString(ses.ISCAddress))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	s.InsertSessionInfo(ses)
+	err = s.InsertSessionInfo(ses)
+	if err != nil {
+		return nil, nil, err
+	}
 	for i := uint32(0); i < ses.TransactionCount; i++ {
 		fmt.Println(s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i)))
 	}
