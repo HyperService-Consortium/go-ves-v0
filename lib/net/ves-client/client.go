@@ -400,7 +400,7 @@ func (vc *VesClient) postRawMessage(code wsrpc.MessageType, dst *uipbase.Account
 	return vc.postMessage(wsrpc.CodeRawProto, s)
 }
 
-func (vc *VesClient) sendMessage(to, msg []byte) error {
+func (vc *VesClient) SendMessage(to, msg []byte) error {
 	shortSendMessage := vc.getShortSendMessage()
 	shortSendMessage.From = vc.name
 	shortSendMessage.To = to
@@ -499,4 +499,23 @@ func (vc *VesClient) getRespSigner(acc *uipbase.Account) (uiptypes.Signer, error
 	}
 
 	return nil, errNotFound
+}
+
+func (vc *VesClient) ListKeys() {
+	fmt.Println("privatekeys -> publickeys:")
+	for alias, key := range vc.keys.Alias {
+		fmt.Println(
+			"alias:", alias,
+			"public key:", hex.EncodeToString(signaturer.NewTendermintNSBSigner(key.PrivateKey).GetPublicKey()),
+			"chain id:", key.ChainID,
+		)
+	}
+	fmt.Println("ethAccounts:")
+	for alias, acc := range vc.accs.Alias {
+		fmt.Println(
+			"alias:", alias,
+			"public address:", acc.Address,
+			"chain id:", acc.ChainID,
+		)
+	}
 }

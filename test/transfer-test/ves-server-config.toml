@@ -1,0 +1,27 @@
+# ves-server toml sample
+
+###################
+# ves-server.toml #
+###################
+
+
+[database]
+engine = "xorm"
+type = "mysql"
+user_name = "ves"
+password = "123456"
+connection_type = "tcp"
+hsot = "127.0.0.1:3306"
+base_name = "ves"
+encoding = "utf8"
+
+
+[kvdb]
+type = "leveldb"
+path = "./data/"
+
+[server]
+port = ":23351"
+central_ves_address = "127.0.0.1:23352"
+
+

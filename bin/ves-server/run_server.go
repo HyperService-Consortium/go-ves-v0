@@ -3,14 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	config2 "github.com/HyperService-Consortium/go-ves/config"
 	"log"
 
 	"encoding/hex"
 
-	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
-	index "github.com/HyperService-Consortium/go-ves/lib/database/index"
+	"github.com/HyperService-Consortium/go-uip/signaturer"
+	"github.com/HyperService-Consortium/go-ves/lib/database/index"
 	multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types"
 
 	ves_server "github.com/HyperService-Consortium/go-ves/ves"
 )
@@ -20,10 +21,10 @@ var (
 )
 
 func main() {
-	if *cfgPath != cfgContext {
-		ResetPath(*cfgPath)
+	if *cfgPath != config2.CfgContext {
+		config2.ResetPath(*cfgPath)
 	}
-	var config = Config()
+	var config = config2.Config()
 	var err error
 
 	var muldb types.MultiIndex

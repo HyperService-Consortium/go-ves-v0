@@ -149,7 +149,7 @@ func (vc *VesClient) read() {
 				hex.EncodeToString(attestationSendingRequest.GetAccount().GetAddress()),
 			)
 
-			raw, tid, src, dst, err := vc.getRawTransaction(
+			raw, tid, src, dst, err := vc.GetRawTransaction(
 				attestationSendingRequest.GetSessionId(),
 				attestationSendingRequest.GetGrpcHost(),
 			)

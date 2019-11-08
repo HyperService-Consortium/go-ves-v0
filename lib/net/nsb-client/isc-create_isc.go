@@ -20,7 +20,6 @@ func (nc *NSBClient) CreateISC(
 	bytesTransactionIntents [][]byte,
 	vesSig []byte,
 ) ([]byte, error) {
-	// fmt.Println(string(buf.Bytes()))
 	fap, err := nc.createISC(funds, iscOwners, bytesTransactionIntents, vesSig)
 	if err != nil {
 		return nil, err
@@ -33,7 +32,6 @@ func (nc *NSBClient) CreateISC(
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println(PretiStruct(ret), err)
 	return ret.DeliverTx.Data, nil
 }
 

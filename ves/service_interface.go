@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	log "github.com/HyperService-Consortium/go-ves/lib/log"
-	service "github.com/HyperService-Consortium/go-ves/ves/service"
+	"github.com/HyperService-Consortium/go-ves/ves/service"
 	"golang.org/x/net/context"
 )
 
@@ -32,6 +32,7 @@ func (server *Server) SessionStart(
 	log.Infof("session start requesting\n")
 	return (&service.SessionStartService{
 		Signer:              server.signer,
+		NsbClient:           server.nsbClient,
 		CVes:                server.cves,
 		VESDB:               server.db,
 		Context:             ctx,

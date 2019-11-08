@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 	"io"
 	"net"
 	"time"
@@ -29,10 +30,12 @@ import (
 
 // Server provides the basic service of session
 type Server struct {
-	db     types.VESDB
-	resp   *uipbase.Account
-	signer *signaturer.TendermintNSBSigner
-	cves   uiprpc.CenteredVESClient
+	db        types.VESDB
+	resp      *uipbase.Account
+	signer    *signaturer.TendermintNSBSigner
+	cves      uiprpc.CenteredVESClient
+	nsbClient *nsbcli.NSBClient
+
 	// mutex sync.Mutex
 	// mup  map[uint16]bool
 }
@@ -61,15 +64,41 @@ func migrate(
 	return nil
 }
 
+type NSBHostOption string
+
+type ServerOptions struct {
+	nsbHost NSBHostOption
+}
+
+func defaultServerOptions() ServerOptions {
+	return ServerOptions{
+		nsbHost: "localhost:26657",
+	}
+}
+
+func parseOptions(rOptions []interface{}) ServerOptions {
+	var options = defaultServerOptions()
+	for i := range rOptions {
+	switch option := rOptions[i].(type) {
+	case NSBHostOption:
+		options.nsbHost = option
+	}
+	}
+	return options
+}
+
+
+
 // NewServer return a pointer of Server
 func NewServer(
 	muldb types.MultiIndex,
 	sindb types.Index,
 	migrateFunction MigrateFunction,
 	signer *signaturer.TendermintNSBSigner,
+	rOptions ...interface{},
 ) (*Server, error) {
 	var server = new(Server)
-
+	options := parseOptions(rOptions)
 	server.signer = signer
 	server.resp = &uipbase.Account{Address: server.signer.GetPublicKey(), ChainId: 3}
 
@@ -87,6 +116,8 @@ func NewServer(
 	server.db.SetSessionBase(session.NewMultiThreadSerialSessionBase())
 	server.db.SetSessionKVBase(new(kvdb.Database))
 
+	log.Println("will connect to remote nsb host", options.nsbHost)
+	server.nsbClient = nsbcli.NewNSBClient(string(options.nsbHost))
 	return server, nil
 }
 

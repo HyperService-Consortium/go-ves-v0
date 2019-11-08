@@ -17,6 +17,7 @@ type Resp = req.Resp
 type Header = req.Header
 
 func get(s string, v ...interface{}) (io.ReadCloser, error) {
+	fmt.Println("url", s, "params", v)
 	resp, err := req.Get(s, v...)
 	if err != nil {
 		return nil, err

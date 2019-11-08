@@ -55,7 +55,7 @@ func (vc *VesClient) write() {
 				continue
 			}
 			vc.name = bytes.TrimSpace(vc.name)
-			if err = vc.sayClientHello(vc.name); err != nil {
+			if err = vc.SayClientHello(vc.name); err != nil {
 				log.Println(err)
 				continue
 			}
@@ -66,7 +66,7 @@ func (vc *VesClient) write() {
 				log.Println(err)
 				continue
 			}
-			if err = vc.sendMessage(
+			if err = vc.SendMessage(
 				bytes.TrimSpace(toBytes),
 				bytes.TrimSpace(buf.Bytes()),
 			); err != nil {
@@ -80,8 +80,8 @@ func (vc *VesClient) write() {
 				continue
 			}
 
-			if err = vc.registerKey(
-				bytes.TrimSpace(filePath),
+			if err = vc.ConfigKey(
+				string(bytes.TrimSpace(filePath)),
 				fileBuffer,
 			); err != nil {
 				log.Println(err)
@@ -94,8 +94,8 @@ func (vc *VesClient) write() {
 				continue
 			}
 
-			if err = vc.configEth(
-				bytes.TrimSpace(filePath),
+			if err = vc.ConfigEth(
+				string(bytes.TrimSpace(filePath)),
 				fileBuffer,
 			); err != nil {
 				log.Println(err)
@@ -108,7 +108,7 @@ func (vc *VesClient) write() {
 				continue
 			}
 
-			if err = vc.sendEthAlias(
+			if err = vc.SendEthAlias(
 				bytes.TrimSpace(alias),
 			); err != nil {
 				log.Println(err)
@@ -120,29 +120,14 @@ func (vc *VesClient) write() {
 				log.Println(err)
 				continue
 			}
-			if err = vc.sendAlias(
+			if err = vc.SendAlias(
 				bytes.TrimSpace(alias),
 			); err != nil {
 				log.Println(err)
 				continue
 			}
 		case "keys":
-			fmt.Println("privatekeys -> publickeys:")
-			for alias, key := range vc.keys.Alias {
-				fmt.Println(
-					"alias:", alias,
-					"public key:", hex.EncodeToString(signaturer.NewTendermintNSBSigner(key.PrivateKey).GetPublicKey()),
-					"chain id:", key.ChainID,
-				)
-			}
-			fmt.Println("ethAccounts:")
-			for alias, acc := range vc.accs.Alias {
-				fmt.Println(
-					"alias:", alias,
-					"public address:", acc.Address,
-					"chain id:", acc.ChainID,
-				)
-			}
+			vc.ListKeys()
 		case "send-op-intents":
 			filePath, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
@@ -150,8 +135,8 @@ func (vc *VesClient) write() {
 				continue
 			}
 
-			if err = vc.sendOpIntents(
-				bytes.TrimSpace(filePath),
+			if err = vc.SendOpIntents(
+				string(bytes.TrimSpace(filePath)),
 				fileBuffer,
 			); err != nil {
 				log.Println(err)
@@ -162,8 +147,8 @@ func (vc *VesClient) write() {
 	}
 }
 
-func (vc *VesClient) registerKey(filePath, fileBuffer []byte) error {
-	file, err := os.Open(string(filePath))
+func (vc *VesClient) ConfigKey(filePath string, fileBuffer []byte) error {
+	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
@@ -209,8 +194,8 @@ func (vc *VesClient) registerKey(filePath, fileBuffer []byte) error {
 	return nil
 }
 
-func (vc *VesClient) configEth(filePath, fileBuffer []byte) error {
-	file, err := os.Open(string(filePath))
+func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
+	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
@@ -263,7 +248,7 @@ func (vc *VesClient) configEth(filePath, fileBuffer []byte) error {
 	return nil
 }
 
-func (vc *VesClient) sendEthAlias(alias []byte) error {
+func (vc *VesClient) SendEthAlias(alias []byte) error {
 	if acc, ok := vc.accs.Alias[*(*string)(unsafe.Pointer(&alias))]; ok {
 		userRegister := vc.getUserRegisterRequest()
 		b, _ := hex.DecodeString(acc.Address)
@@ -302,7 +287,7 @@ func (vc *VesClient) sendEthAlias(alias []byte) error {
 	return errNotFound
 }
 
-func (vc *VesClient) sendAlias(alias []byte) error {
+func (vc *VesClient) SendAlias(alias []byte) error {
 	if key, ok := vc.keys.Alias[*(*string)(unsafe.Pointer(&alias))]; ok {
 		userRegister := vc.getUserRegisterRequest()
 
@@ -318,7 +303,7 @@ func (vc *VesClient) sendAlias(alias []byte) error {
 	return errNotFound
 }
 
-func (vc *VesClient) sayClientHello(name []byte) error {
+func (vc *VesClient) SayClientHello(name []byte) error {
 	clientHello := vc.getClientHello()
 	clientHello.Name = name
 
@@ -337,9 +322,9 @@ func convRaw(rs []json.RawMessage) (ret [][]byte) {
 	return ret
 }
 
-func (vc *VesClient) sendOpIntents(filePath, fileBuffer []byte) error {
+func (vc *VesClient) SendOpIntents(filePath string, fileBuffer []byte) error {
 
-	file, err := os.Open(string(filePath))
+	file, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
@@ -365,7 +350,7 @@ func (vc *VesClient) sendOpIntents(filePath, fileBuffer []byte) error {
 	if err != nil {
 		return fmt.Errorf("Unmarshal failed: %v", err)
 	}
-	fmt.Println(intents)
+	fmt.Println(filePath, "intents", intents)
 	r, err := c.SessionStart(
 		ctx,
 		&uiprpc.SessionStartRequest{
@@ -381,7 +366,7 @@ func (vc *VesClient) sendOpIntents(filePath, fileBuffer []byte) error {
 	return nil
 }
 
-func (vc *VesClient) getRawTransaction(sessionID, host []byte) (
+func (vc *VesClient) GetRawTransaction(sessionID, host []byte) (
 	[]byte, uint64, *uipbase.Account, *uipbase.Account, error,
 ) {
 	mhost, err := helper.DecodeIP(host)

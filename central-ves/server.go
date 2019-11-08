@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 
 	grpc "google.golang.org/grpc"
 	reflection "google.golang.org/grpc/reflection"
@@ -44,11 +45,38 @@ type Server struct {
 	hub     *Hub
 	vesdb   types.VESDB
 	rpcport string
+	nsbip []byte
 }
 
+type NSBHostOption string
+
+type ServerOptions struct {
+	nsbHost NSBHostOption
+}
+
+func defaultServerOptions() ServerOptions {
+	return ServerOptions{
+		nsbHost: "127.0.0.1:26657",
+	}
+}
+
+func parseOptions(rOptions []interface{}) ServerOptions {
+	var options = defaultServerOptions()
+	for i := range rOptions {
+		switch option := rOptions[i].(type) {
+		case NSBHostOption:
+			options.nsbHost = option
+		}
+	}
+	return options
+}
+
+
 // NewServer return a pointer of Server
-func NewServer(rpcport, addr string, db types.VESDB) (srv *Server) {
+func NewServer(rpcport, addr string, db types.VESDB, rOptions ...interface{}) (srv *Server, err error) {
+	options := parseOptions(rOptions)
 	srv = &Server{Server: new(http.Server)}
+	srv.nsbip, err = HostFromString(options.nsbHost)
 	srv.hub = newHub()
 	srv.hub.server = srv
 	srv.vesdb = db
@@ -56,6 +84,15 @@ func NewServer(rpcport, addr string, db types.VESDB) (srv *Server) {
 	srv.Addr = addr
 	srv.rpcport = rpcport
 	return
+}
+
+func HostFromString(option NSBHostOption) ([]byte, error) {
+	r := strings.TrimPrefix(string(strings.TrimPrefix(string(option), "https://")), "http://")
+	addr, err := net.ResolveTCPAddr("", r)
+	if err != nil {
+		return nil, err
+	}
+	return append(addr.IP.To4(), byte(addr.Port >> 8), byte(addr.Port & 0xff)), nil
 }
 
 func (srv *Server) ListenAndServeRpc(port string) {
@@ -161,7 +198,7 @@ func (srv *Server) AttestationSending(accounts []uiptypes.Account, iscAddress, g
 
 func (srv *Server) requestComing(acc uiptypes.Account, iscAddress, grpcHost []byte) error {
 	var msg wsrpc.RequestComingRequest
-	msg.NsbHost = nsbip
+	msg.NsbHost = srv.nsbip
 	msg.GrpcHost = grpcHost
 	msg.SessionId = iscAddress
 	msg.Account = &uipbase.Account{
@@ -180,7 +217,7 @@ func (srv *Server) requestComing(acc uiptypes.Account, iscAddress, grpcHost []by
 
 func (srv *Server) attestationSending(acc uiptypes.Account, iscAddress, grpcHost []byte) error {
 	var msg wsrpc.RequestComingRequest
-	msg.NsbHost = nsbip
+	msg.NsbHost = srv.nsbip
 	msg.GrpcHost = grpcHost
 	msg.SessionId = iscAddress
 	msg.Account = &uipbase.Account{

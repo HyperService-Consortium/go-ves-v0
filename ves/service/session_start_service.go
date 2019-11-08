@@ -18,13 +18,12 @@ import (
 	session "github.com/HyperService-Consortium/go-ves/types/session"
 )
 
-var nsbClient = nsbcli.NewNSBClient("47.251.2.73:26657")
-
 type SessionStartService = MultiThreadSerialSessionStartService
 
 type SerialSessionStartService struct {
-	Signer uiptypes.Signer
-	CVes   uiprpc.CenteredVESClient
+	Signer    uiptypes.Signer
+	NsbClient *nsbcli.NSBClient
+	CVes      uiprpc.CenteredVESClient
 	types.VESDB
 	context.Context
 	*uiprpc.SessionStartRequest
@@ -50,7 +49,7 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 		btxs = append(btxs, b)
 	}
 	// fmt.Println("accs, txs", owners, txs)
-	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
+	return s.NsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
 }
 
 func (s *SerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
@@ -70,7 +69,7 @@ func (s *SerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, 
 	}
 	s.InsertSessionInfo(ses)
 	for i := uint32(0); i < ses.TransactionCount; i++ {
-		fmt.Println(nsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i)))
+		fmt.Println(s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i)))
 	}
 	// s.UpdateTxs
 	// s.UpdateAccs
@@ -109,8 +108,9 @@ func (s *SerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
 }
 
 type MultiThreadSerialSessionStartService struct {
-	Signer uiptypes.Signer
-	CVes   uiprpc.CenteredVESClient
+	Signer    uiptypes.Signer
+	NsbClient *nsbcli.NSBClient
+	CVes      uiprpc.CenteredVESClient
 	types.VESDB
 	context.Context
 	*uiprpc.SessionStartRequest
@@ -136,7 +136,7 @@ func (s *MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb type
 		btxs = append(btxs, b)
 	}
 	// fmt.Println("accs, txs", owners, txs)
-	return nsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
+	return s.NsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
 }
 
 func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
@@ -165,7 +165,7 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 
 	s.InsertSessionInfo(ses)
 	for i := uint32(0); i < ses.TransactionCount; i++ {
-		fmt.Println(nsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i)))
+		fmt.Println(s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i)))
 	}
 	// s.UpdateTxs
 	// s.UpdateAccs

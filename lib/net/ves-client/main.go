@@ -51,7 +51,7 @@ func Main() {
 	go phandler.atExit()
 	go vcClient.read()
 
-	vcClient.sayClientHello(vcClient.name)
+	vcClient.SayClientHello(vcClient.name)
 
 	go vcClient.write()
 

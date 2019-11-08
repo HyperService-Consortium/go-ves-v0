@@ -32,7 +32,7 @@ func VanilleMakeClient(name, addr string) (*VesClient, error) {
 		return nil, err
 	}
 
-	if err = vcClient.sayClientHello(vcClient.name); err != nil {
+	if err = vcClient.SayClientHello(vcClient.name); err != nil {
 		return nil, err
 	}
 

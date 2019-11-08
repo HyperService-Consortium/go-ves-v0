@@ -6,6 +6,7 @@ import (
 	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 	"github.com/golang/protobuf/proto"
 	"math/rand"
+	"time"
 )
 
 func (nc *NSBClient) CreateContractPacket(
@@ -46,4 +47,9 @@ func (nc *NSBClient) CreateNormalPacket(
 	buf.Write(txHeader.Nonce)
 	txHeader.Signature = s.Sign(buf.Bytes()).Bytes()
 	return txHeader, nil
+}
+
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }

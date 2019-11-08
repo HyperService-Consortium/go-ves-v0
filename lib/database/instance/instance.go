@@ -1,25 +1,15 @@
-package main
+package dbinstance
 
 import (
-	"flag"
 	"fmt"
-	"log"
-
-	types "github.com/HyperService-Consortium/go-ves/types"
-	vesdb "github.com/HyperService-Consortium/go-ves/types/database"
-	kvdb "github.com/HyperService-Consortium/go-ves/types/kvdb"
-	session "github.com/HyperService-Consortium/go-ves/types/session"
-	user "github.com/HyperService-Consortium/go-ves/types/user"
-
-	index "github.com/HyperService-Consortium/go-ves/lib/database/index"
+	"github.com/HyperService-Consortium/go-ves/lib/database/index"
 	multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
-
-	centered_ves_server "github.com/HyperService-Consortium/go-ves/central-ves"
+	"github.com/HyperService-Consortium/go-ves/types"
+	vesdb "github.com/HyperService-Consortium/go-ves/types/database"
+	"github.com/HyperService-Consortium/go-ves/types/kvdb"
+	"github.com/HyperService-Consortium/go-ves/types/session"
+	"github.com/HyperService-Consortium/go-ves/types/user"
 )
-
-const port = ":23352"
-
-var addr = flag.String("port", ":23452", "http service address")
 
 func XORMMigrate(muldb types.MultiIndex) (err error) {
 	var xorm_muldb = muldb.(*multi_index.XORMMultiIndexImpl)
@@ -34,7 +24,7 @@ func XORMMigrate(muldb types.MultiIndex) (err error) {
 	return nil
 }
 
-func makeDB() types.VESDB {
+func MakeDB() types.VESDB {
 
 	var db = new(vesdb.Database)
 	var err error
@@ -63,15 +53,4 @@ func makeDB() types.VESDB {
 	db.SetSessionBase(new(session.SerialSessionBase))
 	db.SetSessionKVBase(new(kvdb.Database))
 	return db
-}
-
-func main() {
-	flag.Parse()
-	srv, err := centered_ves_server.NewServer(port, *addr, makeDB())
-	if err != nil {
-		log.Fatalf("Create Server: %v\n", err)
-	}
-	if err = srv.Start(); err != nil {
-		log.Fatalf("ListenAndServe: %v\n", err)
-	}
 }

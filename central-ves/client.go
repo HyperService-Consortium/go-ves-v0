@@ -162,7 +162,7 @@ func (c *Client) readPump() {
 
 			var t wsrpc.ClientHelloReply
 			t.GrpcHost = grpcips[0]
-			t.NsbHost = nsbip
+			t.NsbHost = c.hub.server.nsbip
 
 			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeClientHelloReply, &t)
 			if err != nil {
