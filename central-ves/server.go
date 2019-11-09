@@ -205,12 +205,12 @@ func (srv *Server) requestComing(acc uiptypes.Account, iscAddress, grpcHost []by
 		Address: acc.GetAddress(),
 		ChainId: acc.GetChainId(),
 	}
-	qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeRequestComingRequest, &msg)
+	packet, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeRequestComingRequest, &msg)
 	if err != nil {
 		return err
 	}
-	srv.hub.unicast <- &uniMessage{acc.GetChainId(), acc.GetAddress(), qwq.Bytes(), func() {
-		wsrpc.GetDefaultSerializer().Put(qwq)
+	srv.hub.unicast <- &uniMessage{acc.GetChainId(), acc.GetAddress(), packet.Bytes(), func() {
+		wsrpc.GetDefaultSerializer().Put(packet)
 	}}
 	return nil
 }
@@ -227,12 +227,12 @@ func (srv *Server) attestationSending(acc uiptypes.Account, iscAddress, grpcHost
 
 	// log.Infof("attestating network gate", )
 
-	qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeAttestationSendingRequest, &msg)
+	packet, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeAttestationSendingRequest, &msg)
 	if err != nil {
 		return err
 	}
-	srv.hub.unicast <- &uniMessage{acc.GetChainId(), acc.GetAddress(), qwq.Bytes(), func() {
-		wsrpc.GetDefaultSerializer().Put(qwq)
+	srv.hub.unicast <- &uniMessage{acc.GetChainId(), acc.GetAddress(), packet.Bytes(), func() {
+		wsrpc.GetDefaultSerializer().Put(packet)
 	}}
 	return nil
 }
@@ -274,12 +274,12 @@ func (srv *Server) closeSession(acc uiptypes.Account, iscAddress, grpcHost, nsbH
 
 	// log.Infof("attestating network gate", )
 
-	qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeCloseSessionRequest, &msg)
+	packet, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeCloseSessionRequest, &msg)
 	if err != nil {
 		return err
 	}
-	srv.hub.unicast <- &uniMessage{acc.GetChainId(), acc.GetAddress(), qwq.Bytes(), func() {
-		wsrpc.GetDefaultSerializer().Put(qwq)
+	srv.hub.unicast <- &uniMessage{acc.GetChainId(), acc.GetAddress(), packet.Bytes(), func() {
+		wsrpc.GetDefaultSerializer().Put(packet)
 	}}
 	return nil
 }

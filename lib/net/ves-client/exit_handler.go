@@ -24,7 +24,7 @@ func (h *handler) atExit() {
 	for {
 		select {
 		case osc := <-osQuitSignalChan:
-			log.Infoln("handlering:", osc)
+			log.Infoln("handling:", osc)
 			for _, f := range h.funcs {
 				f()
 			}
@@ -39,3 +39,8 @@ func init() {
 	phandler = new(handler)
 	go phandler.atExit()
 }
+
+func StartDaemon() {
+	go phandler.atExit()
+}
+

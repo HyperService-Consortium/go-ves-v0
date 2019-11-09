@@ -5,36 +5,49 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/Myriad-Dreamin/minimum-lib/logger"
 	"io"
-	"log"
+	"net/url"
 	"sync"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 
 	signaturetype "github.com/HyperService-Consortium/go-uip/const/signature_type"
-	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
+	"github.com/HyperService-Consortium/go-uip/signaturer"
 	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
 	nsbbni "github.com/HyperService-Consortium/go-ves/lib/bni/ten"
-	filedb "github.com/HyperService-Consortium/go-ves/lib/database/filedb"
+	"github.com/HyperService-Consortium/go-ves/lib/database/filedb"
 	nsbclient "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 // VesClient is the web socket client interactive with veses
 type VesClient struct {
 	rwMutex sync.RWMutex
+	logger  logger.Logger
 
 	name   []byte
 	signer uiptypes.Signer
+	keys   *ECCKeys
+	accs   *EthAccounts
+
+	conn      *websocket.Conn
+	nsbClient *nsbclient.NSBClient
+	waitOpt   *uiptypes.WaitOption
 
 	cb   chan *bytes.Buffer
 	quit chan bool
+
+	fdb *filedb.FileDB
+
+	nsbip  string
+	grpcip string
 
 	rawMessage                *wsrpc.RawMessage
 	shortSendMessage          *wsrpc.Message
@@ -62,26 +75,72 @@ type VesClient struct {
 	attestationReceiveReply          *wsrpc.AttestationReceiveReply
 
 	sessionStart *uiprpc.SessionStartRequest
+}
 
-	conn      *websocket.Conn
-	nsbClient *nsbclient.NSBClient
-	waitOpt   *uiptypes.WaitOption
+type CVesHostOption string
+type VesName []byte
 
-	fdb *filedb.FileDB
+type ServerOptions struct {
+	logger  logger.Logger
+	waitOpt *uiptypes.WaitOption
+	addr    string
+	vesName []byte
+}
 
-	keys *ECCKeys
-	accs *EthAccounts
+var globalLogger = logger.NewStdLogger()
 
-	nsbip  string
-	grpcip string
+func defaultServerOptions() ServerOptions {
+	return ServerOptions{
+		logger:  globalLogger,
+		waitOpt: uiptypes.NewWaitOption(),
+		addr:    "127.0.0.1:23452",
+	}
+}
+
+func parseOptions(rOptions []interface{}) ServerOptions {
+	var options = defaultServerOptions()
+	for i := range rOptions {
+		switch option := rOptions[i].(type) {
+		case logger.Logger:
+			options.logger = option
+		case *uiptypes.WaitOption:
+			options.waitOpt = option
+		case CVesHostOption:
+			options.addr = string(option)
+		case VesName:
+			options.vesName = option
+		}
+	}
+	return options
 }
 
 // NewVesClient return a pointer of VesClinet
-func NewVesClient() (vc *VesClient, err error) {
+func NewVesClient(rOptions ...interface{}) (vc *VesClient, err error) {
+	options := parseOptions(rOptions)
 	vc = &VesClient{
 		cb:        make(chan *bytes.Buffer, 1),
 		quit:      make(chan bool, 1),
 		nsbClient: nsbclient.NewNSBClient(host),
+		logger:    options.logger,
+		waitOpt:   options.waitOpt,
+		name:      options.vesName,
+	}
+
+	vc.conn, _, err = new(websocket.Dialer).Dial((&url.URL{Scheme: "ws", Host: options.addr, Path: "/"}).String(), nil)
+	return
+}
+
+func (vc *VesClient) Boot() (err error) {
+	if err = vc.load(dataPrefix + "/" + string(vc.name)); err != nil {
+		vc.logger.Error("load config from filepath error", "path", dataPrefix + "/" + string(vc.name), "error", err)
+		return
+	}
+	phandler.register(vc.save)
+
+	go vc.read()
+	if err = vc.SayClientHello(vc.name); err != nil {
+		vc.logger.Error("say client hello error", "error", err)
+		return
 	}
 	return
 }
@@ -143,10 +202,10 @@ bad_load_accs:
 func (vc *VesClient) save() {
 	var err error
 	if err = vc.updateKeys(); err != nil {
-		log.Println(err)
+		vc.logger.Error("update keys failed", "error", err)
 	}
 	if err = vc.updateAccs(); err != nil {
-		log.Println(err)
+		vc.logger.Error("update accounts failed", "error", err)
 	}
 }
 

@@ -29,12 +29,12 @@ func (vc *VesClient) read() {
 	for {
 		_, message, err := vc.conn.ReadMessage()
 		if err != nil {
-			log.Errorln("VesClient.read.read:", err)
+			vc.logger.Error("VesClient.read.read", "error", err)
 			return
 		}
 
 		tag := md5.Sum(message)
-		log.Infoln("message tag", hex.EncodeToString(tag[:]))
+		log.Infoln(string(vc.name), "message from server tag", hex.EncodeToString(tag[:]))
 
 		var buf = bytes.NewBuffer(message)
 		var messageID uint16
@@ -47,7 +47,7 @@ func (vc *VesClient) read() {
 
 			err = proto.Unmarshal(buf.Bytes(), messageReply)
 			if err != nil {
-				log.Errorln("VesClient.read.MessageReply.proto:", err)
+				vc.logger.Error("VesClient.read.MessageReply.proto", "error", err)
 				continue
 			}
 
@@ -59,20 +59,20 @@ func (vc *VesClient) read() {
 
 			err = proto.Unmarshal(buf.Bytes(), clientHelloReply)
 			if err != nil {
-				log.Errorln("VesClient.read.ClientHelloReply.proto:", err)
+				vc.logger.Error("VesClient.read.ClientHelloReply.proto", "error", err)
 				continue
 			}
 
 			vc.grpcip, err = helper.DecodeIP(clientHelloReply.GetGrpcHost())
 			if err != nil {
-				log.Errorln("VesClient.read.ClientHelloReply.decodeGRPCHost:", err)
+				vc.logger.Error("VesClient.read.ClientHelloReply.decodeGRPCHost", "error", err)
 			} else {
 				log.Infoln("adding default grpcip ", vc.grpcip)
 			}
 
 			vc.nsbip, err = helper.DecodeIP(clientHelloReply.GetNsbHost())
 			if err != nil {
-				log.Errorln("VesClient.read.ClientHelloReply.decodeNSBHost:", err)
+				vc.logger.Error("VesClient.read.ClientHelloReply.decodeNSBHost", "error", err)
 			} else {
 				log.Infoln("adding default nsbip ", vc.nsbip)
 			}
@@ -82,25 +82,25 @@ func (vc *VesClient) read() {
 
 			err = proto.Unmarshal(buf.Bytes(), requestComingRequest)
 			if err != nil {
-				log.Errorln("VesClient.read.RequestComingRequest.proto:", err)
+				vc.logger.Error("VesClient.read.RequestComingRequest.proto", "error", err)
 				continue
 			}
 
 			fmt.Println(
-				"new session request comming:",
+				"new session request coming:",
 				"session id:", hex.EncodeToString(requestComingRequest.GetSessionId()),
-				"resposible address:", hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
+				"responsible address:", hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
 			)
 
 			signer, err := vc.getNSBSigner()
 			if err != nil {
-				log.Errorln("VesClient.read.RequestComingRequest.getNSBSigner:", err)
+				vc.logger.Error("VesClient.read.RequestComingRequest.getNSBSigner", "error", err)
 				continue
 			}
 
 			hs, err := helper.DecodeIP(requestComingRequest.GetNsbHost())
 			if err != nil {
-				log.Errorln("VesClient.read.RequestComingRequest.DecodeIP:", err)
+				vc.logger.Error("VesClient.read.RequestComingRequest.DecodeIP", "error", err)
 				continue
 			}
 
@@ -114,7 +114,7 @@ func (vc *VesClient) read() {
 				// todo: signature
 				[]byte("123"),
 			); err != nil {
-				log.Errorln("VesClient.read.RequestComingRequest.UserAck:", err)
+				vc.logger.Error("VesClient.read.RequestComingRequest.UserAck", "error", err)
 				continue
 			} else {
 				fmt.Printf(
@@ -129,7 +129,7 @@ func (vc *VesClient) read() {
 				requestComingRequest.GetGrpcHost(),
 				signer.Sign(requestComingRequest.GetSessionId()).Bytes(),
 			); err != nil {
-				log.Errorln("VesClient.read.RequestComingRequest.sendAck:", err)
+				vc.logger.Error("VesClient.read.RequestComingRequest.sendAck", "error", err)
 				continue
 			}
 
@@ -139,7 +139,7 @@ func (vc *VesClient) read() {
 			var attestationSendingRequest = vc.getrequestComingRequest()
 			err = proto.Unmarshal(buf.Bytes(), attestationSendingRequest)
 			if err != nil {
-				log.Errorln("VesClient.read.AttestationSendingRequest.proto:", err)
+				vc.logger.Error("VesClient.read.AttestationSendingRequest.proto", "error", err)
 				continue
 			}
 
@@ -154,7 +154,7 @@ func (vc *VesClient) read() {
 				attestationSendingRequest.GetGrpcHost(),
 			)
 			if err != nil {
-				log.Errorln("VesClient.read.AttestationSendingRequest.getRawTransaction:", err)
+				vc.logger.Error("VesClient.read.AttestationSendingRequest.getRawTransaction", "error", err)
 				continue
 			}
 
@@ -165,13 +165,13 @@ func (vc *VesClient) read() {
 
 			signer, err := vc.getNSBSigner()
 			if err != nil {
-				log.Errorln("VesClient.read.AttestationSendingRequest.getNSBSigner:", err)
+				vc.logger.Error("VesClient.read.AttestationSendingRequest.getNSBSigner", "error", err)
 				continue
 			}
 
 			hs, err := helper.DecodeIP(attestationSendingRequest.GetNsbHost())
 			if err != nil {
-				log.Errorln("VesClient.read.AttestationSendingRequest.DecodeIP:", err)
+				vc.logger.Error("VesClient.read.AttestationSendingRequest.DecodeIP", "error", err)
 				continue
 			}
 
@@ -201,7 +201,7 @@ func (vc *VesClient) read() {
 				sendingAtte.Atte.Tid,
 				TxState.Instantiating,
 			); err != nil {
-				log.Errorln("VesClient.read.AttestationSendingRequest.InsuranceClaim:", err)
+				vc.logger.Error("VesClient.read.AttestationSendingRequest.InsuranceClaim", "error", err)
 				continue
 			} else {
 				fmt.Printf(
@@ -212,7 +212,7 @@ func (vc *VesClient) read() {
 
 			err = vc.postRawMessage(wsrpc.CodeAttestationReceiveRequest, dst, sendingAtte)
 			if err != nil {
-				log.Errorln("VesClient.read.AttestationSendingRequest.postRawMessage:", err)
+				vc.logger.Error("VesClient.read.AttestationSendingRequest.postRawMessage", "error", err)
 				continue
 			}
 
@@ -225,7 +225,7 @@ func (vc *VesClient) read() {
 
 			err = proto.Unmarshal(buf.Bytes(), s)
 			if err != nil {
-				log.Errorln("VesClient.read.AttestationReceiveRequest.proto:", err)
+				vc.logger.Error("VesClient.read.AttestationReceiveRequest.proto", "error", err)
 				continue
 			}
 
@@ -247,7 +247,7 @@ func (vc *VesClient) read() {
 
 				signer, err := vc.getNSBSigner()
 				if err != nil {
-					log.Errorln("VesClient.read.AttestationReceiveRequest.getNSBSigner:", err)
+					vc.logger.Error("VesClient.read.AttestationReceiveRequest.getNSBSigner", "error", err)
 					continue
 				}
 
@@ -281,14 +281,14 @@ func (vc *VesClient) read() {
 
 					router := vc.getRouter(acc.ChainId)
 					if router == nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.getRouter:", errors.New("get router failed"))
+						vc.logger.Error("VesClient.read.AttestationReceiveRequest.getRouter:", "error", errors.New("get router failed"))
 						continue
 					}
 
 					if router.MustWithSigner() {
 						respSigner, err := vc.getRespSigner(s.GetDst())
 						if err != nil {
-							log.Errorln("VesClient.read.AttestationReceiveRequest.getRespSigner:", err)
+							vc.logger.Error("VesClient.read.AttestationReceiveRequest.getRespSigner", "error", err)
 							continue
 						}
 
@@ -297,33 +297,33 @@ func (vc *VesClient) read() {
 
 					receipt, err := router.RouteRawTransaction(acc.ChainId, atte.GetContent())
 					if err != nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.router.RouteRaw:", err)
+						vc.logger.Error("VesClient.read.AttestationReceiveRequest.router.RouteRaw", "error", err)
 						continue
 					}
 					fmt.Println("receipt:", hex.EncodeToString(receipt), string(receipt))
 
 					bid, additional, err := router.WaitForTransact(acc.ChainId, receipt, vc.waitOpt)
 					if err != nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.router.WaitForTransact:", err)
+						vc.logger.Error("VesClient.read.AttestationReceiveRequest.router.WaitForTransact", "error", err)
 						continue
 					}
 					fmt.Println("route result:", bid)
 
 					blockStorage := vc.getBlockStorage(acc.ChainId)
 					if blockStorage == nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.getBlockStorage:", errors.New("get BlockStorage failed"))
+						vc.logger.Error("VesClient.read.AttestationReceiveRequest.getBlockStorage:", "error", errors.New("get BlockStorage failed"))
 						continue
 					}
 
 					proof, err := blockStorage.GetTransactionProof(acc.GetChainId(), bid, additional)
 					if err != nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.blockStorage.GetTransactionProof:", err)
+						vc.logger.Error("VesClient.read.AttestationReceiveRequest.blockStorage.GetTransactionProof", "error", err)
 						continue
 					}
 
 					cb, err := vc.nsbClient.AddMerkleProof(signer, nil, proof.GetType(), proof.GetRootHash(), proof.GetProof(), proof.GetKey(), proof.GetValue())
 					if err != nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.nsbClient.AddMerkleProof:", err)
+						vc.logger.Error("VesClient.read.AttestationReceiveRequest.nsbClient.AddMerkleProof", "error", err)
 						continue
 					}
 					fmt.Println("adding merkle proof", cb)
@@ -331,7 +331,7 @@ func (vc *VesClient) read() {
 					// todo: add const TransactionsRoot
 					cb, err = vc.nsbClient.AddBlockCheck(signer, nil, acc.ChainId, bid, proof.GetRootHash(), 1)
 					if err != nil {
-						log.Errorln("VesClient.read.AttestationReceiveRequest.nsbClient.AddBlockCheck:", err)
+						vc.logger.Error("VesClient.read.AttestationReceiveRequest.nsbClient.AddBlockCheck", "error", err)
 						continue
 					}
 					fmt.Println("adding block check", cb)
@@ -345,7 +345,7 @@ func (vc *VesClient) read() {
 				)
 				//sessionID, tid, Instantiated)
 				if err != nil {
-					log.Errorln("VesClient.read.AttestationReceiveRequest.InsuranceClaim:", err)
+					vc.logger.Error("VesClient.read.AttestationReceiveRequest.InsuranceClaim", "error", err)
 					continue
 				}
 
@@ -356,13 +356,13 @@ func (vc *VesClient) read() {
 
 				err = vc.postRawMessage(wsrpc.CodeAttestationReceiveRequest, s.GetSrc(), sendingAtte)
 				if err != nil {
-					log.Errorln("VesClient.read.AttestationReceiveRequest.postRawMessage:", err)
+					vc.logger.Error("VesClient.read.AttestationReceiveRequest.postRawMessage", "error", err)
 					continue
 				}
 
 				grpcHost, err := helper.DecodeIP(s.GetGrpcHost())
 				if err != nil {
-					log.Println(err)
+					vc.logger.Error("VesClient.read.AttestationReceiveRequest.decodeIP", "error", err)
 					return
 				}
 

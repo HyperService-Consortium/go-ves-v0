@@ -14,13 +14,11 @@ import (
 
 	"google.golang.org/grpc"
 
-	log "github.com/HyperService-Consortium/go-ves/lib/log"
-
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 
-	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
+	"github.com/HyperService-Consortium/go-uip/signaturer"
 
 	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
 )
@@ -35,7 +33,7 @@ func (vc *VesClient) write() {
 	for {
 		strBytes, _, err := reader.ReadLine()
 		if err != nil {
-			log.Println(err)
+			vc.logger.Error("error found", "error", err)
 			return
 		}
 
@@ -43,7 +41,7 @@ func (vc *VesClient) write() {
 
 		cmdBytes, err = buf.ReadBytes(' ')
 		if err != nil && err != io.EOF {
-			log.Println(err)
+			vc.logger.Error("error found", "error", err)
 			return
 		}
 
@@ -51,32 +49,32 @@ func (vc *VesClient) write() {
 		case "set-name":
 			vc.name, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 			vc.name = bytes.TrimSpace(vc.name)
 			if err = vc.SayClientHello(vc.name); err != nil {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 
 		case "send-to":
 			toBytes, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 			if err = vc.SendMessage(
 				bytes.TrimSpace(toBytes),
 				bytes.TrimSpace(buf.Bytes()),
 			); err != nil {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 		case "register-key":
 			filePath, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 
@@ -84,13 +82,13 @@ func (vc *VesClient) write() {
 				string(bytes.TrimSpace(filePath)),
 				fileBuffer,
 			); err != nil {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 		case "register-eth":
 			filePath, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 
@@ -98,32 +96,32 @@ func (vc *VesClient) write() {
 				string(bytes.TrimSpace(filePath)),
 				fileBuffer,
 			); err != nil {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 		case "send-eth-alias-to-ves":
 			alias, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 
 			if err = vc.SendEthAlias(
 				bytes.TrimSpace(alias),
 			); err != nil {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 		case "send-alias-to-ves":
 			alias, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 			if err = vc.SendAlias(
 				bytes.TrimSpace(alias),
 			); err != nil {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 		case "keys":
@@ -131,7 +129,7 @@ func (vc *VesClient) write() {
 		case "send-op-intents":
 			filePath, err = buf.ReadBytes(' ')
 			if err != nil && err != io.EOF {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 
@@ -139,7 +137,7 @@ func (vc *VesClient) write() {
 				string(bytes.TrimSpace(filePath)),
 				fileBuffer,
 			); err != nil {
-				log.Println(err)
+				vc.logger.Error("error found", "error", err)
 				continue
 			}
 		}
@@ -176,7 +174,7 @@ func (vc *VesClient) ConfigKey(filePath string, fileBuffer []byte) error {
 		k := ECCKey{PrivateKey: b, ChainID: kk.ChainID}
 		for _, key := range vc.keys.Keys {
 			if key.ChainID == k.ChainID && bytes.Equal(key.PrivateKey, k.PrivateKey) {
-				log.Println("this key is already in the storage, private key:", hex.EncodeToString(k.PrivateKey[0:8]))
+				vc.logger.Info("this key is already in the storage, private key:", hex.EncodeToString(k.PrivateKey[0:8]))
 				flag = true
 				break
 			}
@@ -188,7 +186,7 @@ func (vc *VesClient) ConfigKey(filePath string, fileBuffer []byte) error {
 		if len(kk.Alias) != 0 {
 			vc.keys.Alias[kk.Alias] = k
 		}
-		log.Println("imported: private key:", hex.EncodeToString(k.PrivateKey[0:8]), ", chain_id: ", k.ChainID)
+		vc.logger.Info("imported: private key:", hex.EncodeToString(k.PrivateKey[0:8]), ", chain_id: ", k.ChainID)
 	}
 
 	return nil
@@ -231,7 +229,7 @@ func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
 					break
 				}
 
-				log.Println("this account is already in the storage, public address:", a.Address[0:8])
+				vc.logger.Info("this account is already in the storage, public address:", a.Address[0:8])
 				flag = true
 				break
 			}
@@ -243,7 +241,7 @@ func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
 		if len(a.Alias) != 0 {
 			vc.accs.Alias[a.Alias] = a.EthAccount
 		}
-		log.Println("imported: public address:", a.Address[0:8], ", chain_id: ", a.ChainID)
+		vc.logger.Info("imported: public address:", a.Address[0:8], ", chain_id: ", a.ChainID)
 	}
 	return nil
 }

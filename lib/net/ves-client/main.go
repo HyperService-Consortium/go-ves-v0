@@ -4,59 +4,41 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"net/url"
+	"github.com/Myriad-Dreamin/minimum-lib/logger"
 	"os"
-
-	"github.com/gorilla/websocket"
-
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
-	log "github.com/HyperService-Consortium/go-ves/lib/log"
 )
+
+var (
+	addr = flag.String("addr", "localhost:23452", "http service address")
+)
+
+func init() {
+	go phandler.atExit()
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+}
 
 // Main is the origin main of ves client
 func Main() {
-	var (
-		dialer        *websocket.Dialer
-		addr          = flag.String("addr", "localhost:23452", "http service address")
-		u             = url.URL{Scheme: "ws", Host: *addr, Path: "/"}
-		vcClient, err = NewVesClient()
-	)
-
-	vcClient.waitOpt = uiptypes.NewWaitOption()
-
+	vcClient, err := NewVesClient(logger.NewZapDevelopmentSugarOption(), CVesHostOption(*addr))
 	if err != nil {
-		log.Println(err)
-		return
+		globalLogger.Fatal("get ves client error", "error", err)
 	}
+
 	fmt.Println("input your name:")
-
 	vcClient.name, _, err = bufio.NewReader(os.Stdin).ReadLine()
-
 	if err != nil {
-		log.Println(err)
-		return
+		vcClient.logger.Fatal("set name", "error", err)
 	}
 
-	if err = vcClient.load(dataPrefix + "/" + string(vcClient.name)); err != nil {
-		log.Println(err)
-		return
+	if err = vcClient.Boot(); err != nil {
+		os.Exit(1)
 	}
-	phandler.register(vcClient.save)
 
-	vcClient.conn, _, err = dialer.Dial(u.String(), nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	go phandler.atExit()
-	go vcClient.read()
-
-	vcClient.SayClientHello(vcClient.name)
-
-	go vcClient.write()
 
 	phandler.register(func() { vcClient.quit <- true })
-	// close
+	go vcClient.write()
 	select {
 	case <-vcClient.quit:
 		return

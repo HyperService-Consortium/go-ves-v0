@@ -1,40 +1,20 @@
 package vesclient
 
 import (
-	"net/url"
-
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
-	"github.com/gorilla/websocket"
+	"github.com/Myriad-Dreamin/minimum-lib/logger"
 )
 
 // VanilleMakeClient for humans
-func VanilleMakeClient(name, addr string) (*VesClient, error) {
-	var (
-		dialer        *websocket.Dialer
-		vcClient, err = NewVesClient()
-	)
+func VanilleMakeClient(name, addr string, options...interface{}) (*VesClient, error) {
+
+	vcClient, err := NewVesClient(append(append(make([]interface{}, 2+len(options)),
+		logger.NewZapDevelopmentSugarOption(), CVesHostOption(addr)), options...)...)
 	if err != nil {
 		return nil, err
 	}
 
-	vcClient.waitOpt = uiptypes.NewWaitOption()
-
-	vcClient.name = []byte(name)
-
-	if err = vcClient.load(dataPrefix + "/" + string(vcClient.name)); err != nil {
+	if err = vcClient.Boot(); err != nil {
 		return nil, err
 	}
-	phandler.register(vcClient.save)
-
-	if vcClient.conn, _, err = dialer.Dial(
-		(&url.URL{Scheme: "ws", Host: addr, Path: "/"}).String(), nil,
-	); err != nil {
-		return nil, err
-	}
-
-	if err = vcClient.SayClientHello(vcClient.name); err != nil {
-		return nil, err
-	}
-
 	return vcClient, nil
 }
