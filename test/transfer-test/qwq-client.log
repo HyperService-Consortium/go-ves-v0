@@ -1,0 +1,130 @@
+2019-11-09T17:30:17.338+0800	DEBUG	ves-client/say-client-hello.go:14		{"level": "info", "_msg": "say client hello to server successfully"}
+2019-11-09T17:30:17.339+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "type": "CodeClientHelloReply"}
+2019-11-09T17:30:17.339+0800	DEBUG	ves-client/process-client-hello-reply.go:15		{"level": "info", "_msg": "adding default grpc ip ", "ip": "127.0.0.1:23351"}
+2019-11-09T17:30:17.339+0800	DEBUG	ves-client/process-client-hello-reply.go:22		{"level": "info", "_msg": "adding default nsb ip ", "ip": "127.0.0.1:26657"}
+2019-11-09T17:30:17.353+0800	DEBUG	ves-client/write.go:239		{"level": "info", "_msg": "this account is already in the storage, public address", "address": "d051a43d"}
+2019-11-09T17:30:17.353+0800	DEBUG	ves-client/write.go:239		{"level": "info", "_msg": "this account is already in the storage, public address", "address": "93334ae4"}
+2019-11-09T17:30:17.354+0800	DEBUG	ves-client/write.go:181		{"level": "info", "_msg": "this key is already in the storage, private key", "address": "2333ffffffffffff"}
+2019-11-09T17:30:17.354+0800	DEBUG	ves-client/write.go:181		{"level": "info", "_msg": "this key is already in the storage, private key", "address": "2333ffffffffffff"}
+2019-11-09T17:30:23.257+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "491533c4802324c9be5ee0a6da38407d", "type": "CodeRequestComingRequest"}
+2019-11-09T17:30:23.257+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "63e5bf8ccb4eb4d9daa112782d70310c55751672fe1205bb37f12c7c85df5235", "responsible address": "2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff"}
+2019-11-09T17:30:25.544+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:30:25.551+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Y+W/jMtOtNnaoRJ4LXAxDFV1FnL+EgW7N/EsfIXfUjU="}
+2019-11-09T17:30:25.551+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:30:25.551+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "ff98ea2bc79aa08fd5b192ca10fe848f", "type": "CodeRequestComingRequest"}
+2019-11-09T17:30:25.551+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "63e5bf8ccb4eb4d9daa112782d70310c55751672fe1205bb37f12c7c85df5235", "responsible address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-09T17:30:26.959+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:30:26.963+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Y+W/jMtOtNnaoRJ4LXAxDFV1FnL+EgW7N/EsfIXfUjU="}
+2019-11-09T17:30:26.963+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:30:26.963+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "cd36098cf9f39780a48ed5430b28206e", "type": "CodeRequestComingRequest"}
+2019-11-09T17:30:26.963+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "63e5bf8ccb4eb4d9daa112782d70310c55751672fe1205bb37f12c7c85df5235", "responsible address": "d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-09T17:30:29.457+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:30:29.461+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Y+W/jMtOtNnaoRJ4LXAxDFV1FnL+EgW7N/EsfIXfUjU="}
+2019-11-09T17:30:29.461+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:30:29.461+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "0c6b977cb00855e49b7cf120a897a953", "type": "CodeRequestComingRequest"}
+2019-11-09T17:30:29.461+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "63e5bf8ccb4eb4d9daa112782d70310c55751672fe1205bb37f12c7c85df5235", "responsible address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-09T17:30:30.882+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:30:30.886+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Y+W/jMtOtNnaoRJ4LXAxDFV1FnL+EgW7N/EsfIXfUjU="}
+2019-11-09T17:30:30.886+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:30:30.886+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "80ad8d3233f487a506d73aee7098101a", "type": "CodeRequestComingRequest"}
+2019-11-09T17:30:30.886+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "63e5bf8ccb4eb4d9daa112782d70310c55751672fe1205bb37f12c7c85df5235", "responsible address": "47a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e"}
+2019-11-09T17:30:32.464+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:30:32.468+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Y+W/jMtOtNnaoRJ4LXAxDFV1FnL+EgW7N/EsfIXfUjU="}
+2019-11-09T17:30:32.468+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:30:32.468+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "39e7e5babcf6263e7b2cc3d8f54f9856", "type": "CodeAttestationSendingRequest"}
+2019-11-09T17:30:32.468+0800	DEBUG	ves-client/process-attestation-sending-request.go:14		{"level": "info", "_msg": "new transaction's attestation must be created", "session id": "63e5bf8ccb4eb4d9daa112782d70310c55751672fe1205bb37f12c7c85df5235", "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-09T17:30:32.469+0800	DEBUG	ves-client/process-attestation-sending-request.go:29		{"level": "info", "_msg": "the instance of the transaction intent is", "tid": 0, "tx": "7b226964223a312c226a736f6e727063223a22322e30222c226d6574686f64223a226574685f73656e645472616e73616374696f6e222c22706172616d73223a5b7b2266726f6d223a22307839333333346165346232643432656262613863633763373937626665623032626662333334396436222c22746f223a22307864303531613433643365613632616666663336333262636133643561626636386263366664373337222c2276616c7565223a223078326530227d5d7d"}
+2019-11-09T17:30:33.857+0800	DEBUG	ves-client/process-attestation-sending-request.go:75		{"level": "info", "_msg": "insurance claiming", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:30:33.857+0800	DEBUG	ves-client/process-attestation-sending-request.go:89		{"level": "info", "_msg": "post next attestation request successfully"}
+2019-11-09T17:30:33.857+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "3b7c5320716853e8e87db54cc8f606e3", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:30:33.857+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 0, "aid": "Instantiated"}
+2019-11-09T17:30:35.294+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 0, "aid": "Instantiated", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:30:35.298+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "32c601542df676f7250e068e4d3b75ce", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:30:35.299+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 0, "aid": "Open"}
+2019-11-09T17:30:35.299+0800	DEBUG	ves-client/read.go:154		{"level": "info", "_msg": "the resp is", "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6", "chain id": 2}
+2019-11-09T17:30:35.300+0800	DEBUG	ves-client/read.go:177		{"level": "info", "_msg": "routing", "receipt": "9577e6c8d473f672145c564e43fe1aaa3c735ecde8939e4f15aed2582be2c9ab"}
+2019-11-09T17:30:45.308+0800	DEBUG	ves-client/read.go:181		{"level": "error", "_msg": "VesClient.read.AttestationReceiveRequest.router.WaitForTransact", "error": "timeout"}
+2019-11-09T17:31:08.327+0800	DEBUG	ves-client/say-client-hello.go:14		{"level": "info", "_msg": "say client hello to server successfully"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:239		{"level": "info", "_msg": "this account is already in the storage, public address", "address": "d051a43d"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:239		{"level": "info", "_msg": "this account is already in the storage, public address", "address": "93334ae4"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:181		{"level": "info", "_msg": "this key is already in the storage, private key", "address": "2333ffffffffffff"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:181		{"level": "info", "_msg": "this key is already in the storage, private key", "address": "2333ffffffffffff"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "type": "CodeClientHelloReply"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/process-client-hello-reply.go:15		{"level": "info", "_msg": "adding default grpc ip ", "ip": "127.0.0.1:23351"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/process-client-hello-reply.go:22		{"level": "info", "_msg": "adding default nsb ip ", "ip": "127.0.0.1:26657"}
+2019-11-09T17:31:13.950+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "9d6fcfcd4613b4755aee0d3ad3ec11a2", "type": "CodeRequestComingRequest"}
+2019-11-09T17:31:13.951+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "46aa3091ff5592aed40ab947a9c8fc5d5e22963a4e0eaa0a2d7ab70528506115", "responsible address": "2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff"}
+2019-11-09T17:31:15.464+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:15.468+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Rqowkf9Vkq7UCrlHqcj8XV4iljpODqoKLXq3BShQYRU="}
+2019-11-09T17:31:15.468+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:31:15.469+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "701a7b8d69383bbe611822a405a35417", "type": "CodeRequestComingRequest"}
+2019-11-09T17:31:15.469+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "46aa3091ff5592aed40ab947a9c8fc5d5e22963a4e0eaa0a2d7ab70528506115", "responsible address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-09T17:31:16.869+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:16.873+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Rqowkf9Vkq7UCrlHqcj8XV4iljpODqoKLXq3BShQYRU="}
+2019-11-09T17:31:16.873+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:31:16.873+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "227b2fe9b893217ee04325cbb9847663", "type": "CodeRequestComingRequest"}
+2019-11-09T17:31:16.873+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "46aa3091ff5592aed40ab947a9c8fc5d5e22963a4e0eaa0a2d7ab70528506115", "responsible address": "d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-09T17:31:19.079+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:19.083+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Rqowkf9Vkq7UCrlHqcj8XV4iljpODqoKLXq3BShQYRU="}
+2019-11-09T17:31:19.083+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:31:19.083+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "140b1c6460653debd46d10a8925c412e", "type": "CodeRequestComingRequest"}
+2019-11-09T17:31:19.083+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "46aa3091ff5592aed40ab947a9c8fc5d5e22963a4e0eaa0a2d7ab70528506115", "responsible address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-09T17:31:20.472+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:20.476+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Rqowkf9Vkq7UCrlHqcj8XV4iljpODqoKLXq3BShQYRU="}
+2019-11-09T17:31:20.476+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:31:20.476+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "e67659ccf2472da5b70640476a58ea68", "type": "CodeRequestComingRequest"}
+2019-11-09T17:31:20.476+0800	DEBUG	ves-client/process-request-coming-request.go:13		{"level": "info", "_msg": "new session request coming", "session id": "46aa3091ff5592aed40ab947a9c8fc5d5e22963a4e0eaa0a2d7ab70528506115", "responsible address": "47a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e"}
+2019-11-09T17:31:22.065+0800	DEBUG	ves-client/process-request-coming-request.go:42		{"level": "info", "_msg": "user ack to nsb", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:22.069+0800	DEBUG	ves-client/read.go:302		{"level": "info", "_msg": "Session ack", "ok": true, "session id": "Rqowkf9Vkq7UCrlHqcj8XV4iljpODqoKLXq3BShQYRU="}
+2019-11-09T17:31:22.069+0800	DEBUG	ves-client/process-request-coming-request.go:57		{"level": "info", "_msg": "user ack to server"}
+2019-11-09T17:31:22.069+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "51f78cb82fdb7e8c204ead2a653ae8f3", "type": "CodeAttestationSendingRequest"}
+2019-11-09T17:31:22.069+0800	DEBUG	ves-client/process-attestation-sending-request.go:14		{"level": "info", "_msg": "new transaction's attestation must be created", "session id": "46aa3091ff5592aed40ab947a9c8fc5d5e22963a4e0eaa0a2d7ab70528506115", "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-09T17:31:22.071+0800	DEBUG	ves-client/process-attestation-sending-request.go:29		{"level": "info", "_msg": "the instance of the transaction intent is", "tid": 0, "tx": "7b226964223a312c226a736f6e727063223a22322e30222c226d6574686f64223a226574685f73656e645472616e73616374696f6e222c22706172616d73223a5b7b2266726f6d223a22307839333333346165346232643432656262613863633763373937626665623032626662333334396436222c22746f223a22307864303531613433643365613632616666663336333262636133643561626636386263366664373337222c2276616c7565223a223078326530227d5d7d"}
+2019-11-09T17:31:23.921+0800	DEBUG	ves-client/process-attestation-sending-request.go:75		{"level": "info", "_msg": "insurance claiming", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:23.921+0800	DEBUG	ves-client/process-attestation-sending-request.go:89		{"level": "info", "_msg": "post next attestation request successfully"}
+2019-11-09T17:31:23.921+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "ab6f6e709ea8643c1a6450d649bede9f", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:23.921+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 0, "aid": "Instantiated"}
+2019-11-09T17:31:25.424+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 0, "aid": "Instantiated", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:25.426+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "df5602baebce6b3f88507501ed3a8e8e", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:25.426+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 0, "aid": "Open"}
+2019-11-09T17:31:25.427+0800	DEBUG	ves-client/read.go:154		{"level": "info", "_msg": "the resp is", "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6", "chain id": 2}
+2019-11-09T17:31:25.428+0800	DEBUG	ves-client/read.go:177		{"level": "info", "_msg": "routing", "receipt": "0cc3237c4653a1578d5835c3009299985bbbc090b447faf7dc9741f7580d5255"}
+2019-11-09T17:31:26.486+0800	DEBUG	ves-client/read.go:184		{"level": "info", "_msg": "route result", "block id": "gWidu8LZqIg98dQ0nld4JgTxk5Y/4g06CTI3Kbw0mzk="}
+2019-11-09T17:31:28.530+0800	DEBUG	ves-client/read.go:203		{"level": "info", "_msg": "adding merkle proof", "result": {"check_tx":{},"deliver_tx":{"info":"nice!","log":"","data":null,"tags":null},"hash":"2F5F074807AA846D4275F32BB0491103B35F7B2C327E241F3F5F7EC364C4E63D","height":"4603"}}
+2019-11-09T17:31:30.531+0800	DEBUG	ves-client/read.go:211		{"level": "info", "_msg": "adding block check", "result": {"check_tx":{},"deliver_tx":{"info":"updateSuccess","log":"","data":null,"tags":null},"hash":"805A75A1F5FCCE97F0578AE1A414829B4E2B1167A84F55934E0886537B8BD56D","height":"4604"}}
+2019-11-09T17:31:32.112+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 0, "aid": "Open", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:32.115+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "b32d03aa0468a5a1772a2425a7b579d6", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:32.115+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 0, "aid": "Opened"}
+2019-11-09T17:31:34.045+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 0, "aid": "Opened", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:34.092+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "73fad10dec637e6ba81aafc3d46bc134", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:34.092+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 0, "aid": "Closed"}
+2019-11-09T17:31:35.372+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 0, "aid": "Closed", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:35.382+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "fd5094c1dbc23d0251b99ae80bb0fc05", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:35.382+0800	DEBUG	ves-client/read.go:118		{"level": "info", "_msg": "skip the last attestation of this transaction", "tid": 0}
+2019-11-09T17:31:35.382+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "cafc5ff70f79327753e8bfd61f8ffc3c", "type": "CodeAttestationSendingRequest"}
+2019-11-09T17:31:35.382+0800	DEBUG	ves-client/process-attestation-sending-request.go:14		{"level": "info", "_msg": "new transaction's attestation must be created", "session id": "46aa3091ff5592aed40ab947a9c8fc5d5e22963a4e0eaa0a2d7ab70528506115", "address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-09T17:31:35.384+0800	DEBUG	ves-client/process-attestation-sending-request.go:29		{"level": "info", "_msg": "the instance of the transaction intent is", "tid": 1, "tx": "7b226964223a312c226a736f6e727063223a22322e30222c226d6574686f64223a226574685f73656e645472616e73616374696f6e222c22706172616d73223a5b7b2266726f6d223a22307830616334356631653662386434376163346337336165653632633532373934623538393864613966222c22746f223a22307834376131636462363539346436656665643361366239313766326662616132626263663631613265222c2276616c7565223a223078326530227d5d7d"}
+2019-11-09T17:31:37.686+0800	DEBUG	ves-client/process-attestation-sending-request.go:75		{"level": "info", "_msg": "insurance claiming", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:37.687+0800	DEBUG	ves-client/process-attestation-sending-request.go:89		{"level": "info", "_msg": "post next attestation request successfully"}
+2019-11-09T17:31:37.688+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "5be57829cbd735fa57547a81a03be678", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:37.688+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 1, "aid": "Instantiated"}
+2019-11-09T17:31:40.487+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 1, "aid": "Instantiated", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:40.490+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "38152c630d5466f8865a5cd1c11b5bdd", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:40.490+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 1, "aid": "Open"}
+2019-11-09T17:31:40.490+0800	DEBUG	ves-client/read.go:154		{"level": "info", "_msg": "the resp is", "address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f", "chain id": 1}
+2019-11-09T17:31:40.491+0800	DEBUG	ves-client/read.go:177		{"level": "info", "_msg": "routing", "receipt": "1cc48dac472e541e375018640ef05d9cd947f75c3d4a8d05b294b61be7d5b415"}
+2019-11-09T17:31:42.542+0800	DEBUG	ves-client/read.go:184		{"level": "info", "_msg": "route result", "block id": "V+nVZbrvv9P3hGKuetVSxz8gn9mjD5+cqEnJu/NBf3o="}
+2019-11-09T17:31:44.548+0800	DEBUG	ves-client/read.go:203		{"level": "info", "_msg": "adding merkle proof", "result": {"check_tx":{},"deliver_tx":{"info":"nice!","log":"","data":null,"tags":null},"hash":"91778D794F48BAF2BB67004F74CE04D70B9CF6BE9640A57D3A19831A5E128CDD","height":"4612"}}
+2019-11-09T17:31:46.019+0800	DEBUG	ves-client/read.go:211		{"level": "info", "_msg": "adding block check", "result": {"check_tx":{},"deliver_tx":{"info":"updateSuccess","log":"","data":null,"tags":null},"hash":"9B812D74570900206CCB2646E381E3A03839697C950DFBFF1E4C2A4EF58E6AD7","height":"4613"}}
+2019-11-09T17:31:48.096+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 1, "aid": "Open", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:48.139+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "b27f91092aca86a5bb189682a9229f32", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:48.139+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 1, "aid": "Opened"}
+2019-11-09T17:31:49.899+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 1, "aid": "Opened", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:49.903+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "2b71b81833d22f0442f3b7a934b9c493", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:49.903+0800	DEBUG	ves-client/read.go:120		{"level": "info", "_msg": "must send attestation with status", "tid": 1, "aid": "Closed"}
+2019-11-09T17:31:51.235+0800	DEBUG	ves-client/read.go:226		{"level": "info", "_msg": "insurance claiming", "tid": 1, "aid": "Closed", "info": "", "data": "", "log": "", "tags": null}
+2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "b121b0aff490c15c080f54a7c0dc25a7", "type": "CodeAttestationReceiveRequest"}
+2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:118		{"level": "info", "_msg": "skip the last attestation of this transaction", "tid": 1}
+2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "ad1ea61df778b4afce88cf760041e18e", "type": "CodeCloseSessionRequest"}
+2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:261		{"level": "info", "_msg": "session closed"}
+2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "ad1ea61df778b4afce88cf760041e18e", "type": "CodeCloseSessionRequest"}

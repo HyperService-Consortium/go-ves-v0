@@ -1,7 +1,9 @@
+//go:generate stringer -type=MessageType
+
 package wsrpc
 
 // MessageType is defined as uint16
-type MessageType = uint16
+type MessageType uint16
 
 const (
 	// CodeMessageRequest is from client to server, request for unicast its

@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/Myriad-Dreamin/minimum-lib/logger"
 	"net"
 	"net/http"
 	"strings"
@@ -41,6 +42,7 @@ import (
 // Server is a client manager, named centered ves
 // it is not in the standard of uip
 type Server struct {
+	logger logger.Logger
 	*http.Server
 	hub     *Hub
 	vesdb   types.VESDB
@@ -51,11 +53,13 @@ type Server struct {
 type NSBHostOption string
 
 type ServerOptions struct {
+	logger logger.Logger
 	nsbHost NSBHostOption
 }
 
 func defaultServerOptions() ServerOptions {
 	return ServerOptions{
+		logger: logger.NewStdLogger(),
 		nsbHost: "127.0.0.1:26657",
 	}
 }
@@ -64,6 +68,8 @@ func parseOptions(rOptions []interface{}) ServerOptions {
 	var options = defaultServerOptions()
 	for i := range rOptions {
 		switch option := rOptions[i].(type) {
+		case logger.Logger:
+			options.logger = option
 		case NSBHostOption:
 			options.nsbHost = option
 		}
@@ -83,6 +89,7 @@ func NewServer(rpcport, addr string, db types.VESDB, rOptions ...interface{}) (s
 	srv.Handler = http.NewServeMux()
 	srv.Addr = addr
 	srv.rpcport = rpcport
+	srv.logger = options.logger
 	return
 }
 

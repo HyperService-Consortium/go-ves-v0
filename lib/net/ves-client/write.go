@@ -148,17 +148,20 @@ func (vc *VesClient) write() {
 func (vc *VesClient) ConfigKey(filePath string, fileBuffer []byte) error {
 	file, err := os.Open(filePath)
 	if err != nil {
+		vc.logger.Error("open file error", "error", err)
 		return err
 	}
 	var n int
 	n, err = io.ReadFull(file, fileBuffer)
 	file.Close()
 	if err != nil && err != io.ErrUnexpectedEOF {
+		vc.logger.Error("read error", "error", err)
 		return err
 	}
 	var ks = make([]*ECCKeyAlias, 0)
 	err = json.Unmarshal(fileBuffer[0:n], &ks)
 	if err != nil {
+		vc.logger.Error("unmarshal error", "error", err)
 		return err
 	}
 	var flag bool
@@ -168,13 +171,14 @@ func (vc *VesClient) ConfigKey(filePath string, fileBuffer []byte) error {
 
 		b, err := hex.DecodeString(kk.PrivateKey)
 		if err != nil {
+			vc.logger.Error("decode private key error", "error", err)
 			return err
 		}
 
 		k := ECCKey{PrivateKey: b, ChainID: kk.ChainID}
 		for _, key := range vc.keys.Keys {
 			if key.ChainID == k.ChainID && bytes.Equal(key.PrivateKey, k.PrivateKey) {
-				vc.logger.Info("this key is already in the storage, private key:", hex.EncodeToString(k.PrivateKey[0:8]))
+				vc.logger.Info("this key is already in the storage, private key", "address", hex.EncodeToString(k.PrivateKey[0:8]))
 				flag = true
 				break
 			}
@@ -186,7 +190,7 @@ func (vc *VesClient) ConfigKey(filePath string, fileBuffer []byte) error {
 		if len(kk.Alias) != 0 {
 			vc.keys.Alias[kk.Alias] = k
 		}
-		vc.logger.Info("imported: private key:", hex.EncodeToString(k.PrivateKey[0:8]), ", chain_id: ", k.ChainID)
+		vc.logger.Info("imported: private key", "address", hex.EncodeToString(k.PrivateKey[0:8]), ", chain_id", k.ChainID)
 	}
 
 	return nil
@@ -195,6 +199,7 @@ func (vc *VesClient) ConfigKey(filePath string, fileBuffer []byte) error {
 func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
 	file, err := os.Open(filePath)
 	if err != nil {
+		vc.logger.Error("open file error", "error", err)
 		return err
 	}
 
@@ -202,11 +207,13 @@ func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
 	n, err = io.ReadFull(file, fileBuffer)
 	file.Close()
 	if err != nil && err != io.ErrUnexpectedEOF {
+		vc.logger.Error("read error", "error", err)
 		return err
 	}
 	var as = make([]*EthAccountAlias, 0)
 	err = json.Unmarshal(fileBuffer[0:n], &as)
 	if err != nil {
+		vc.logger.Error("unmarshal error", "error", err)
 		return err
 	}
 	var flag bool
@@ -229,7 +236,7 @@ func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
 					break
 				}
 
-				vc.logger.Info("this account is already in the storage, public address:", a.Address[0:8])
+				vc.logger.Info("this account is already in the storage, public address", "address", a.Address[0:8])
 				flag = true
 				break
 			}
@@ -241,7 +248,7 @@ func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
 		if len(a.Alias) != 0 {
 			vc.accs.Alias[a.Alias] = a.EthAccount
 		}
-		vc.logger.Info("imported: public address:", a.Address[0:8], ", chain_id: ", a.ChainID)
+		vc.logger.Info("imported: public address", "address", a.Address[0:8], ", chain_id", a.ChainID)
 	}
 	return nil
 }
@@ -254,34 +261,12 @@ func (vc *VesClient) SendEthAlias(alias []byte) error {
 		userRegister.UserName = *(*string)(unsafe.Pointer(&vc.name))
 		err := vc.postMessage(wsrpc.CodeUserRegisterRequest, userRegister)
 		if err != nil {
+			vc.logger.Error("register user error", "alias", string(alias), "error", err)
 			return err
 		}
 		return nil
-		// for {
-		// 	select {
-		// 	case msgBuf := <-vc.cb:
-		// 		var messageID uint16
-		// 		binary.Read(msgBuf, binary.BigEndian, &messageID)
-		// 		if messageID != wsrpc.CodeUserRegisterReply {
-		// 			continue
-		// 		}
-		// 		var s = vc.getUserRegisterReply()
-		// 		err = proto.Unmarshal(msgBuf.Bytes(), s)
-		// 		if err != nil {
-		// 			// ignoring
-		// 			// todo: add hidden log
-		// 			continue
-		// 		}
-		// 		//todo: checkCharacteristicFlag
-		// 		if !s.GetOk() {
-		// 			return errors.New("register user failed")
-		// 		}
-		// 		return nil
-		// 	case <-time.After(time.Second * 5):
-		// 		return errors.New("timeout")
-		// 	}
-		// }
 	}
+	vc.logger.Error("find error", "alias", string(alias), "error", errNotFound)
 	return errNotFound
 }
 
@@ -291,21 +276,20 @@ func (vc *VesClient) SendAlias(alias []byte) error {
 
 		signer := signaturer.NewTendermintNSBSigner(key.PrivateKey)
 		if signer == nil {
+			vc.logger.Error("init signer error", "alias", key.PrivateKey, "error", errIlegalPrivateKey)
 			return errIlegalPrivateKey
 		}
 		userRegister.Account = &uipbase.Account{Address: signer.GetPublicKey(), ChainId: key.ChainID}
 		userRegister.UserName = *(*string)(unsafe.Pointer(&vc.name))
-
-		return vc.postMessage(wsrpc.CodeUserRegisterRequest, userRegister)
+		err := vc.postMessage(wsrpc.CodeUserRegisterRequest, userRegister)
+		if err != nil {
+			vc.logger.Error("register user error", "alias", string(alias), "error", err)
+			return err
+		}
+		return nil
 	}
+	vc.logger.Error("find error", "alias", string(alias), "error", errNotFound)
 	return errNotFound
-}
-
-func (vc *VesClient) SayClientHello(name []byte) error {
-	clientHello := vc.getClientHello()
-	clientHello.Name = name
-
-	return vc.postMessage(wsrpc.CodeClientHelloRequest, clientHello)
 }
 
 type opIntents struct {
@@ -324,6 +308,7 @@ func (vc *VesClient) readOpIntents(filePath string, fileBuffer []byte)  (opInten
 	var intents opIntents
 	file, err := os.Open(filePath)
 	if err != nil {
+		vc.logger.Error("open file error", "error", err)
 		return intents, err
 	}
 
@@ -331,12 +316,17 @@ func (vc *VesClient) readOpIntents(filePath string, fileBuffer []byte)  (opInten
 	n, err = io.ReadFull(file, fileBuffer)
 	_ = file.Close()
 	if err != nil && err != io.ErrUnexpectedEOF {
+		vc.logger.Error("read error", "error", err)
 		return intents, err
 	}
+
 	err = json.Unmarshal(fileBuffer[:n], &intents)
 	if err != nil {
+		vc.logger.Error("unmarshal error", "error", err)
 		return intents, fmt.Errorf("Unmarshal failed: %v", err)
 	}
+
+	vc.logger.Info("read op intents from file successfully", "intent count", len(intents.Intents), "dependencies count", len(intents.Dependencies))
 	return intents, nil
 }
 
@@ -349,14 +339,14 @@ func (vc *VesClient) SendOpIntents(filePath string, fileBuffer []byte) error {
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(mAddress, grpc.WithInsecure())
 	if err != nil {
-		return fmt.Errorf("did not connect: %v", err)
+		vc.logger.Error("did not connect", "error", err)
+		return err
 	}
 	defer conn.Close()
 	c := uiprpc.NewVESClient(conn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	fmt.Println(filePath, "intents", intents)
 	r, err := c.SessionStart(
 		ctx,
 		&uiprpc.SessionStartRequest{
@@ -366,22 +356,25 @@ func (vc *VesClient) SendOpIntents(filePath string, fileBuffer []byte) error {
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("could not greet: %v", err)
+		vc.logger.Error("could not greet", "error", err)
+		return err
 	}
-	fmt.Printf("Session Start: %v, %v\n", r.GetOk(), hex.EncodeToString(r.GetSessionId()))
+	vc.logger.Info("Session Start, %v", "ok", r.GetOk(), "session id", hex.EncodeToString(r.GetSessionId()))
 	return nil
 }
 
 func (vc *VesClient) GetRawTransaction(sessionID, host []byte) (
-	[]byte, uint64, *uipbase.Account, *uipbase.Account, error,
+	*uiprpc.SessionRequireRawTransactReply, error,
 ) {
 	mhost, err := helper.DecodeIP(host)
 	if err != nil {
-		return nil, 0, nil, nil, fmt.Errorf("could not decode ip: %v", err)
+		vc.logger.Error("could not decode ip", "error", err)
+		return nil, err
 	}
 	conn, err := grpc.Dial(mhost, grpc.WithInsecure())
 	if err != nil {
-		return nil, 0, nil, nil, fmt.Errorf("did not connect: %v", err)
+		vc.logger.Error("did not connect", "error", err)
+		return nil, err
 	}
 	defer conn.Close()
 	c := uiprpc.NewVESClient(conn)
@@ -395,7 +388,8 @@ func (vc *VesClient) GetRawTransaction(sessionID, host []byte) (
 		},
 	)
 	if err != nil {
-		return nil, 0, nil, nil, fmt.Errorf("could not greet: %v", err)
+		vc.logger.Error("could not get raw transaction", "error", err)
+		return nil, err
 	}
-	return r.GetRawTransaction(), r.GetTid(), r.GetSrc(), r.GetDst(), nil
+	return r, nil
 }

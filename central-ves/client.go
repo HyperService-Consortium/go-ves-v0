@@ -103,12 +103,12 @@ func (c *Client) readPump() {
 			break
 		}
 		tag := md5.Sum(message)
-		fmt.Println("reading message", hex.EncodeToString(tag[:]))
+		c.hub.server.logger.Info("reading message", "tag", hex.EncodeToString(tag[:]))
 
 		var buf = bytes.NewBuffer(message)
 		var messageID uint16
 		binary.Read(buf, binary.BigEndian, &messageID)
-		switch messageID {
+		switch wsrpc.MessageType(messageID) {
 		case wsrpc.CodeMessageRequest:
 			var s wsrpc.Message
 			err = proto.Unmarshal(buf.Bytes(), &s)

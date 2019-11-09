@@ -2,7 +2,6 @@ package vesclient
 
 import (
 	"bytes"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/Myriad-Dreamin/minimum-lib/logger"
@@ -13,12 +12,11 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 
-	signaturetype "github.com/HyperService-Consortium/go-uip/const/signature_type"
 	"github.com/HyperService-Consortium/go-uip/signaturer"
 	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
-	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
@@ -74,16 +72,23 @@ type VesClient struct {
 	attestationReceiveRequestReceive *wsrpc.AttestationReceiveRequest
 	attestationReceiveReply          *wsrpc.AttestationReceiveReply
 
-	sessionStart *uiprpc.SessionStartRequest
+	sessionStart           *uiprpc.SessionStartRequest
+	closeSessionRequest    *wsrpc.CloseSessionRequest
+
+
+	closeSessionRWMutex sync.RWMutex
+	closeSessionSubscriber []SessionCloseSubscriber
 }
 
 type CVesHostOption string
+type NsbHostOption string
 type VesName []byte
 
 type ServerOptions struct {
 	logger  logger.Logger
 	waitOpt *uiptypes.WaitOption
 	addr    string
+	nsbHost string
 	vesName []byte
 }
 
@@ -94,6 +99,7 @@ func defaultServerOptions() ServerOptions {
 		logger:  globalLogger,
 		waitOpt: uiptypes.NewWaitOption(),
 		addr:    "127.0.0.1:23452",
+		nsbHost: "127.0.0.1:27667",
 	}
 }
 
@@ -107,6 +113,8 @@ func parseOptions(rOptions []interface{}) ServerOptions {
 			options.waitOpt = option
 		case CVesHostOption:
 			options.addr = string(option)
+		case NsbHostOption:
+			options.nsbHost = string(option)
 		case VesName:
 			options.vesName = option
 		}
@@ -120,7 +128,7 @@ func NewVesClient(rOptions ...interface{}) (vc *VesClient, err error) {
 	vc = &VesClient{
 		cb:        make(chan *bytes.Buffer, 1),
 		quit:      make(chan bool, 1),
-		nsbClient: nsbclient.NewNSBClient(host),
+		nsbClient: nsbclient.NewNSBClient(options.nsbHost),
 		logger:    options.logger,
 		waitOpt:   options.waitOpt,
 		name:      options.vesName,
@@ -132,14 +140,13 @@ func NewVesClient(rOptions ...interface{}) (vc *VesClient, err error) {
 
 func (vc *VesClient) Boot() (err error) {
 	if err = vc.load(dataPrefix + "/" + string(vc.name)); err != nil {
-		vc.logger.Error("load config from filepath error", "path", dataPrefix + "/" + string(vc.name), "error", err)
+		vc.logger.Error("load config from filepath error", "path", dataPrefix+"/"+string(vc.name), "error", err)
 		return
 	}
 	phandler.register(vc.save)
 
 	go vc.read()
 	if err = vc.SayClientHello(vc.name); err != nil {
-		vc.logger.Error("say client hello error", "error", err)
 		return
 	}
 	return
@@ -426,6 +433,14 @@ func (vc *VesClient) getAttestationReceiveReply() *wsrpc.AttestationReceiveReply
 	return vc.attestationReceiveReply
 }
 
+
+func (vc *VesClient) getCloseSessionRequest() *wsrpc.CloseSessionRequest {
+	if vc.closeSessionRequest == nil {
+		vc.closeSessionRequest = new(wsrpc.CloseSessionRequest)
+	}
+	return vc.closeSessionRequest
+}
+
 func (vc *VesClient) postMessage(code wsrpc.MessageType, msg proto.Message) error {
 	buf, err := wsrpc.GetDefaultSerializer().Serial(code, msg)
 	if err != nil {
@@ -437,7 +452,7 @@ func (vc *VesClient) postMessage(code wsrpc.MessageType, msg proto.Message) erro
 	return nil
 }
 
-func (vc *VesClient) postRawMessage(code wsrpc.MessageType, dst *uipbase.Account, msg proto.Message) error {
+func (vc *VesClient) postRawMessage(code wsrpc.MessageType, dst *uiprpc_base.Account, msg proto.Message) error {
 
 	buf, err := wsrpc.GetDefaultSerializer().Serial(code, msg)
 	/// fmt.Println(buf.Bytes())
@@ -518,63 +533,5 @@ func (vc *VesClient) getBlockStorage(chainID uint64) uiptypes.Storage {
 		return &nsbbni.BN{}
 	default:
 		return nil
-	}
-}
-
-func (signer *EthAccount) GetPublicKey() []byte {
-	b, _ := hex.DecodeString(signer.Address)
-	return b
-}
-
-func (signer *EthAccount) Sign(b []byte) uiptypes.Signature {
-	// todo: sign b
-	return signaturer.FromRaw(b, signaturetype.Secp256k1)
-}
-
-func (vc *VesClient) getRespSigner(acc *uipbase.Account) (uiptypes.Signer, error) {
-	if vc.signer != nil {
-		return vc.signer, nil
-	}
-	cid := acc.GetChainId()
-	switch cid {
-	case 1, 2:
-		sadd := hex.EncodeToString(acc.GetAddress())
-		for _, acc := range vc.accs.Alias {
-			if acc.ChainID == cid && acc.Address == sadd {
-				return &acc, nil
-			}
-		}
-	case 3, 4:
-		for _, key := range vc.keys.Alias {
-			if key.ChainID != cid {
-				continue
-			}
-
-			signer := signaturer.NewTendermintNSBSigner(key.PrivateKey)
-			if bytes.Equal(signer.GetPublicKey(), acc.GetAddress()) {
-				return signer, nil
-			}
-		}
-	}
-
-	return nil, errNotFound
-}
-
-func (vc *VesClient) ListKeys() {
-	fmt.Println("privatekeys -> publickeys:")
-	for alias, key := range vc.keys.Alias {
-		fmt.Println(
-			"alias:", alias,
-			"public key:", hex.EncodeToString(signaturer.NewTendermintNSBSigner(key.PrivateKey).GetPublicKey()),
-			"chain id:", key.ChainID,
-		)
-	}
-	fmt.Println("ethAccounts:")
-	for alias, acc := range vc.accs.Alias {
-		fmt.Println(
-			"alias:", alias,
-			"public address:", acc.Address,
-			"chain id:", acc.ChainID,
-		)
 	}
 }

@@ -1,5 +1,12 @@
 package vesclient
 
+import (
+	"encoding/hex"
+	signaturetype "github.com/HyperService-Consortium/go-uip/const/signature_type"
+	"github.com/HyperService-Consortium/go-uip/signaturer"
+	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+)
+
 // ECCKey is the private key object in memory
 type ECCKey struct {
 	PrivateKey []byte `json:"private_key"`
@@ -36,4 +43,15 @@ type ECCKeys struct {
 type EthAccounts struct {
 	Accs  []*EthAccount
 	Alias map[string]EthAccount
+}
+
+
+func (signer *EthAccount) GetPublicKey() []byte {
+	b, _ := hex.DecodeString(signer.Address)
+	return b
+}
+
+func (signer *EthAccount) Sign(b []byte) uiptypes.Signature {
+	// todo: sign b
+	return signaturer.FromRaw(b, signaturetype.Secp256k1)
 }

@@ -1,0 +1,16 @@
+2019-11-09T17:30:17.336+0800	DEBUG	ves-client/say-client-hello.go:14		{"level": "info", "_msg": "say client hello to server successfully"}
+2019-11-09T17:30:17.338+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "type": "CodeClientHelloReply"}
+2019-11-09T17:30:17.338+0800	DEBUG	ves-client/process-client-hello-reply.go:15		{"level": "info", "_msg": "adding default grpc ip ", "ip": "127.0.0.1:23351"}
+2019-11-09T17:30:17.338+0800	DEBUG	ves-client/process-client-hello-reply.go:22		{"level": "info", "_msg": "adding default nsb ip ", "ip": "127.0.0.1:26657"}
+2019-11-09T17:30:17.352+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "47a1cdb6", ", chain_id": 1}
+2019-11-09T17:30:17.353+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "981739a1", ", chain_id": 2}
+2019-11-09T17:30:17.354+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333eeffffffffff", ", chain_id": 3}
+2019-11-09T17:30:17.354+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333eeffffffffff", ", chain_id": 4}
+2019-11-09T17:31:08.325+0800	DEBUG	ves-client/say-client-hello.go:14		{"level": "info", "_msg": "say client hello to server successfully"}
+2019-11-09T17:31:08.327+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "type": "CodeClientHelloReply"}
+2019-11-09T17:31:08.327+0800	DEBUG	ves-client/process-client-hello-reply.go:15		{"level": "info", "_msg": "adding default grpc ip ", "ip": "127.0.0.1:23351"}
+2019-11-09T17:31:08.327+0800	DEBUG	ves-client/process-client-hello-reply.go:22		{"level": "info", "_msg": "adding default nsb ip ", "ip": "127.0.0.1:26657"}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "47a1cdb6", ", chain_id": 1}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "981739a1", ", chain_id": 2}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333eeffffffffff", ", chain_id": 3}
+2019-11-09T17:31:08.328+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333eeffffffffff", ", chain_id": 4}

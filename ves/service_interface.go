@@ -87,7 +87,7 @@ func (server *Server) AttestationReceive(
 		Signer:                    server.signer,
 		CVes:                      server.cves,
 		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
+		NsbClient:                 server.nsbClient,
 		Context:                   ctx,
 		AttestationReceiveRequest: in,
 	}).Serve()
@@ -100,7 +100,7 @@ func (server *Server) MerkleProofReceive(
 	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
 	return (&service.MerkleProofReceiveService{
 		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
+		NsbClient:                 server.nsbClient,
 		Context:                   ctx,
 		MerkleProofReceiveRequest: in,
 	}).Serve()
@@ -113,7 +113,7 @@ func (server *Server) ShrotenMerkleProofReceive(
 	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
 	return (&service.ShrotenMerkleProofReceiveService{
 		VESDB:                            server.db,
-		Host:                             "http://47.251.2.73:26657",
+		NsbClient:                        server.nsbClient,
 		Context:                          ctx,
 		ShortenMerkleProofReceiveRequest: in,
 	}).Serve()
@@ -126,7 +126,7 @@ func (server *Server) InformMerkleProof(
 	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
 	return (&service.InformMerkleProofService{
 		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
+		NsbClient:                 server.nsbClient,
 		Context:                   ctx,
 		MerkleProofReceiveRequest: in,
 	}).Serve()
@@ -139,7 +139,7 @@ func (server *Server) InformShortenMerkleProof(
 	log.Infof("merkleproof recevied: %v, %v\n", in.GetMerkleproof().GetKey(), in.GetMerkleproof().GetValue())
 	return (&service.InformShortenMerkleProofService{
 		VESDB:                            server.db,
-		Host:                             "http://47.251.2.73:26657",
+		NsbClient:                        server.nsbClient,
 		Context:                          ctx,
 		ShortenMerkleProofReceiveRequest: in,
 	}).Serve()
@@ -154,7 +154,7 @@ func (server *Server) InformAttestation(
 		Signer:                    server.signer,
 		CVes:                      server.cves,
 		VESDB:                     server.db,
-		Host:                      "http://47.251.2.73:26657",
+		NsbClient:                 server.nsbClient,
 		Context:                   ctx,
 		AttestationReceiveRequest: in,
 	}).Serve()

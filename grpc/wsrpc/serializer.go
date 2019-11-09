@@ -57,7 +57,7 @@ func NewSerializer(maxBufferSize int) *Serializer {
 }
 
 // Serial concat the msgid and serialized msg
-func (ser *Serializer) Serial(msgid uint16, msg proto.Message) (*bytes.Buffer, error) {
+func (ser *Serializer) Serial(msgid MessageType, msg proto.Message) (*bytes.Buffer, error) {
 	var qwq = ser.bufferPool.Get().(*bytes.Buffer)
 	qwq.Reset()
 

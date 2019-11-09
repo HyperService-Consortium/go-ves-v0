@@ -7,22 +7,18 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"time"
-
-	log "github.com/HyperService-Consortium/go-ves/lib/log"
 
 	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
 
 	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
 
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 
 	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
-	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 func (vc *VesClient) read() {
@@ -33,15 +29,20 @@ func (vc *VesClient) read() {
 			return
 		}
 
-		tag := md5.Sum(message)
-		log.Infoln(string(vc.name), "message from server tag", hex.EncodeToString(tag[:]))
-
 		var buf = bytes.NewBuffer(message)
 		var messageID uint16
 
 		// todo: BigEndian
-		binary.Read(buf, binary.BigEndian, &messageID)
-		switch messageID {
+		err = binary.Read(buf, binary.BigEndian, &messageID)
+		if err != nil {
+			vc.logger.Error("decode message failed", "error", err)
+			continue
+		}
+
+		tag := md5.Sum(message)
+		vc.logger.Info("message from server", "tag", hex.EncodeToString(tag[:]), "type", wsrpc.MessageType(messageID))
+
+		switch wsrpc.MessageType(messageID) {
 		case wsrpc.CodeMessageReply:
 			var messageReply = vc.getShortReplyMessage()
 
@@ -52,7 +53,7 @@ func (vc *VesClient) read() {
 			}
 
 			if bytes.Equal(messageReply.To, vc.getName()) {
-				fmt.Printf("%v is saying: %v\n", string(messageReply.From), messageReply.Contents)
+				vc.logger.Info("%v is saying: %v\n", "source", string(messageReply.From), "content", messageReply.Contents)
 			}
 		case wsrpc.CodeClientHelloReply:
 			var clientHelloReply = vc.getClientHelloReply()
@@ -63,76 +64,18 @@ func (vc *VesClient) read() {
 				continue
 			}
 
-			vc.grpcip, err = helper.DecodeIP(clientHelloReply.GetGrpcHost())
-			if err != nil {
-				vc.logger.Error("VesClient.read.ClientHelloReply.decodeGRPCHost", "error", err)
-			} else {
-				log.Infoln("adding default grpcip ", vc.grpcip)
-			}
-
-			vc.nsbip, err = helper.DecodeIP(clientHelloReply.GetNsbHost())
-			if err != nil {
-				vc.logger.Error("VesClient.read.ClientHelloReply.decodeNSBHost", "error", err)
-			} else {
-				log.Infoln("adding default nsbip ", vc.nsbip)
-			}
+			vc.ProcessClientHelloReply(clientHelloReply)
 
 		case wsrpc.CodeRequestComingRequest:
-			var requestComingRequest = vc.getrequestComingRequest()
 
+			var requestComingRequest = vc.getrequestComingRequest()
 			err = proto.Unmarshal(buf.Bytes(), requestComingRequest)
 			if err != nil {
 				vc.logger.Error("VesClient.read.RequestComingRequest.proto", "error", err)
 				continue
 			}
 
-			fmt.Println(
-				"new session request coming:",
-				"session id:", hex.EncodeToString(requestComingRequest.GetSessionId()),
-				"responsible address:", hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
-			)
-
-			signer, err := vc.getNSBSigner()
-			if err != nil {
-				vc.logger.Error("VesClient.read.RequestComingRequest.getNSBSigner", "error", err)
-				continue
-			}
-
-			hs, err := helper.DecodeIP(requestComingRequest.GetNsbHost())
-			if err != nil {
-				vc.logger.Error("VesClient.read.RequestComingRequest.DecodeIP", "error", err)
-				continue
-			}
-
-			fmt.Println("send ack to nsb", hs)
-
-			// todo: new nsbclient
-			if ret, err := nsbcli.NewNSBClient(hs).UserAck(
-				signer,
-				requestComingRequest.GetSessionId(),
-				requestComingRequest.GetAccount().GetAddress(),
-				// todo: signature
-				[]byte("123"),
-			); err != nil {
-				vc.logger.Error("VesClient.read.RequestComingRequest.UserAck", "error", err)
-				continue
-			} else {
-				fmt.Printf(
-					"user ack {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n",
-					ret.Info, string(ret.Data), ret.Log, ret.Tags,
-				)
-			}
-
-			if err = vc.sendAck(
-				requestComingRequest.GetAccount(),
-				requestComingRequest.GetSessionId(),
-				requestComingRequest.GetGrpcHost(),
-				signer.Sign(requestComingRequest.GetSessionId()).Bytes(),
-			); err != nil {
-				vc.logger.Error("VesClient.read.RequestComingRequest.sendAck", "error", err)
-				continue
-			}
-
+			vc.ProcessRequestComingRequest(requestComingRequest)
 		case wsrpc.CodeAttestationSendingRequest:
 			// attestation sending request has the same format with request
 			// coming request
@@ -143,82 +86,13 @@ func (vc *VesClient) read() {
 				continue
 			}
 
-			fmt.Println(
-				"new transaction's attestation must be created",
-				hex.EncodeToString(attestationSendingRequest.GetSessionId()),
-				hex.EncodeToString(attestationSendingRequest.GetAccount().GetAddress()),
-			)
-
-			raw, tid, src, dst, err := vc.GetRawTransaction(
-				attestationSendingRequest.GetSessionId(),
-				attestationSendingRequest.GetGrpcHost(),
-			)
-			if err != nil {
-				vc.logger.Error("VesClient.read.AttestationSendingRequest.getRawTransaction", "error", err)
-				continue
-			}
-
-			fmt.Printf(
-				"the instance of the %vth transaction intent is: %v\n", tid,
-				string(raw),
-			)
-
-			signer, err := vc.getNSBSigner()
-			if err != nil {
-				vc.logger.Error("VesClient.read.AttestationSendingRequest.getNSBSigner", "error", err)
-				continue
-			}
-
-			hs, err := helper.DecodeIP(attestationSendingRequest.GetNsbHost())
-			if err != nil {
-				vc.logger.Error("VesClient.read.AttestationSendingRequest.DecodeIP", "error", err)
-				continue
-			}
-
-			// packet attestation
-			var sendingAtte = vc.getReceiveAttestationReceiveRequest()
-			sendingAtte.SessionId = attestationSendingRequest.GetSessionId()
-			sendingAtte.GrpcHost = attestationSendingRequest.GetGrpcHost()
-
-			sigg := signer.Sign(raw)
-			sendingAtte.Atte = &uipbase.Attestation{
-				Tid:     tid,
-				Aid:     TxState.Instantiating,
-				Content: raw,
-				Signatures: append(make([]*uipbase.Signature, 0, 1), &uipbase.Signature{
-					// todo use src.signer to sign
-					SignatureType: sigg.GetSignatureType(),
-					Content:       sigg.GetContent(),
-				}),
-			}
-			sendingAtte.Src = src
-			sendingAtte.Dst = dst
-
-			fmt.Println("send ack to nsb", hs)
-			if ret, err := nsbcli.NewNSBClient(hs).InsuranceClaim(
-				signer,
-				sendingAtte.SessionId,
-				sendingAtte.Atte.Tid,
-				TxState.Instantiating,
-			); err != nil {
-				vc.logger.Error("VesClient.read.AttestationSendingRequest.InsuranceClaim", "error", err)
-				continue
-			} else {
-				fmt.Printf(
-					formatInsuranceClaim,
-					"instantiating", ret.Info, string(ret.Data), ret.Log, ret.Tags,
-				)
-			}
-
-			err = vc.postRawMessage(wsrpc.CodeAttestationReceiveRequest, dst, sendingAtte)
-			if err != nil {
-				vc.logger.Error("VesClient.read.AttestationSendingRequest.postRawMessage", "error", err)
-				continue
-			}
+			vc.ProcessAttestationSendingRequest(attestationSendingRequest)
 
 		case wsrpc.CodeUserRegisterReply:
+
 			// todo: ignoring
 			vc.cb <- buf
+			vc.logger.Info("user request request successfully")
 
 		case wsrpc.CodeAttestationReceiveRequest:
 			var s = vc.getReceiveAttestationReceiveRequest()
@@ -234,16 +108,16 @@ func (vc *VesClient) read() {
 
 			switch aid {
 			case TxState.Unknown:
-				log.Infoln("transaction is of the status unknown")
+				vc.logger.Info("transaction is of the status unknown", "tid", atte.Tid)
 			case TxState.Initing:
-				log.Infoln("transaction is of the status initing")
+				vc.logger.Info("transaction is of the status initializing", "tid", atte.Tid)
 			case TxState.Inited:
-				log.Infoln("transaction is of the status inited")
+				vc.logger.Info("transaction is of the status inited", "tid", atte.Tid)
 			case TxState.Closed:
 				// skip closed atte (last)
-				log.Infoln("skip the last attestation of this transaction")
+				vc.logger.Info("skip the last attestation of this transaction", "tid", atte.Tid)
 			default:
-				log.Infoln("must send attestation with status:", TxState.Description(aid+1))
+				vc.logger.Info("must send attestation with status", "tid", atte.Tid, "aid", TxState.Description(aid+1))
 
 				signer, err := vc.getNSBSigner()
 				if err != nil {
@@ -277,7 +151,7 @@ func (vc *VesClient) read() {
 				if aid == TxState.Instantiated {
 					acc := s.GetDst()
 
-					log.Infoln("the resp is", hex.EncodeToString(acc.GetAddress()), acc.GetChainId())
+					vc.logger.Info("the resp is", "address", hex.EncodeToString(acc.GetAddress()), "chain id", acc.GetChainId())
 
 					router := vc.getRouter(acc.ChainId)
 					if router == nil {
@@ -300,14 +174,14 @@ func (vc *VesClient) read() {
 						vc.logger.Error("VesClient.read.AttestationReceiveRequest.router.RouteRaw", "error", err)
 						continue
 					}
-					fmt.Println("receipt:", hex.EncodeToString(receipt), string(receipt))
+					vc.logger.Info("routing", "receipt", hex.EncodeToString(receipt))
 
 					bid, additional, err := router.WaitForTransact(acc.ChainId, receipt, vc.waitOpt)
 					if err != nil {
 						vc.logger.Error("VesClient.read.AttestationReceiveRequest.router.WaitForTransact", "error", err)
 						continue
 					}
-					fmt.Println("route result:", bid)
+					vc.logger.Info("route result", "block id", bid)
 
 					blockStorage := vc.getBlockStorage(acc.ChainId)
 					if blockStorage == nil {
@@ -326,7 +200,7 @@ func (vc *VesClient) read() {
 						vc.logger.Error("VesClient.read.AttestationReceiveRequest.nsbClient.AddMerkleProof", "error", err)
 						continue
 					}
-					fmt.Println("adding merkle proof", cb)
+					vc.logger.Info("adding merkle proof", "result", cb)
 
 					// todo: add const TransactionsRoot
 					cb, err = vc.nsbClient.AddBlockCheck(signer, nil, acc.ChainId, bid, proof.GetRootHash(), 1)
@@ -334,7 +208,7 @@ func (vc *VesClient) read() {
 						vc.logger.Error("VesClient.read.AttestationReceiveRequest.nsbClient.AddBlockCheck", "error", err)
 						continue
 					}
-					fmt.Println("adding block check", cb)
+					vc.logger.Info("adding block check", "result", cb)
 				}
 
 				// sendingAtte.GetAtte()
@@ -349,9 +223,14 @@ func (vc *VesClient) read() {
 					continue
 				}
 
-				fmt.Printf(
-					"insurance claiming %v, %v {\n\tinfo: %v,\n\tdata: %v,\n\tlog: %v, \n\ttags: %v\n}\n",
-					atte.GetTid(), TxState.Description(aid+1), ret.Info, string(ret.Data), ret.Log, ret.Tags,
+				vc.logger.Info(
+					"insurance claiming",
+					"tid",atte.GetTid(),
+					"aid", TxState.Description(aid+1),
+					"info",ret.Info,
+					"data", string(ret.Data),
+					"log",ret.Log,
+					"tags", ret.Tags,
 				)
 
 				err = vc.postRawMessage(wsrpc.CodeAttestationReceiveRequest, s.GetSrc(), sendingAtte)
@@ -370,12 +249,21 @@ func (vc *VesClient) read() {
 			}
 
 		case wsrpc.CodeCloseSessionRequest:
+
+			var closeSessionRequest = vc.getCloseSessionRequest()
+			err = proto.Unmarshal(buf.Bytes(), closeSessionRequest)
+			if err != nil {
+				vc.logger.Error("VesClient.read.CodeCloseSessionRequest.proto", "error", err)
+				continue
+			}
+
 			vc.cb <- buf
-			log.Infoln("session closed")
+			vc.logger.Info("session closed")
+			vc.emitClose(closeSessionRequest.SessionId)
 			// case wsrpc.Code
 		default:
 			// abort
-			log.Warnln("aborting message that has id:", messageID)
+			vc.logger.Warn("aborting message", "id", messageID)
 		} // switch end
 	} // for end
 }
@@ -384,11 +272,13 @@ func (vc *VesClient) sendAck(acc *uipbase.Account, sessionID, address, signature
 	// Set up a connection to the server.
 	sss, err := helper.DecodeIP(address)
 	if err != nil {
-		return fmt.Errorf("did not resolve: %v", err)
+		vc.logger.Error("did not resolve", "error", err)
+		return err
 	}
 	conn, err := grpc.Dial(sss, grpc.WithInsecure())
 	if err != nil {
-		return fmt.Errorf("did not connect: %v", err)
+		vc.logger.Error("did not connect", "error", err)
+		return err
 	}
 	defer conn.Close()
 	c := uiprpc.NewVESClient(conn)
@@ -406,16 +296,18 @@ func (vc *VesClient) sendAck(acc *uipbase.Account, sessionID, address, signature
 			},
 		})
 	if err != nil {
-		return fmt.Errorf("could not greet: %v", err)
+		vc.logger.Error("could not send ack", "error", err)
+		return err
 	}
-	fmt.Printf("Session ack: %v\n", r.GetOk())
+	vc.logger.Info("Session ack", "ok", r.GetOk(), "session id", sessionID)
 	return nil
 }
 
 func (vc *VesClient) informAttestation(grpcHost string, sendingAtte *wsrpc.AttestationReceiveRequest) {
 	conn, err := grpc.Dial(grpcHost, grpc.WithInsecure())
 	if err != nil {
-		log.Errorf("VesClient.informAttestation(%v, %v).grpc.Dial: %v\n", sendingAtte.GetAtte().Tid, sendingAtte.GetAtte().Aid, err)
+		vc.logger.Error("VesClient.informAttestation.grpc.Dial.Failed\n",
+			"tid", sendingAtte.GetAtte().Tid, "aid", sendingAtte.GetAtte().Aid, "error", err)
 		return
 	}
 	defer conn.Close()
@@ -433,12 +325,14 @@ func (vc *VesClient) informAttestation(grpcHost string, sendingAtte *wsrpc.Attes
 		},
 	)
 	if err != nil {
-		log.Errorf("VesClient.informAttestation(%v, %v).InformAttestation: %v\n", sendingAtte.GetAtte().Tid, sendingAtte.GetAtte().Aid, err)
+		vc.logger.Error("VesClient.informAttestation.grpc.Send.Failed\n",
+			"tid", sendingAtte.GetAtte().Tid, "aid", sendingAtte.GetAtte().Aid, "error", err)
 		return
 	}
 
 	if !r.GetOk() {
-		log.Errorf("VesClient.informAttestation(%v, %v) failed\n", sendingAtte.GetAtte().Tid, sendingAtte.GetAtte().Aid)
+		vc.logger.Error("VesClient.informAttestation.grpc.Result.Failed\n",
+			"tid", sendingAtte.GetAtte().Tid, "aid", sendingAtte.GetAtte().Aid)
 	}
 	return
 }

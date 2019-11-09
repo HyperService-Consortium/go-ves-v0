@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 	"time"
 
 	"golang.org/x/net/context"
@@ -25,7 +26,7 @@ import (
 
 type AttestationReceiveService struct {
 	CVes uiprpc.CenteredVESClient
-	Host string
+	NsbClient *nsbcli.NSBClient
 	uiptypes.Signer
 	types.VESDB
 	context.Context
@@ -62,7 +63,7 @@ func (s *AttestationReceiveService) Serve() (*uiprpc.AttestationReceiveReply, er
 
 		current_tx_id, _ := ses.GetTransactingTransaction()
 		success, helpInfo, err = ses.ProcessAttestation(
-			nsbi.NSBInterfaceImpl(s.Host, s.Signer),
+			nsbi.NSBInterfaceFromClient(s.NsbClient, s.Signer),
 			&ethbni.BN{},
 			&AtteAdapdator{s.GetAtte()},
 		)

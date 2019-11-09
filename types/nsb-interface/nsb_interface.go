@@ -14,6 +14,10 @@ func NSBInterfaceImpl(host string, signer uiptypes.Signer) *NSBClientImpl {
 	return &NSBClientImpl{nsbcli.NewNSBClient(host), signer}
 }
 
+func NSBInterfaceFromClient(nsbClient *nsbcli.NSBClient, signer uiptypes.Signer) *NSBClientImpl {
+	return &NSBClientImpl{nsbClient, signer}
+}
+
 func (nsb *NSBClientImpl) SaveAttestation(isc_address []byte, atte uiptypes.Attestation) error {
 	// todo
 	return nil

@@ -1,6 +1,7 @@
 package service
 
 import (
+	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 	"golang.org/x/net/context"
 
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
@@ -9,7 +10,7 @@ import (
 )
 
 type InformMerkleProofService struct {
-	Host string
+	NsbClient *nsbcli.NSBClient
 	types.VESDB
 	context.Context
 	*uiprpc.MerkleProofReceiveRequest

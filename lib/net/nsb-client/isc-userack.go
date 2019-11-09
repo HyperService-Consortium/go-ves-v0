@@ -26,7 +26,6 @@ func (nc *NSBClient) UserAck(
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println(PretiStruct(ret), err)
 	return &ret.DeliverTx, nil
 }
 

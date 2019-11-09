@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
+	"github.com/Myriad-Dreamin/minimum-lib/logger"
 	"io"
 	"net"
 	"time"
@@ -30,6 +31,8 @@ import (
 
 // Server provides the basic service of session
 type Server struct {
+	logger logger.Logger
+
 	db        types.VESDB
 	resp      *uipbase.Account
 	signer    *signaturer.TendermintNSBSigner
@@ -68,10 +71,12 @@ type NSBHostOption string
 
 type ServerOptions struct {
 	nsbHost NSBHostOption
+	logger logger.Logger
 }
 
 func defaultServerOptions() ServerOptions {
 	return ServerOptions{
+		logger: logger.NewStdLogger(),
 		nsbHost: "localhost:26657",
 	}
 }
@@ -80,6 +85,8 @@ func parseOptions(rOptions []interface{}) ServerOptions {
 	var options = defaultServerOptions()
 	for i := range rOptions {
 	switch option := rOptions[i].(type) {
+	case logger.Logger:
+		options.logger = option
 	case NSBHostOption:
 		options.nsbHost = option
 	}
@@ -99,7 +106,10 @@ func NewServer(
 ) (*Server, error) {
 	var server = new(Server)
 	options := parseOptions(rOptions)
+
+	server.logger = options.logger
 	server.signer = signer
+
 	server.resp = &uipbase.Account{Address: server.signer.GetPublicKey(), ChainId: 3}
 
 	err := migrate(muldb, migrateFunction)

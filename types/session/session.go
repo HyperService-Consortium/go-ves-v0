@@ -23,10 +23,6 @@ import (
 	opintents "github.com/HyperService-Consortium/go-uip/op-intent"
 )
 
-const (
-	host = "47.251.2.73:26657"
-)
-
 type SerialSession struct {
 	ID               int64              `json:"-" xorm:"pk unique notnull autoincr 'id'"`
 	ISCAddress       []byte             `json:"-" xorm:"notnull 'isc_address'"`
