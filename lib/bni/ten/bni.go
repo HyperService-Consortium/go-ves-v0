@@ -132,7 +132,7 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 		if err != nil {
 			return nil, err
 		}
-		return newRawTransaction(transactiontype.Type(intent.TransType), header), nil
+		return newRawTransaction(transactiontype.SystemCall, header), nil
 	case TransType.ContractInvoke:
 		// var meta uiptypes.ContractInvokeMeta
 		//
