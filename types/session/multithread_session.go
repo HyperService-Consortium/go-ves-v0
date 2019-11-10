@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/config"
 	"io"
 	"math/rand"
 	"sync"
@@ -135,7 +136,7 @@ func (ses *MultiThreadSerialSession) SetSigner(signer uiptypes.Signer) {
 }
 
 func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
-	intents, _, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
+	intents, _, err := opintents.NewOpIntentInitializer(config.UserMap).InitOpIntent(opIntents)
 	if err != nil {
 		return false, err.Error(), nil
 	}

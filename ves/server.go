@@ -5,21 +5,24 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/config"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
+	chain_dns "github.com/HyperService-Consortium/go-ves/types/chain-dns"
+	"github.com/HyperService-Consortium/go-ves/types/kvdb"
+	"github.com/HyperService-Consortium/go-ves/types/storage-handler"
 	"github.com/Myriad-Dreamin/minimum-lib/logger"
 	"io"
 	"net"
 	"time"
 
-	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-uip/signaturer"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	log "github.com/HyperService-Consortium/go-ves/lib/log"
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types"
 	vesdb "github.com/HyperService-Consortium/go-ves/types/database"
-	kvdb "github.com/HyperService-Consortium/go-ves/types/kvdb"
-	session "github.com/HyperService-Consortium/go-ves/types/session"
-	user "github.com/HyperService-Consortium/go-ves/types/user"
+	"github.com/HyperService-Consortium/go-ves/types/session"
+	"github.com/HyperService-Consortium/go-ves/types/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gogo/protobuf/proto"
@@ -124,7 +127,9 @@ func NewServer(
 
 	server.db.SetUserBase(new(user.XORMUserBase))
 	server.db.SetSessionBase(session.NewMultiThreadSerialSessionBase())
+	server.db.SetStorageHandler(new(storage_handler.Database))
 	server.db.SetSessionKVBase(new(kvdb.Database))
+	server.db.SetChainDNS(chain_dns.NewDatabase(config.HostMap))
 
 	log.Println("will connect to remote nsb host", options.nsbHost)
 	server.nsbClient = nsbcli.NewNSBClient(string(options.nsbHost))

@@ -143,7 +143,7 @@ func (vc *VesClient) read() {
 					Content: atte.GetContent(),
 					Signatures: append(sigs, &uipbase.Signature{
 						// todo signature
-						SignatureType: uiptypes.SignatureUnderlyingType(sigg.GetSignatureType()),
+						SignatureType: uiptypes.SignatureTypeUnderlyingType(sigg.GetSignatureType()),
 						Content:       sigg.GetContent(),
 					}),
 				}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/config"
 	"github.com/Myriad-Dreamin/minimum-lib/logger"
 	"io"
 	"net/url"
@@ -14,7 +15,7 @@ import (
 	"github.com/gorilla/websocket"
 
 	"github.com/HyperService-Consortium/go-uip/signaturer"
-	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
 
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
@@ -522,9 +523,9 @@ func (vc *VesClient) getNSBSigner() (uiptypes.Signer, error) {
 func (vc *VesClient) getRouter(chainID uint64) uiptypes.Router {
 	switch chainID {
 	case 1, 2:
-		return &ethbni.BN{}
-	case 3, 4:
-		return &nsbbni.BN{}
+		return ethbni.NewBN(config.ChainDNS)
+	case 3, 4, 5:
+		return nsbbni.NewBN(config.ChainDNS)
 	default:
 		return nil
 	}
@@ -533,9 +534,9 @@ func (vc *VesClient) getRouter(chainID uint64) uiptypes.Router {
 func (vc *VesClient) getBlockStorage(chainID uint64) uiptypes.Storage {
 	switch chainID {
 	case 1, 2:
-		return &ethbni.BN{}
-	case 3, 4:
-		return &nsbbni.BN{}
+		return ethbni.NewBN(config.ChainDNS)
+	case 3, 4, 5:
+		return nsbbni.NewBN(config.ChainDNS)
 	default:
 		return nil
 	}

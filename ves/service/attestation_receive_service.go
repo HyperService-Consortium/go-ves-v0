@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/config"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 	"time"
 
@@ -64,7 +65,7 @@ func (s *AttestationReceiveService) Serve() (*uiprpc.AttestationReceiveReply, er
 		current_tx_id, _ := ses.GetTransactingTransaction()
 		success, helpInfo, err = ses.ProcessAttestation(
 			nsbi.NSBInterfaceFromClient(s.NsbClient, s.Signer),
-			&ethbni.BN{},
+			ethbni.NewBN(config.ChainDNS),
 			&AtteAdapdator{s.GetAtte()},
 		)
 

@@ -79,12 +79,18 @@ type ChainInfo interface {
 	GetChainHost() string
 }
 
+type StorageHandlerInterface interface {
+	GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte) (uiptypes.Variable, error)
+	SetStorageOf(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte, variable uiptypes.Variable) error
+}
+
 type VESDB interface {
 	SetIndex(Index) success_or_not
 	SetMultiIndex(MultiIndex) success_or_not
 	SetSessionBase(SessionBase) success_or_not
 	SetUserBase(UserBase) success_or_not
 	SetSessionKVBase(SessionKVBase) success_or_not
+	SetStorageHandler(StorageHandler) success_or_not
 	SetChainDNS(ChainDNS) success_or_not
 
 	// insert accounts maps from guid to account
@@ -125,7 +131,8 @@ type VESDB interface {
 	GetKV(isc_address, provedKey) (provedValue, error)
 
 	GetSetter(isc_address) KVSetter
-	GetGetter(isc_address) uiptypes.KVGetter
+	GetGetter(isc_address) KVGetter
 
+	StorageHandlerInterface
 	ChainDNSInterface
 }

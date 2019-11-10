@@ -57,7 +57,7 @@ func (vc *VesClient) ProcessAttestationSendingRequest(attestationSendingRequest 
 		Content: transactionReply.RawTransaction,
 		Signatures: append(make([]*uiprpc_base.Signature, 0, 1), &uiprpc_base.Signature{
 			// todo use src.signer to sign
-			SignatureType: uiptypes.SignatureUnderlyingType(sigg.GetSignatureType()),
+			SignatureType: uiptypes.SignatureTypeUnderlyingType(sigg.GetSignatureType()),
 			Content:       sigg.GetContent(),
 		}),
 	}

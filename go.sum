@@ -6,10 +6,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586/go.mod h1:kMi/fSDAgvjo9TYfYwYeQ2vkyj+VTR/tB6u/Tjh39t0=
-github.com/HyperService-Consortium/NSB v0.7.3-0.20191110020516-8099859ed68a h1:psVgwdy+1FfU8bCc1LK41Qo9ziGWz+kVxOrk7zm8LN8=
-github.com/HyperService-Consortium/NSB v0.7.3-0.20191110020516-8099859ed68a/go.mod h1:N4imQsHfboXTkscFfE8wHMIVIeimMfOXOaz0rdSTQGQ=
-github.com/HyperService-Consortium/NSB v0.8.0 h1:zji6ZeNJphCUZuh7yKSToBKU39hCHd5EiBdV9AkVpG4=
-github.com/HyperService-Consortium/NSB v0.8.0/go.mod h1:pycrBuQyb5NpYjqze1ge3/xhTlMaArjgd6ypP3RQCTM=
+github.com/HyperService-Consortium/NSB v0.7.3-0.20191110033951-7a0fad01c5fb h1:7J2+EnT0VsvhVJyA5Mfk1YtQRQAyygDPdP+9oDkhkXw=
+github.com/HyperService-Consortium/NSB v0.7.3-0.20191110033951-7a0fad01c5fb/go.mod h1:dqnG46T6ZuGlOdhJh/Q9P42MLQw83yumpeZfIpx34+k=
 github.com/HyperService-Consortium/go-ethabi v0.9.1 h1:KO5jE1PDMTHuMr+Kp3LxQOm+bD132F0vsDyS9ILBY58=
 github.com/HyperService-Consortium/go-ethabi v0.9.1/go.mod h1:ngPlugEdGFUTCnDFwAoog6YLGdm959cSzgizwzbsJiI=
 github.com/HyperService-Consortium/go-hexutil v1.0.1 h1:pThbi0a+9z7Oq7s3AcRgRsGKWc1qlq7sMBdDscSTKQs=
@@ -20,8 +18,8 @@ github.com/HyperService-Consortium/go-mpt v1.1.1/go.mod h1:tYeCvWyIQt4xuaLANWvVi
 github.com/HyperService-Consortium/go-rlp v1.0.1-0.20190903144357-b5693c05a6b8/go.mod h1:f6lLuGRJua3AHgMk4m6XvsF64GFlr5ekGeb2n+ymYfQ=
 github.com/HyperService-Consortium/go-rlp v1.0.2 h1:B8/l+dUxaiQ3pCyNYfR0cVB0e6PTZxRfNigHBxZRJss=
 github.com/HyperService-Consortium/go-rlp v1.0.2/go.mod h1:f6lLuGRJua3AHgMk4m6XvsF64GFlr5ekGeb2n+ymYfQ=
-github.com/HyperService-Consortium/go-uip v0.0.0-20191110010607-170d1d4af0a6 h1:2fsLXP+1L9GhNXBylpIgv0CCMF3MLzcbseGLgJ3kKx0=
-github.com/HyperService-Consortium/go-uip v0.0.0-20191110010607-170d1d4af0a6/go.mod h1:VqzWwaIMgwqueOgWZ+Csg1HsRt1dy/D/xnLLMVkjKoI=
+github.com/HyperService-Consortium/go-uip v0.0.0-20191110053058-3e2631768bc7 h1:Sg+9eGAgvF4IrEMXOClypQ74OwfBavhiNS/V+eh5n7U=
+github.com/HyperService-Consortium/go-uip v0.0.0-20191110053058-3e2631768bc7/go.mod h1:VqzWwaIMgwqueOgWZ+Csg1HsRt1dy/D/xnLLMVkjKoI=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Myriad-Dreamin/core-oj v1.0.0/go.mod h1:Bzykxe9H/YQkIXpqDy1Pk6sWduxwJ503opA/rH8nEQ4=

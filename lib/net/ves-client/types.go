@@ -53,5 +53,5 @@ func (signer *EthAccount) GetPublicKey() []byte {
 
 func (signer *EthAccount) Sign(b []byte) uiptypes.Signature {
 	// todo: sign b
-	return signaturer.FromRaw(b, uiptypes.SignatureUnderlyingType(signaturetype.Secp256k1))
+	return signaturer.FromRaw(b, uiptypes.SignatureTypeUnderlyingType(signaturetype.Secp256k1))
 }

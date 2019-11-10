@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
+	"github.com/HyperService-Consortium/go-ves/config"
 	"io"
 	"math/rand"
 	"unsafe"
@@ -149,7 +150,7 @@ func (ses *SerialSession) SetSigner(signer uiptypes.Signer) {
 }
 
 func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool, string, error) {
-	intents, _, err := opintents.NewOpIntentInitializer().InitOpIntent(opIntents)
+	intents, _, err := opintents.NewOpIntentInitializer(config.UserMap).InitOpIntent(opIntents)
 	if err != nil {
 		return false, err.Error(), nil
 	}

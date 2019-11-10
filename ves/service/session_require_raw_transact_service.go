@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/config"
 
 	gjson "github.com/tidwall/gjson"
 
@@ -28,9 +29,14 @@ type SessionRequireRawTransactService struct {
 	*uiprpc.SessionRequireRawTransactRequest
 }
 
+func (s SessionRequireRawTransactService) GetTransactionProof(chainID uiptypes.ChainID, blockID uiptypes.BlockID, color []byte) (uiptypes.MerkleProof, error) {
+	// todo
+	panic("implement me")
+}
+
 var bnis = map[uint64]uiptypes.BlockChainInterface{
-	1: new(ethbni.BN),
-	2: new(ethbni.BN),
+	1: ethbni.NewBN(config.ChainDNS),
+	2: ethbni.NewBN(config.ChainDNS),
 	3: new(tenbni.BN),
 	4: new(tenbni.BN),
 }
@@ -106,7 +112,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	}
 
 	var b uiptypes.RawTransaction
-	b, err = bn.Translate(&transactionIntent, s.GetGetter(ses.GetGUID()))
+	b, err = bn.Translate(&transactionIntent, s)
 	if err != nil {
 		return nil, err
 	}
@@ -114,8 +120,13 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	if transactionIntent.TransType == transtype.Payment {
 
 		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", transactionIntent.Dst)
+		x, err := b.Serialize()
+		if err != nil {
+			return nil, err
+		}
+
 		return &uiprpc.SessionRequireRawTransactReply{
-			RawTransaction: b.Bytes(),
+			RawTransaction: x,
 			Tid:            uint64(underTransacting),
 			Src: &uipbase.Account{
 				Address: transactionIntent.Src,
@@ -127,10 +138,15 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 			},
 		}, nil
 	} else {
+		x, err := b.Serialize()
+		if err != nil {
+			return nil, err
+		}
+
 
 		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", s.Resp.GetAddress())
 		return &uiprpc.SessionRequireRawTransactReply{
-			RawTransaction: b.Bytes(),
+			RawTransaction: x,
 			Tid:            uint64(underTransacting),
 			Src: &uipbase.Account{
 				Address: transactionIntent.Src,

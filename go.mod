@@ -4,12 +4,12 @@ go 1.12
 
 replace (
 	github.com/HyperService-Consortium/go-hexutil => github.com/HyperService-Consortium/go-hexutil v1.0.1
-	github.com/HyperService-Consortium/go-uip => github.com/HyperService-Consortium/go-uip v0.0.0-20191110010607-170d1d4af0a6
+	github.com/HyperService-Consortium/go-uip => github.com/HyperService-Consortium/go-uip v0.0.0-20191110053058-3e2631768bc7
 )
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/HyperService-Consortium/NSB v0.7.3-0.20191110020516-8099859ed68a
+	github.com/HyperService-Consortium/NSB v0.7.3-0.20191110033951-7a0fad01c5fb
 	github.com/HyperService-Consortium/go-ethabi v0.9.1
 	github.com/HyperService-Consortium/go-hexutil v1.0.1 // indirect
 	github.com/HyperService-Consortium/go-mpt v1.1.1

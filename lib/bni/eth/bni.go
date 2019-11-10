@@ -40,7 +40,12 @@ type BN struct {
 	signer uiptypes.Signer
 }
 
-func (bn *BN) Translate(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) (uiptypes.RawTransaction, error) {
+func (bn *BN) Deserialize(raw []byte) (rawTransaction uiptypes.RawTransaction, err error) {
+	// todo
+	return base_raw_transaction.Transaction(raw), nil
+}
+
+func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Storage) (uiptypes.RawTransaction, error) {
 	switch intent.TransType {
 	case TransType.Payment:
 		b, err := json.Marshal(map[string]interface{}{
@@ -63,8 +68,8 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KV
 			return nil, err
 		}
 		//_ = meta
-
-		data, err := ContractInvocationDataABI(&meta, kvGetter)
+		// todo, test
+		data, err := ContractInvocationDataABI(intent.ChainID, &meta, storage)
 		if err != nil {
 			return nil, err
 		}
@@ -86,48 +91,11 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KV
 			"id": 1,
 		})
 		return base_raw_transaction.Transaction(b), err
-		//return nil, errors.New("todo")
 	default:
 		return nil, errors.New("cant translate")
 	}
 }
 
-func (bn *BN) GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.Contract, pos uiptypes.Pos, description uiptypes.Desc) (interface{}, error) {
-
-	ci, err := bn.dns.GetChainInfo(chainID)
-	if err != nil {
-		return nil, err
-	}
-
-	switch typeID {
-	case valuetype.Bool:
-		s, err := ethclient.NewEthClient((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String()).GetStorageAt(contractAddress, pos, "latest")
-		if err != nil {
-			return nil, err
-		}
-
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return nil, err
-		}
-		bs, err := ethabi.NewDecoder().Decodes([]string{"bool"}, b)
-		return bs[0], nil
-	case valuetype.Uint256:
-		s, err := ethclient.NewEthClient(ci.GetChainHost()).GetStorageAt(contractAddress, pos, "latest")
-		if err != nil {
-			return nil, err
-		}
-
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return nil, err
-		}
-		bs, err := ethabi.NewDecoder().Decodes([]string{"uint256"}, b)
-		return bs[0], nil
-	}
-
-	return nil, nil
-}
 
 var ErrNotSigned  = errors.New("not signed raw transaction")
 
@@ -141,25 +109,29 @@ func (bn *BN) RouteRaw(destination uiptypes.ChainID, rawTransaction uiptypes.Raw
 		return nil, err
 	}
 	// todo receipt
-	return ethclient.Do((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String(), rawTransaction.Bytes())
-	// if err != nil {
-	//		return nil, err
-	//	}
-	//	var x string
-	//	err = json.Unmarshal(b, &x)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	if x == "" {
-	//		return nil, errors.New("deploy failed?")
-	//	}
-	//
-	//	b, err = hex.DecodeString(x[2:])
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	return b, nil
+	b, err := rawTransaction.Serialize()
+	if err != nil {
+		return nil, err
+	}
+	b, err = ethclient.Do((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String(), b)
+	if err != nil {
+		return nil, err
+	}
+	var x string
+	err = json.Unmarshal(b, &x)
+	if err != nil {
+		return nil, err
+	}
+
+	if x == "" {
+		return nil, errors.New("deploy failed?")
+	}
+
+	b, err = hex.DecodeString(x[2:])
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }
 
 type options struct {
@@ -182,11 +154,11 @@ func parseOptions(rOption []interface{}) options {
 func (bn *BN) WaitForTransact(chainID uiptypes.ChainID, transactionReceipt uiptypes.TransactionReceipt,
 	rOptions ...interface{}) (blockID uiptypes.BlockID, color []byte, err error) {
 	options := parseOptions(rOptions)
-	cinfo, err := bn.dns.GetChainInfo(chainID)
+	chainInfo, err := bn.dns.GetChainInfo(chainID)
 	if err != nil {
 		return nil, nil, err
 	}
-	worker := ethclient.NewEthClient(cinfo.GetChainHost())
+	worker := ethclient.NewEthClient(chainInfo.GetChainHost())
 	ddl := time.Now().Add(options.timeout)
 	for time.Now().Before(ddl) {
 		tx, err := worker.GetTransactionByHash(transactionReceipt)
@@ -202,7 +174,6 @@ func (bn *BN) WaitForTransact(chainID uiptypes.ChainID, transactionReceipt uipty
 			return b, a, nil
 		}
 		time.Sleep(time.Millisecond * 500)
-
 	}
 	return nil, nil, errors.New("timeout")
 }
@@ -221,13 +192,19 @@ func (bn *BN) MustWithSigner() bool {
 	return true
 }
 
-func (bn *BN) Route(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) ([]byte, error) {
+func (bn *BN) Route(intent *uiptypes.TransactionIntent, storage uiptypes.Storage) ([]byte, error) {
 	// todo
-	onChainTransaction, err := bn.Translate(intent, kvGetter)
+	rawTransaction, err := bn.Translate(intent, storage)
 	if err != nil {
 		return nil, err
 	}
-	return bn.RouteRaw(intent.ChainID, onChainTransaction)
+	if !rawTransaction.Signed() {
+		rawTransaction, err = rawTransaction.Sign(bn.signer)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return bn.RouteRaw(intent.ChainID, rawTransaction)
 }
 
 
@@ -235,8 +212,11 @@ func (bn *BN) CheckAddress(addr []byte) bool {
 	return len(addr) == 32
 }
 
+func convertToEthVariable(variable uiptypes.Variable) interface{} {
+	return variable.GetValue()
+}
 
-func ContractInvocationDataABI(meta *uiptypes.ContractInvokeMeta, kvGetter uiptypes.KVGetter) ([]byte, error) {
+func ContractInvocationDataABI(chainID uiptypes.ChainID, meta *uiptypes.ContractInvokeMeta, storage uiptypes.Storage) ([]byte, error) {
 
 	abiencoder := ethabi.NewEncoder()
 	//Encodes(descs []string, vals []interface{})
@@ -254,22 +234,35 @@ func ContractInvocationDataABI(meta *uiptypes.ContractInvokeMeta, kvGetter uipty
 		descs = append(descs, t)
 		constant := gjson.Get(string(param.Value), "constant")
 		if !constant.Exists() {
-			k := gjson.Get(string(param.Value), "field")
-			if !k.Exists() {
+			field := gjson.Get(string(param.Value), "field")
+			if !field.Exists() {
 				return nil, errors.New("field not found")
 			}
-			v, err := kvGetter.Get([]byte(k.String()))
+			pos := gjson.Get(string(param.Value), "pos")
+			if !pos.Exists() {
+				return nil, errors.New("pos not found")
+			}
+			contract := gjson.Get(string(param.Value), "contract")
+			if !contract.Exists() {
+				return nil, errors.New("contract not found")
+			}
+			var contractAddress, err = hex.DecodeString(contract.String())
 			if err != nil {
 				return nil, err
 			}
-			constant = gjson.ParseBytes(v)
+			v, err := storage.GetStorageAt(chainID, valuetype.FromString(t), contractAddress, []byte(pos.Str), []byte(field.String()))
+			if err != nil {
+				return nil, err
+			}
+			vals = append(vals, convertToEthVariable(v))
+		} else {
+			val, err := appendVal(t, constant)
+			if err != nil {
+				return nil, err
+			}
+			vals = append(vals, val)
 		}
-		val, err := appendVal(t, constant)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Println("SHHHHH", val)
-		vals = append(vals, val)
+
 		if id == len(meta.Params)-1 {
 			funcsig += ")"
 		} else {

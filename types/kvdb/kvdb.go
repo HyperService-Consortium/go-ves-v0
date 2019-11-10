@@ -3,9 +3,7 @@ package kvdb
 import (
 	"bytes"
 
-	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
-
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types"
 )
 
 type Database struct {
@@ -59,7 +57,7 @@ func (g *Database) SetKV(idb types.Index, isc_address, k, v []byte) error {
 	return idb.Set(decorate(isc_address, k), v)
 }
 
-func (db *Database) GetGetter(idb types.Index, isc_address []byte) uiptypes.KVGetter {
+func (db *Database) GetGetter(idb types.Index, isc_address []byte) types.KVGetter {
 	return &Getter{idb, isc_address}
 }
 func (db *Database) GetSetter(idb types.Index, isc_address []byte) types.KVSetter {

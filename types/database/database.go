@@ -6,16 +6,30 @@ import (
 )
 
 type Database struct {
-	sindb  types.Index
-	muldb  types.MultiIndex
-	sesdb  types.SessionBase
-	userdb types.UserBase
-	kvdb   types.SessionKVBase
-	dns   types.ChainDNS
+	sindb          types.Index
+	muldb          types.MultiIndex
+	sesdb          types.SessionBase
+	userdb         types.UserBase
+	kvdb types.SessionKVBase
+	storageHandler types.StorageHandler
+	dns            types.ChainDNS
+}
+
+func (db *Database) GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte) (uiptypes.Variable, error) {
+	return db.storageHandler.GetStorageAt(db.sindb, chainID, typeID, contractAddress, pos, description)
+}
+
+func (db *Database) SetStorageOf(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte, variable uiptypes.Variable) error {
+	return db.storageHandler.SetStorageOf(db.sindb, chainID, typeID, contractAddress, pos, description, variable)
 }
 
 func (db *Database) SetChainDNS(dns types.ChainDNS) bool {
 	db.dns = dns
+	return true
+}
+
+func (db *Database) SetSessionKVBase(logicDB types.SessionKVBase) bool {
+	db.kvdb = logicDB
 	return true
 }
 
@@ -39,8 +53,8 @@ func (db *Database) SetUserBase(logicDB types.UserBase) bool {
 	return true
 }
 
-func (db *Database) SetSessionKVBase(logicDB types.SessionKVBase) bool {
-	db.kvdb = logicDB
+func (db *Database) SetStorageHandler(logicDB types.StorageHandler) bool {
+	db.storageHandler = logicDB
 	return true
 }
 
@@ -104,6 +118,11 @@ func (db *Database) InactivateSession(isc_address []byte) {
 	db.sesdb.InactivateSession(isc_address)
 }
 
+
+func (db *Database) GetChainInfo(chainId uiptypes.ChainID) (types.ChainInfo, error) {
+	return db.dns.GetChainInfo(db.sindb, chainId)
+}
+
 func (db *Database) SetKV(isc_address, k, v []byte) error {
 	return db.kvdb.SetKV(db.sindb, isc_address, k, v)
 }
@@ -112,14 +131,10 @@ func (db *Database) GetKV(isc_address, k []byte) ([]byte, error) {
 	return db.kvdb.GetKV(db.sindb, isc_address, k)
 }
 
-func (db *Database) GetGetter(isc_address []byte) uiptypes.KVGetter {
+func (db *Database) GetGetter(isc_address []byte) types.KVGetter {
 	return db.kvdb.GetGetter(db.sindb, isc_address)
 }
 
 func (db *Database) GetSetter(isc_address []byte) types.KVSetter {
 	return db.kvdb.GetSetter(db.sindb, isc_address)
-}
-
-func (db *Database) GetChainInfo(chainId uiptypes.ChainID) (types.ChainInfo, error) {
-	return db.dns.GetChainInfo(db.sindb, chainId)
 }

@@ -2,15 +2,16 @@ package dbinstance
 
 import (
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/config"
 	"github.com/HyperService-Consortium/go-ves/lib/database/index"
 	multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
 	"github.com/HyperService-Consortium/go-ves/types"
 	chain_dns "github.com/HyperService-Consortium/go-ves/types/chain-dns"
 	vesdb "github.com/HyperService-Consortium/go-ves/types/database"
 	"github.com/HyperService-Consortium/go-ves/types/kvdb"
+	"github.com/HyperService-Consortium/go-ves/types/storage-handler"
 	"github.com/HyperService-Consortium/go-ves/types/session"
 	"github.com/HyperService-Consortium/go-ves/types/user"
-	"github.com/HyperService-Consortium/go-uip/const/chain_type"
 )
 
 func XORMMigrate(muldb types.MultiIndex) (err error) {
@@ -54,27 +55,7 @@ func MakeDB() types.VESDB {
 	db.SetUserBase(new(user.XORMUserBase))
 	db.SetSessionBase(new(session.SerialSessionBase))
 	db.SetSessionKVBase(new(kvdb.Database))
-	db.SetChainDNS(chain_dns.NewDatabase(chain_dns.HostMap{
-		1: chain_dns.ChainInfo{
-			Host:      "127.0.0.1:8545",
-			ChainType: ChainType.Ethereum,
-		},
-		2: chain_dns.ChainInfo{
-			Host:      "127.0.0.1:8545",
-			ChainType: ChainType.Ethereum,
-		},
-		3: chain_dns.ChainInfo{
-			Host:      "127.0.0.1:26657",
-			ChainType: ChainType.TendermintNSB,
-		},
-		4: chain_dns.ChainInfo{
-			Host:      "127.0.0.1:26657",
-			ChainType: ChainType.TendermintNSB,
-		},
-		5: chain_dns.ChainInfo{
-			Host:      "127.0.0.1:26657",
-			ChainType: ChainType.TendermintNSB,
-		},
-	}))
+	db.SetStorageHandler(new(storage_handler.Database))
+	db.SetChainDNS(chain_dns.NewDatabase(config.GetHostMap()))
 	return db
 }

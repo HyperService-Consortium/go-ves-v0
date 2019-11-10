@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/config"
+	chain_dns "github.com/HyperService-Consortium/go-ves/types/chain-dns"
+	storage_handler "github.com/HyperService-Consortium/go-ves/types/storage-handler"
 	"log"
 
 	types "github.com/HyperService-Consortium/go-ves/types"
@@ -62,6 +65,8 @@ func makeDB() types.VESDB {
 	db.SetUserBase(new(user.XORMUserBase))
 	db.SetSessionBase(new(session.SerialSessionBase))
 	db.SetSessionKVBase(new(kvdb.Database))
+	db.SetStorageHandler(new(storage_handler.Database))
+	db.SetChainDNS(chain_dns.NewDatabase(config.HostMap))
 	return db
 }
 

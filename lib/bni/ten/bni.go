@@ -5,19 +5,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	transactiontype "github.com/HyperService-Consortium/NSB/application/transaction-type"
+	"github.com/HyperService-Consortium/NSB/math"
 	"github.com/HyperService-Consortium/go-ves/types"
+	"github.com/gogo/protobuf/proto"
 	"net/url"
 	"strings"
 
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
-	"github.com/gogo/protobuf/proto"
-
-	"github.com/HyperService-Consortium/go-ethabi"
 	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
-	valuetype "github.com/HyperService-Consortium/go-uip/const/value_type"
 	"github.com/HyperService-Consortium/go-uip/uiptypes"
-	ethclient "github.com/HyperService-Consortium/go-ves/lib/net/eth-client"
-	nsbclient "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
+	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 func decoratePrefix(hexs string) string {
@@ -32,78 +31,66 @@ type BN struct {
 	dns types.ChainDNSInterface
 	signer uiptypes.Signer
 }
+var (
+	errorDecodeSrcAddress = errors.New("the src address should be in length of 32")
+	errorDecodeDstAddress = errors.New("the dst address should be in length of 32 or 0")
+)
+
+func (bn *BN) Deserialize(raw []byte) (uiptypes.RawTransaction, error) {
+
+	var txHeader nsbrpc.TransactionHeader
+	err := proto.Unmarshal(raw, &txHeader)
+	if err != nil {
+		return nil, err
+	}
+	if len(txHeader.Src) != 32 {
+		return nil, errorDecodeSrcAddress
+	}
+	if len(txHeader.Dst) != 32 && len(txHeader.Dst) != 0 {
+		return nil, errorDecodeDstAddress
+	}
+
+	return &rawTransaction{
+		Type:   transactiontype.Type(raw[0]),
+		Header: &txHeader,
+	}, nil
+}
+
+var (
+	ErrNotSigned = errors.New("not signed")
+)
 
 func (bn *BN) RouteRaw(destination uiptypes.ChainID, rawTransaction uiptypes.RawTransaction) (
 	transactionReceipt uiptypes.TransactionReceipt, err error) {
+	if !rawTransaction.Signed() {
+		return nil, ErrNotSigned
+	}
 	ci, err := bn.dns.GetChainInfo(destination)
 	if err != nil {
 		return nil, err
 	}
+	// todo receipt
+	b, err := rawTransaction.Serialize()
+	if err != nil {
+		return nil, err
+	}
+	b, err = nsbcli.NewNSBClient((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String()).BroadcastTxCommitReturnBytes(b)
+	if err != nil {
+		return nil, err
+	}
 
-	_ = ci
-
-	return nil, errors.New("TODO")
-	//var txHeader MiddleHeader
-	//err = json.Unmarshal(payload, &txHeader)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//// bug: buf.Reset()
-	//buf := bytes.NewBuffer(make([]byte, 65535))
-	//
-	//buf.Write(txHeader.Header.Src)
-	//buf.Write(txHeader.Header.Dst)
-	//buf.Write(txHeader.Header.Data)
-	//buf.Write(txHeader.Header.Value)
-	//buf.Write(txHeader.Header.Nonce)
-	//txHeader.Header.Signature = bn.signer.Sign(buf.Bytes()).Bytes()
-	//
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//b, err := json.Marshal(txHeader.Header)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//buf.Reset()
-	//buf.Write(txHeader.PreHeader)
-	//buf.Write(b)
-
-	//return nsbclient.NewNSBClient((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String()).BroadcastTxCommitReturnBytes(buf.Bytes())
+	return b, nil
 }
 
-func (bn *BN) WaitForTransact(chainID uiptypes.ChainID, transactionReceipt uiptypes.TransactionReceipt,
-	options ...interface{}) (blockID uiptypes.BlockID, color []byte, err error) {
-	// todo
+func (bn *BN) WaitForTransact(_ uiptypes.ChainID, transactionReceipt uiptypes.TransactionReceipt,
+	options ...interface{}) (blockID []byte, color []byte, err error) {
+	var res nsbcli.ResultInfo
+	err = json.Unmarshal(transactionReceipt, &res)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	var info RTxInfo
-
-	err = json.Unmarshal(transactionReceipt, &info)
-
-	return nil, info.transactionReceipt, err
-	// cinfo, err := SearchChainId(chainID)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// worker := nsbclient.NewNSBClient(cinfo.GetHost())
-	// ddl := time.Now().Add(timeout)
-	// for time.Now().Before(ddl) {
-	// 	tx, err := worker.GetProof(receipt, `"prove_on_tx_trie"`)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	fmt.Println(string(tx))
-	// 	if gjson.GetBytes(tx, "blockNumber").Type != gjson.Null {
-	// 		b, _ := hex.DecodeString(gjson.GetBytes(tx, "blockHash").String()[2:])
-	// 		return b, nil
-	// 	}
-	// 	time.Sleep(time.Millisecond * 500)
-	//
-	// }
-	// return nil, errors.New("timeout")
+	return []byte(res.Height), []byte(res.Hash), err
 }
 
 func (bn *BN) RouteWithSigner(signer uiptypes.Signer) (uiptypes.Router, error) {
@@ -112,49 +99,40 @@ func (bn *BN) RouteWithSigner(signer uiptypes.Signer) (uiptypes.Router, error) {
 	return &nbn, nil
 }
 
-func (bn *BN) Translate(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) (uiptypes.RawTransaction, error) {
+type rawTransaction struct {
+	Type transactiontype.Type
+	Header *nsbrpc.TransactionHeader
+}
+
+func newRawTransaction(_type transactiontype.Type, header *nsbrpc.TransactionHeader) *rawTransaction {
+	return &rawTransaction{Type: _type, Header: header}
+}
+
+
+func (r *rawTransaction) Serialize() ([]byte, error) {
+	return nsbcli.GlobalClient.Serialize(r.Type, r.Header)
+}
+
+func (r *rawTransaction) Signed() bool {
+	return len(r.Header.Signature) != 0
+}
+
+func (r *rawTransaction) Sign(user uiptypes.Signer) (uiptypes.RawTransaction, error) {
+	if !bytes.Equal(r.Header.Src, user.GetPublicKey()) {
+		return nil, fmt.Errorf("sign error user is %v, want is %v", hex.EncodeToString(user.GetPublicKey()), hex.EncodeToString(r.Header.Src))
+	}
+	r.Header = nsbcli.GlobalClient.Sign(user, r.Header)
+	return r, nil
+}
+
+func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Storage) (uiptypes.RawTransaction, error) {
 	switch intent.TransType {
 	case TransType.Payment:
-		return nil, errors.New("todo")
-		//var txHeader MiddleHeader
-		//
-		//// Nonce
-		//nonce := make([]byte, 32)
-		//_, err := rand.Read(nonce)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//txHeader.Header.Nonce = nonce
-		//
-		//// Data
-		//var args appl.ArgsTransfer
-		//value, err := hex.DecodeString(intent.Amt)
-		//
-		//if err != nil {
-		//	return nil, err
-		//}
-		//args.Value = nsbmath.NewUint256FromBytes(value)
-		//
-		//b, err := json.Marshal(args)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//
-		//var fap appl.FAPair
-		//fap.FuncName = "transfer"
-		//fap.Args = b
-		//txHeader.Header.Data, err = json.Marshal(fap)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//
-		//// Rest
-		//txHeader.Header.Src = intent.Dst
-		//txHeader.Header.Dst = intent.Src
-		//txHeader.Header.Value = args.Value.Bytes()
-		//txHeader.PreHeader = []byte("systemCall\x19system.token\x18")
-		//
-		//return json.Marshal(txHeader)
+		header, err := nsbcli.GlobalClient.CreateTransferPacket(intent.Src, intent.Dst, math.NewUint256FromHexString(intent.Amt))
+		if err != nil {
+			return nil, err
+		}
+		return newRawTransaction(transactiontype.Type(intent.TransType), header), nil
 	case TransType.ContractInvoke:
 		// var meta uiptypes.ContractInvokeMeta
 		//
@@ -164,7 +142,7 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KV
 		// }
 		// //_ = meta
 		//
-		// data, err := ContractInvocationDataABI(&meta, kvGetter)
+		// data, err := ContractInvocationDataABI(&meta, storage)
 		// if err != nil {
 		// 	return nil, err
 		// }
@@ -191,116 +169,60 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KV
 	}
 }
 
-func (bn *BN) GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.Contract, pos uiptypes.Pos, description uiptypes.Desc) (interface{}, error) {
+func (bn *BN) GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte) (uiptypes.Variable, error) {
+	return nil, errors.New("todo")
+	//ci, err := bn.dns.GetChainInfo(chainID)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//switch typeID {
+	//case valuetype.Bool:
+	//	s, err := ethclient.NewEthClient((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String()).GetStorageAt(contractAddress, pos, "latest")
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	b, err := hex.DecodeString(s[2:])
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	bs, err := ethabi.NewDecoder().Decodes([]string{"bool"}, b)
+	//	return bs[0], nil
+	//case valuetype.Uint256:
+	//	s, err := ethclient.NewEthClient(ci.GetChainHost()).GetStorageAt(contractAddress, pos, "latest")
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	b, err := hex.DecodeString(s[2:])
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	bs, err := ethabi.NewDecoder().Decodes([]string{"uint256"}, b)
+	//	return bs[0], nil
+	//}
 
-	ci, err := bn.dns.GetChainInfo(chainID)
-	if err != nil {
-		return nil, err
-	}
-
-	switch typeID {
-	case valuetype.Bool:
-		s, err := ethclient.NewEthClient((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String()).GetStorageAt(contractAddress, pos, "latest")
-		if err != nil {
-			return nil, err
-		}
-
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return nil, err
-		}
-		bs, err := ethabi.NewDecoder().Decodes([]string{"bool"}, b)
-		return bs[0], nil
-	case valuetype.Uint256:
-		s, err := ethclient.NewEthClient(ci.GetChainHost()).GetStorageAt(contractAddress, pos, "latest")
-		if err != nil {
-			return nil, err
-		}
-
-		b, err := hex.DecodeString(s[2:])
-		if err != nil {
-			return nil, err
-		}
-		bs, err := ethabi.NewDecoder().Decodes([]string{"uint256"}, b)
-		return bs[0], nil
-	}
-
-	return nil, nil
+	//return nil, nil
 }
 
 func NewBN(dns types.ChainDNSInterface) *BN {
 	return &BN{dns: dns}
 }
 
-type MiddleHeader struct {
-	Header    nsbrpc.TransactionHeader `json:"h"`
-	PreHeader []byte                   `json:"p"`
-}
-
 func (bn *BN) MustWithSigner() bool {
 	return true
 }
 
-type RTxInfo struct {
-	ret                []byte
-	transactionReceipt []byte
-}
 
-func (bn *BN) RouteRawTransaction(destination uint64, payload []byte) ([]byte, error) {
-	ci, err := bn.dns.GetChainInfo(destination)
-	if err != nil {
-		return nil, err
-	}
-
-	var txHeader MiddleHeader
-	err = json.Unmarshal(payload, &txHeader)
-	if err != nil {
-		return nil, err
-	}
-
-	// bug: buf.Reset()
-	buf := bytes.NewBuffer(make([]byte, 65535))
-
-	buf.Write(txHeader.Header.Src)
-	buf.Write(txHeader.Header.Dst)
-	buf.Write(txHeader.Header.Data)
-	buf.Write(txHeader.Header.Value)
-	buf.Write(txHeader.Header.Nonce)
-	txHeader.Header.Signature = bn.signer.Sign(buf.Bytes()).Bytes()
-
-	if err != nil {
-		return nil, err
-	}
-
-	b, err := proto.Marshal(&txHeader.Header)
-	if err != nil {
-		return nil, err
-	}
-
-	buf.Reset()
-	buf.Write(txHeader.PreHeader)
-	buf.Write(b)
-
-	var ret RTxInfo
-
-	ret.ret, err = nsbclient.NewNSBClient((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String()).BroadcastTxCommitReturnBytes(buf.Bytes())
-	if err != nil {
-		return nil, err
-	}
-
-	ret.transactionReceipt = b
-	b, err = json.Marshal(ret)
-	return b, nil
-}
-
-func (bn *BN) Route(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) ([]byte, error) {
-	// todo
-	onChainTransaction, err := bn.Translate(intent, kvGetter)
-	if err != nil {
-		return nil, err
-	}
-	return bn.RouteRaw(intent.ChainID, onChainTransaction)
-}
+//func (bn *BN) Route(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) ([]byte, error) {
+//	// todo
+//	onChainTransaction, err := bn.Translate(intent, kvGetter)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return bn.RouteRaw(intent.ChainID, onChainTransaction)
+//}
 
 
 func (bn *BN) CheckAddress(addr []byte) bool {

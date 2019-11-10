@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	transactiontype "github.com/HyperService-Consortium/NSB/application/transaction-type"
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	"github.com/golang/protobuf/proto"
 	"io"
@@ -489,10 +490,7 @@ func (nc *NSBClient) GetTransaction(hash string) ([]byte, error) {
 // 	return nc.BroadcastTxCommit(buf.Bytes())
 // }
 
-func (nc *NSBClient) sendContractTx(
-	transType uint8,
-	txContent *nsbrpc.TransactionHeader,
-) (*ResultInfo, error) {
+func (nc *NSBClient) Serialize(transType transactiontype.Type, txContent *nsbrpc.TransactionHeader) ([]byte, error) {
 	x, err := proto.Marshal(txContent)
 	if err != nil {
 		return nil, err
@@ -501,8 +499,18 @@ func (nc *NSBClient) sendContractTx(
 	var buf = bytes.NewBuffer(b)
 	buf.WriteByte(transType)
 	buf.Write(x)
+	// todo
+	return buf.Bytes(), nil
+}
 
-	return nc.BroadcastTxCommit(buf.Bytes())
+func (nc *NSBClient) sendContractTx(
+	transType transactiontype.Type, txContent *nsbrpc.TransactionHeader,
+) (*ResultInfo, error) {
+	b, err := nc.Serialize(transType, txContent)
+	if err != nil {
+		return nil, err
+	}
+	return nc.BroadcastTxCommit(b)
 }
 
 func (nc *NSBClient) sendContractTxAsync(
@@ -510,20 +518,15 @@ func (nc *NSBClient) sendContractTxAsync(
 	txContent *nsbrpc.TransactionHeader,
 	option *AsyncOption,
 ) ([]byte, error) {
-
-	x, err := proto.Marshal(txContent)
+	b, err := nc.Serialize(transType, txContent)
 	if err != nil {
 		return nil, err
 	}
-	var b = make([]byte, 0, len(x)+1)
-	var buf = bytes.NewBuffer(b)
-	buf.WriteByte(transType)
-	buf.Write(x)
-
-	bb, err := nc.BroadcastTxAsync(buf.Bytes())
+	bb, err := nc.BroadcastTxAsync(b)
 	if err != nil {
 		return nil, err
 	}
+	b = nil
 
 	var receipt TransactionReceipt
 	err = json.Unmarshal(bb, &receipt)
