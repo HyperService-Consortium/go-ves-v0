@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	signaturetype "github.com/HyperService-Consortium/go-uip/const/signature_type"
 	"github.com/HyperService-Consortium/go-uip/signaturer"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
 // ECCKey is the private key object in memory
@@ -53,5 +53,5 @@ func (signer *EthAccount) GetPublicKey() []byte {
 
 func (signer *EthAccount) Sign(b []byte) uiptypes.Signature {
 	// todo: sign b
-	return signaturer.FromRaw(b, signaturetype.Secp256k1)
+	return signaturer.FromRaw(b, uiptypes.SignatureUnderlyingType(signaturetype.Secp256k1))
 }

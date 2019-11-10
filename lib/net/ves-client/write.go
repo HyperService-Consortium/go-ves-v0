@@ -270,18 +270,22 @@ func (vc *VesClient) SendEthAlias(alias []byte) error {
 	return errNotFound
 }
 
+
 func (vc *VesClient) SendAlias(alias []byte) error {
 	if key, ok := vc.keys.Alias[*(*string)(unsafe.Pointer(&alias))]; ok {
 		userRegister := vc.getUserRegisterRequest()
 
-		signer := signaturer.NewTendermintNSBSigner(key.PrivateKey)
+		signer, err := signaturer.NewTendermintNSBSigner(key.PrivateKey)
+		if err != nil {
+			return err
+		}
 		if signer == nil {
 			vc.logger.Error("init signer error", "alias", key.PrivateKey, "error", errIlegalPrivateKey)
 			return errIlegalPrivateKey
 		}
 		userRegister.Account = &uipbase.Account{Address: signer.GetPublicKey(), ChainId: key.ChainID}
 		userRegister.UserName = *(*string)(unsafe.Pointer(&vc.name))
-		err := vc.postMessage(wsrpc.CodeUserRegisterRequest, userRegister)
+		err = vc.postMessage(wsrpc.CodeUserRegisterRequest, userRegister)
 		if err != nil {
 			vc.logger.Error("register user error", "alias", string(alias), "error", err)
 			return err

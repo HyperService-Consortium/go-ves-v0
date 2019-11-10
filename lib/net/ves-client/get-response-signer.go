@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"github.com/HyperService-Consortium/go-uip/signaturer"
 
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	uip_base "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 )
 
@@ -28,7 +28,10 @@ func (vc *VesClient) getRespSigner(acc *uip_base.Account) (uiptypes.Signer, erro
 				continue
 			}
 
-			signer := signaturer.NewTendermintNSBSigner(key.PrivateKey)
+			signer, err := signaturer.NewTendermintNSBSigner(key.PrivateKey)
+			if err != nil {
+				return nil, err
+			}
 			if bytes.Equal(signer.GetPublicKey(), acc.GetAddress()) {
 				return signer, nil
 			}

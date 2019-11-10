@@ -8,7 +8,7 @@ import (
 
 	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
 	valuetype "github.com/HyperService-Consortium/go-uip/const/value_type"
-	types "github.com/HyperService-Consortium/go-uip/types"
+	types "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
 type testdata struct {
@@ -69,7 +69,7 @@ func TestDataTransaction(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(string(b))
+	fmt.Println(b)
 }
 
 func TestGetStorageAt(t *testing.T) {

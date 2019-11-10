@@ -7,7 +7,7 @@ import (
 
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	appl "github.com/HyperService-Consortium/NSB/application"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
 

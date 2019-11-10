@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io"
 
-	types "github.com/HyperService-Consortium/go-uip/types"
+	types "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
 var (

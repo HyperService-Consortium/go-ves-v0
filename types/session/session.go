@@ -10,11 +10,11 @@ import (
 	"math/rand"
 	"unsafe"
 
+	account "github.com/HyperService-Consortium/go-uip/base-account"
 	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
 	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
-	account "github.com/HyperService-Consortium/go-uip/types/account"
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
+	"github.com/HyperService-Consortium/go-ves/types"
 
 	bitmap "github.com/HyperService-Consortium/go-ves/lib/bitmapping"
 	const_prefix "github.com/HyperService-Consortium/go-ves/lib/database/const_prefix"
@@ -158,17 +158,17 @@ func (ses *SerialSession) InitFromOpIntents(opIntents uiptypes.OpIntents) (bool,
 
 	ses.Accounts = nil
 	c := makeComparator()
-	ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: 3, Address: ses.Signer.GetPublicKey()})
+	ses.Accounts = append(ses.Accounts, &account.Account{ChainId: 3, Address: ses.Signer.GetPublicKey()})
 	for _, intent := range intents {
 		// fmt.Println("insert", len(ses.Transactions))
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
 		// fmt.Println(string(intent.Bytes()), hex.EncodeToString(intent.Src), hex.EncodeToString(intent.Dst))
 
 		if c.Insert(intent.ChainID, intent.Src) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Src})
+			ses.Accounts = append(ses.Accounts, &account.Account{ChainId: intent.ChainID, Address: intent.Src})
 		}
 		if intent.TransType == TransType.Payment && c.Insert(intent.ChainID, intent.Dst) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Dst})
+			ses.Accounts = append(ses.Accounts, &account.Account{ChainId: intent.ChainID, Address: intent.Dst})
 		}
 	}
 	ses.TransactionCount = uint32(len(intents))
@@ -439,7 +439,7 @@ func (sb *SerialSessionBase) FindSessionInfo(
 		return nil, errors.New("not found")
 	}
 	sb.FindSessionAccounts(idb, isc_address, func(arg1 uint64, arg2 []byte) error {
-		f[0].Accounts = append(f[0].Accounts, &account.PureAccount{ChainId: arg1, Address: arg2})
+		f[0].Accounts = append(f[0].Accounts, &account.Account{ChainId: arg1, Address: arg2})
 		// fmt.Println("finded", hex.EncodeToString(arg2))
 		return nil
 	})

@@ -128,3 +128,11 @@
 2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "ad1ea61df778b4afce88cf760041e18e", "type": "CodeCloseSessionRequest"}
 2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:261		{"level": "info", "_msg": "session closed"}
 2019-11-09T17:31:53.301+0800	DEBUG	ves-client/read.go:43		{"level": "info", "_msg": "message from server", "tag": "ad1ea61df778b4afce88cf760041e18e", "type": "CodeCloseSessionRequest"}
+2019-11-10T10:31:46.513+0800	DEBUG	ves-client/say-client-hello.go:14		{"level": "info", "_msg": "say client hello to server successfully"}
+2019-11-10T10:31:46.515+0800	DEBUG	ves-client/read.go:45		{"level": "info", "_msg": "message from server", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "type": "CodeClientHelloReply"}
+2019-11-10T10:31:46.519+0800	DEBUG	ves-client/process-client-hello-reply.go:15		{"level": "info", "_msg": "adding default grpc ip ", "ip": "127.0.0.1:23351"}
+2019-11-10T10:31:46.519+0800	DEBUG	ves-client/process-client-hello-reply.go:22		{"level": "info", "_msg": "adding default nsb ip ", "ip": "127.0.0.1:26657"}
+2019-11-10T10:31:46.562+0800	DEBUG	ves-client/write.go:239		{"level": "info", "_msg": "this account is already in the storage, public address", "address": "d051a43d"}
+2019-11-10T10:31:46.562+0800	DEBUG	ves-client/write.go:239		{"level": "info", "_msg": "this account is already in the storage, public address", "address": "93334ae4"}
+2019-11-10T10:31:46.611+0800	DEBUG	ves-client/write.go:181		{"level": "info", "_msg": "this key is already in the storage, private key", "address": "2333ffffffffffff"}
+2019-11-10T10:31:46.611+0800	DEBUG	ves-client/write.go:181		{"level": "info", "_msg": "this key is already in the storage, private key", "address": "2333ffffffffffff"}

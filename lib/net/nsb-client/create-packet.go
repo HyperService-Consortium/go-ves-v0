@@ -3,7 +3,7 @@ package nsbcli
 import (
 	"bytes"
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	"github.com/golang/protobuf/proto"
 	"math/rand"
 	"time"

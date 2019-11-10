@@ -5,7 +5,7 @@ import (
 	appl "github.com/HyperService-Consortium/NSB/application"
 	transactiontype "github.com/HyperService-Consortium/NSB/application/transaction-type"
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
 func (nc *NSBClient) AddAction(

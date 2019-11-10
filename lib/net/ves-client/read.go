@@ -7,6 +7,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
+	raw_transaction "github.com/HyperService-Consortium/go-ves/lib/bni/raw-transaction"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
@@ -141,7 +143,7 @@ func (vc *VesClient) read() {
 					Content: atte.GetContent(),
 					Signatures: append(sigs, &uipbase.Signature{
 						// todo signature
-						SignatureType: sigg.GetSignatureType(),
+						SignatureType: uiptypes.SignatureUnderlyingType(sigg.GetSignatureType()),
 						Content:       sigg.GetContent(),
 					}),
 				}
@@ -166,10 +168,14 @@ func (vc *VesClient) read() {
 							continue
 						}
 
-						router = router.RouteWithSigner(respSigner)
+						router, err = router.RouteWithSigner(respSigner)
+						if err != nil {
+							vc.logger.Error("VesClient.read.AttestationReceiveRequest.RouteWithSigner", "error", err)
+							continue
+						}
 					}
 
-					receipt, err := router.RouteRawTransaction(acc.ChainId, atte.GetContent())
+					receipt, err := router.RouteRaw(acc.ChainId, raw_transaction.FromRaw(atte.GetContent()))
 					if err != nil {
 						vc.logger.Error("VesClient.read.AttestationReceiveRequest.router.RouteRaw", "error", err)
 						continue
@@ -195,7 +201,7 @@ func (vc *VesClient) read() {
 						continue
 					}
 
-					cb, err := vc.nsbClient.AddMerkleProof(signer, nil, proof.GetType(), proof.GetRootHash(), proof.GetProof(), proof.GetKey(), proof.GetValue())
+					cb, err := vc.nsbClient.AddMerkleProof(signer, nil, uiptypes.MerkleProofTypeUnderlyingType(proof.GetType()), proof.GetRootHash(), proof.GetProof(), proof.GetKey(), proof.GetValue())
 					if err != nil {
 						vc.logger.Error("VesClient.read.AttestationReceiveRequest.nsbClient.AddMerkleProof", "error", err)
 						continue

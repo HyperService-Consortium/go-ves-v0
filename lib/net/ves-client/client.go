@@ -8,12 +8,13 @@ import (
 	"io"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 
 	"github.com/HyperService-Consortium/go-uip/signaturer"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
@@ -37,7 +38,7 @@ type VesClient struct {
 
 	conn      *websocket.Conn
 	nsbClient *nsbclient.NSBClient
-	waitOpt   *uiptypes.WaitOption
+	waitOpt   uiptypes.RouteOptionTimeout
 
 	cb   chan *bytes.Buffer
 	quit chan bool
@@ -86,7 +87,7 @@ type VesName []byte
 
 type ServerOptions struct {
 	logger  logger.Logger
-	waitOpt *uiptypes.WaitOption
+	waitOpt uiptypes.RouteOptionTimeout
 	addr    string
 	nsbHost string
 	vesName []byte
@@ -97,7 +98,7 @@ var globalLogger = logger.NewStdLogger()
 func defaultServerOptions() ServerOptions {
 	return ServerOptions{
 		logger:  globalLogger,
-		waitOpt: uiptypes.NewWaitOption(),
+		waitOpt: uiptypes.RouteOptionTimeout(time.Second * 60),
 		addr:    "127.0.0.1:23452",
 		nsbHost: "127.0.0.1:27667",
 	}
@@ -109,7 +110,7 @@ func parseOptions(rOptions []interface{}) ServerOptions {
 		switch option := rOptions[i].(type) {
 		case logger.Logger:
 			options.logger = option
-		case *uiptypes.WaitOption:
+		case uiptypes.RouteOptionTimeout:
 			options.waitOpt = option
 		case CVesHostOption:
 			options.addr = string(option)
@@ -504,7 +505,11 @@ func (vc *VesClient) getNSBSigner() (uiptypes.Signer, error) {
 	}
 
 	if key, ok := vc.keys.Alias["ten1"]; ok {
-		vc.signer = signaturer.NewTendermintNSBSigner(key.PrivateKey)
+		var err error
+		vc.signer, err = signaturer.NewTendermintNSBSigner(key.PrivateKey)
+		if err != nil {
+			return nil, err
+		}
 		if vc.signer == nil {
 			return nil, errIlegalPrivateKey
 		}

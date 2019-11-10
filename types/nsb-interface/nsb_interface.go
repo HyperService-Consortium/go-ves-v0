@@ -1,7 +1,7 @@
 package nsbi
 
 import (
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
@@ -22,6 +22,7 @@ func (nsb *NSBClientImpl) SaveAttestation(isc_address []byte, atte uiptypes.Atte
 	// todo
 	return nil
 }
+
 func (nsb *NSBClientImpl) InsuranceClaim(isc_address []byte, atte uiptypes.Attestation) error {
 	_, err := nsb.NSBClient.InsuranceClaim(nsb.signer, isc_address, atte.GetTid(), atte.GetAid())
 	return err

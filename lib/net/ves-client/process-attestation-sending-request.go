@@ -3,6 +3,7 @@ package vesclient
 import (
 	"encoding/hex"
 	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
@@ -56,7 +57,7 @@ func (vc *VesClient) ProcessAttestationSendingRequest(attestationSendingRequest 
 		Content: transactionReply.RawTransaction,
 		Signatures: append(make([]*uiprpc_base.Signature, 0, 1), &uiprpc_base.Signature{
 			// todo use src.signer to sign
-			SignatureType: sigg.GetSignatureType(),
+			SignatureType: uiptypes.SignatureUnderlyingType(sigg.GetSignatureType()),
 			Content:       sigg.GetContent(),
 		}),
 	}

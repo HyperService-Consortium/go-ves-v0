@@ -2,7 +2,7 @@ package nsbcli
 
 import (
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
-	"github.com/HyperService-Consortium/go-uip/types"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	"io"
 	"reflect"
 	"testing"

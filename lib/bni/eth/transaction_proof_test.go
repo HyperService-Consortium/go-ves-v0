@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/HyperService-Consortium/go-rlp"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
 )
 
 func TestGetTransaction(t *testing.T) {
@@ -43,7 +42,7 @@ func TestGetTransactionProof(t *testing.T) {
 		return
 	}
 
-	blockBytes, index, err := new(BN).WaitForTransact(1, txbytes, uiptypes.NewWaitOption())
+	blockBytes, index, err := new(BN).WaitForTransact(1, txbytes)
 	if err != nil {
 		t.Error(err)
 		return

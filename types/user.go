@@ -1,6 +1,6 @@
 package types
 
-import uiptypes "github.com/HyperService-Consortium/go-uip/types"
+import uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 
 type user_name = string
 

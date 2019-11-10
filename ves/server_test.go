@@ -53,7 +53,11 @@ func TestUserRegister(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	signer := signaturer.NewTendermintNSBSigner(b)
+	signer, err := signaturer.NewTendermintNSBSigner(b)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	var server *Server
 	if server, err = NewServer(

@@ -65,7 +65,10 @@ func main() {
 		log.Fatal(err)
 		return
 	}
-	signer := signaturer.NewTendermintNSBSigner(b)
+	signer, err := signaturer.NewTendermintNSBSigner(b)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var server *ves_server.Server
 	if server, err = ves_server.NewServer(

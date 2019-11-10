@@ -9,9 +9,13 @@ import (
 func (vc *VesClient) ListKeys() {
 	fmt.Println("privatekeys -> publickeys:")
 	for alias, key := range vc.keys.Alias {
+		signer, err := signaturer.NewTendermintNSBSigner(key.PrivateKey)
+		if err != nil {
+			vc.logger.Error("could not convert", "private key", hex.EncodeToString(key.PrivateKey), "error", err)
+		}
 		fmt.Println(
 			"alias:", alias,
-			"public key:", hex.EncodeToString(signaturer.NewTendermintNSBSigner(key.PrivateKey).GetPublicKey()),
+			"public key:", hex.EncodeToString(signer.GetPublicKey()),
 			"chain id:", key.ChainID,
 		)
 	}

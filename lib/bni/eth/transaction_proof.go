@@ -9,18 +9,15 @@ import (
 	"math/big"
 	"strconv"
 	"sync/atomic"
-	"time"
 
 	trie "github.com/HyperService-Consortium/go-mpt"
 	"github.com/HyperService-Consortium/go-rlp"
 	merkleproof "github.com/HyperService-Consortium/go-uip/merkle-proof"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	ethclient "github.com/HyperService-Consortium/go-ves/lib/net/eth-client"
 	leveldb "github.com/syndtr/goleveldb/leveldb"
 	leveldbstorage "github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/crypto/sha3"
-
-	chaininfo "github.com/HyperService-Consortium/go-uip/temporary-chain-info"
 
 	gjson "github.com/tidwall/gjson"
 )
@@ -276,12 +273,12 @@ func NewTxTrie(list DerivableList) (*trie.Trie, error) {
 }
 
 func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
-	cinfo, err := chaininfo.SearchChainId(chainID)
+	cinfo, err := bn.dns.GetChainInfo(chainID)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := ethclient.NewEthClient(cinfo.GetHost()).GetBlockByHash(blockID, false)
+	b, err := ethclient.NewEthClient(cinfo.GetChainHost()).GetBlockByHash(blockID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +299,7 @@ func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []b
 	var txs Transactions
 	var tx *Transaction
 	for _, rawTx := range rawTxs {
-		tx, err = bn.GetTransactionByStringHash(cinfo.GetHost(), rawTx.String())
+		tx, err = bn.GetTransactionByStringHash(cinfo.GetChainHost(), rawTx.String())
 		if err != nil {
 			return nil, err
 		}
@@ -333,39 +330,13 @@ func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []b
 	return merkleproof.NewMPTUsingKeccak256(proof, keybuf.Bytes(), txTrie.Get(keybuf.Bytes())), nil
 }
 
-func (bn *BN) WaitForTransact(chainID uint64, receipt []byte, opt *uiptypes.WaitOption) ([]byte, []byte, error) {
-	cinfo, err := chaininfo.SearchChainId(chainID)
-	if err != nil {
-		return nil, nil, err
-	}
-	worker := ethclient.NewEthClient(cinfo.GetHost())
-	ddl := time.Now().Add(opt.Timeout)
-	for time.Now().Before(ddl) {
-		tx, err := worker.GetTransactionByHash(receipt)
-		if err != nil {
-			return nil, nil, err
-		}
-		fmt.Println(string(tx))
-		if gjson.GetBytes(tx, "blockNumber").Type != gjson.Null {
-			b, _ := hex.DecodeString(gjson.GetBytes(tx, "blockHash").String()[2:])
-			idx, _ := strconv.ParseUint(gjson.GetBytes(tx, "transactionIndex").String()[2:], 16, 64)
-			var a = make([]byte, 8)
-			binary.BigEndian.PutUint64(a, idx)
-			return b, a, nil
-		}
-		time.Sleep(time.Millisecond * 500)
-
-	}
-	return nil, nil, errors.New("timeout")
-}
-
 func (bn *BN) GetTransactionProofByHash(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
-	cinfo, err := chaininfo.SearchChainId(chainID)
+	cinfo, err := bn.dns.GetChainInfo(chainID)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := ethclient.NewEthClient(cinfo.GetHost()).GetBlockByHash(blockID, false)
+	b, err := ethclient.NewEthClient(cinfo.GetChainHost()).GetBlockByHash(blockID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +356,7 @@ func (bn *BN) GetTransactionProofByHash(chainID uint64, blockID []byte, addition
 	var tx *Transaction
 	var index uint64
 	for idx, rawTx := range rawTxs {
-		tx, err = bn.GetTransactionByStringHash(cinfo.GetHost(), rawTx.String())
+		tx, err = bn.GetTransactionByStringHash(cinfo.GetChainHost(), rawTx.String())
 		if err != nil {
 			return nil, err
 		}
@@ -410,7 +381,10 @@ func (bn *BN) GetTransactionProofByHash(chainID uint64, blockID []byte, addition
 
 	keybuf := new(bytes.Buffer)
 	keybuf.Reset()
-	rlp.Encode(keybuf, uint(index))
+	err = rlp.Encode(keybuf, uint(index))
+	if err != nil {
+		return nil, err
+	}
 
 	proof, err := txTrie.TryProve(keybuf.Bytes())
 	if err != nil {

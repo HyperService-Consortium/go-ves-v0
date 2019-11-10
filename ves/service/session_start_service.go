@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"

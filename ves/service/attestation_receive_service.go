@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	tx "github.com/HyperService-Consortium/go-uip/op-intent"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
@@ -41,7 +41,7 @@ func (atte *AtteAdapdator) GetSignatures() []uiptypes.Signature {
 	var ss = atte.Attestation.GetSignatures()
 	ret := make([]uiptypes.Signature, len(ss))
 	for _, s := range ss {
-		ret = append(ret, signaturer.FromBaseSignature(s))
+		ret = append(ret, signaturer.FromRaw(s.Content, s.SignatureType))
 	}
 	return ret
 }

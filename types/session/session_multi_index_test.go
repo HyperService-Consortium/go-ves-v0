@@ -6,7 +6,7 @@ import (
 
 	index "github.com/HyperService-Consortium/go-ves/lib/database/index"
 	xorm_multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
-	mtest "github.com/HyperService-Consortium/mydrest"
+	mtest "github.com/Myriad-Dreamin/mydrest"
 )
 
 type TestHelper struct {

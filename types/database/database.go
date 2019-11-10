@@ -1,10 +1,8 @@
 package vesdb
 
 import (
-	"fmt"
-
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
+	"github.com/HyperService-Consortium/go-ves/types"
 )
 
 type Database struct {
@@ -13,6 +11,12 @@ type Database struct {
 	sesdb  types.SessionBase
 	userdb types.UserBase
 	kvdb   types.SessionKVBase
+	dns   types.ChainDNS
+}
+
+func (db *Database) SetChainDNS(dns types.ChainDNS) bool {
+	db.dns = dns
+	return true
 }
 
 func (db *Database) SetIndex(phyDB types.Index) bool {
@@ -61,7 +65,6 @@ func (db *Database) FindTransaction(isc_address []byte, transaction_id uint64, g
 }
 
 func (db *Database) InsertAccount(user_name string, account uiptypes.Account) error {
-	fmt.Println(db.userdb, db.muldb)
 	return db.userdb.InsertAccount(db.muldb, user_name, account)
 }
 
@@ -115,4 +118,8 @@ func (db *Database) GetGetter(isc_address []byte) uiptypes.KVGetter {
 
 func (db *Database) GetSetter(isc_address []byte) types.KVSetter {
 	return db.kvdb.GetSetter(db.sindb, isc_address)
+}
+
+func (db *Database) GetChainInfo(chainId uiptypes.ChainID) (types.ChainInfo, error) {
+	return db.dns.GetChainInfo(db.sindb, chainId)
 }

@@ -8,10 +8,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
 
-	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
+	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
 )
 
 type task struct {
@@ -114,10 +114,10 @@ func Main(cli *nsbclient.NSBClient, SessionLimit, SignContentSize, ActionLong in
 		privatekey[i] = uint8(i)
 	}
 
-	signer := signaturer.NewTendermintNSBSigner(privatekey)
-	if signer == nil {
-		log.Fatal("cant create signer")
-		return nil
+	signer, err := signaturer.NewTendermintNSBSigner(privatekey)
+	if err != nil {
+		log.Fatal(err)
+		return
 	}
 
 	var U = make(chan bool, SessionLimit)

@@ -3,8 +3,6 @@
 */__pycache__/*
 */*/__pycache__/*
 lib/database/index/testdb/*
-go.sum
-go.mod
 *.log
 central-ves/index_data/*
 bin/central-ves-server/index_data/*

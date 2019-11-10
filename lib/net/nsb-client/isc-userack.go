@@ -6,7 +6,7 @@ import (
 
 	ISC "github.com/HyperService-Consortium/NSB/contract/isc"
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
 func (nc *NSBClient) UserAck(

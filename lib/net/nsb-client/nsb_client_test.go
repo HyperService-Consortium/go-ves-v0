@@ -9,7 +9,7 @@ import (
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	"github.com/HyperService-Consortium/NSB/math"
 	"github.com/HyperService-Consortium/go-uip/signaturer"
-	"github.com/HyperService-Consortium/go-uip/types"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	bytespool "github.com/HyperService-Consortium/go-ves/lib/bytes-pool"
 	"github.com/HyperService-Consortium/go-ves/lib/net/request"
 	"github.com/tidwall/gjson"
@@ -19,7 +19,7 @@ import (
 )
 
 var nc = NewNSBClient("127.0.0.1:26657")
-var signer = signaturer.NewTendermintNSBSigner(make([]byte, 64))
+var signer = HandlerError(signaturer.NewTendermintNSBSigner(make([]byte, 64))).(*signaturer.TendermintNSBSigner)
 
 func PrettifyStruct(i interface{}) string {
 	je, _ := json.MarshalIndent(i, "", "\t")
@@ -757,7 +757,7 @@ func Test_decorateHost(t *testing.T) {
 
 func TestNSBClient_AddBlockCheck(t *testing.T) {
 	type args struct {
-		user      types.Signer
+		user      uiptypes.Signer
 		toAddress []byte
 		chainID   uint64
 		blockID   []byte
@@ -793,7 +793,7 @@ func TestNSBClient_AddBlockCheck(t *testing.T) {
 
 func TestNSBClient_AddMerkleProof(t *testing.T) {
 	type args struct {
-		user       types.Signer
+		user       uiptypes.Signer
 		toAddress  []byte
 		merkletype uint16
 		rootHash   []byte
@@ -924,7 +924,7 @@ func TestNSBClient_BroadcastTxAsync1(t *testing.T) {
 func TestNSBClient_CreateContractPacket(t *testing.T) {
 
 	type args struct {
-		s         types.Signer
+		s         uiptypes.Signer
 		toAddress []byte
 		value     []byte
 		pair      *nsbrpc.FAPair

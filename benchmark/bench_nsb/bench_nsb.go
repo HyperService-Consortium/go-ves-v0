@@ -9,10 +9,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	uiptypes "github.com/Myriad-Dreamin/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
 
-	signaturer "github.com/Myriad-Dreamin/go-uip/signaturer"
+	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
 )
 
 var (
@@ -101,10 +101,9 @@ func main() {
 		privatekey[i] = uint8(i)
 	}
 
-	signer := signaturer.NewTendermintNSBSigner(privatekey)
-	if signer == nil {
-		log.Fatal("cant create signer")
-		return
+	signer, err := signaturer.NewTendermintNSBSigner(privatekey)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	var U = make(chan bool, SessionLimit)

@@ -3,7 +3,7 @@ package user
 import (
 	"errors"
 
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	types "github.com/HyperService-Consortium/go-ves/types"
 )
 

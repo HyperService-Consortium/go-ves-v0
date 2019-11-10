@@ -13,7 +13,7 @@ import (
 	transtype "github.com/HyperService-Consortium/go-uip/const/trans_type"
 	value_type "github.com/HyperService-Consortium/go-uip/const/value_type"
 	tx "github.com/HyperService-Consortium/go-uip/op-intent"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
@@ -68,7 +68,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 			return nil, err
 		}
 
-		var intDesc uint16
+		var intDesc uiptypes.TypeID
 		for _, param := range meta.Params {
 			if intDesc = value_type.FromString(param.Type); intDesc == value_type.Unknown {
 				return nil, errors.New("unknown type: " + param.Type)
@@ -105,7 +105,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 		}
 	}
 
-	var b []byte
+	var b uiptypes.RawTransaction
 	b, err = bn.Translate(&transactionIntent, s.GetGetter(ses.GetGUID()))
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 
 		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", transactionIntent.Dst)
 		return &uiprpc.SessionRequireRawTransactReply{
-			RawTransaction: b,
+			RawTransaction: b.Bytes(),
 			Tid:            uint64(underTransacting),
 			Src: &uipbase.Account{
 				Address: transactionIntent.Src,
@@ -130,7 +130,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 
 		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", s.Resp.GetAddress())
 		return &uiprpc.SessionRequireRawTransactReply{
-			RawTransaction: b,
+			RawTransaction: b.Bytes(),
 			Tid:            uint64(underTransacting),
 			Src: &uipbase.Account{
 				Address: transactionIntent.Src,

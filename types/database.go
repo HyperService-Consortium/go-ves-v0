@@ -1,6 +1,8 @@
 package types
 
-import uiptypes "github.com/HyperService-Consortium/go-uip/types"
+import (
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
+)
 
 type KVPair struct {
 	Key   string
@@ -61,6 +63,7 @@ type KVPMultiIndex interface {
 	MultiModify([]KVPair, ...KVPair) error
 }
 
+
 type ORMMultiIndex interface {
 	MultiIndex
 	// 要求只Update到一个
@@ -69,16 +72,20 @@ type ORMMultiIndex interface {
 	// MultiModify(ORMObject, ORMObject) error
 }
 
+type chain_id = uint64
+
+type ChainInfo interface {
+	GetChainType() uiptypes.ChainType
+	GetChainHost() string
+}
+
 type VESDB interface {
 	SetIndex(Index) success_or_not
-
 	SetMultiIndex(MultiIndex) success_or_not
-
 	SetSessionBase(SessionBase) success_or_not
-
 	SetUserBase(UserBase) success_or_not
-
 	SetSessionKVBase(SessionKVBase) success_or_not
+	SetChainDNS(ChainDNS) success_or_not
 
 	// insert accounts maps from guid to account
 	InsertSessionInfo(Session) error
@@ -107,20 +114,18 @@ type VESDB interface {
 
 	// find accounts which guid is corresponding to user
 	FindUser(user_name) (User, error)
-
 	// find accounts which guid is corresponding to user
 	FindAccounts(user_name, uint64) ([]uiptypes.Account, error)
-
 	// return true if user has this account
 	HasAccount(user_name, uiptypes.Account) (bool, error)
-
 	// return the user which has this account
 	InvertFind(uiptypes.Account) (user_name, error)
 
 	SetKV(isc_address, provedKey, provedValue) error
-
 	GetKV(isc_address, provedKey) (provedValue, error)
 
 	GetSetter(isc_address) KVSetter
 	GetGetter(isc_address) uiptypes.KVGetter
+
+	ChainDNSInterface
 }

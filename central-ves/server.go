@@ -18,7 +18,7 @@ import (
 
 	log "github.com/HyperService-Consortium/go-ves/lib/log"
 
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	types "github.com/HyperService-Consortium/go-ves/types"
 
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"

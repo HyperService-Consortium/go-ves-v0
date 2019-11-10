@@ -11,7 +11,7 @@ import (
 	iscTransactionIntent "github.com/HyperService-Consortium/NSB/contract/isc/transaction"
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	nsbmath "github.com/HyperService-Consortium/NSB/math"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
 func (nc *NSBClient) CreateISC(

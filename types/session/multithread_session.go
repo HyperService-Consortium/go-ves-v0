@@ -10,17 +10,17 @@ import (
 	"math/rand"
 	"sync"
 
+	account "github.com/HyperService-Consortium/go-uip/base-account"
 	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
 	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
 	opintents "github.com/HyperService-Consortium/go-uip/op-intent"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
-	account "github.com/HyperService-Consortium/go-uip/types/account"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	bitmap "github.com/HyperService-Consortium/go-ves/lib/bitmapping/redis-bitmap"
 	const_prefix "github.com/HyperService-Consortium/go-ves/lib/database/const_prefix"
 	redispool "github.com/HyperService-Consortium/go-ves/lib/database/redis"
 	log "github.com/HyperService-Consortium/go-ves/lib/log"
 	serial_helper "github.com/HyperService-Consortium/go-ves/lib/serial_helper"
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types"
 )
 
 type MultiThreadSerialSession struct {
@@ -143,15 +143,15 @@ func (ses *MultiThreadSerialSession) InitFromOpIntents(opIntents uiptypes.OpInte
 
 	ses.Accounts = nil
 	c := makeComparator()
-	ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: 4, Address: ses.Signer.GetPublicKey()})
+	ses.Accounts = append(ses.Accounts, &account.Account{ChainId: 4, Address: ses.Signer.GetPublicKey()})
 	for _, intent := range intents {
 		ses.Transactions = append(ses.Transactions, intent.Bytes())
 
 		if c.Insert(intent.ChainID, intent.Src) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Src})
+			ses.Accounts = append(ses.Accounts, &account.Account{ChainId: intent.ChainID, Address: intent.Src})
 		}
 		if intent.TransType == TransType.Payment && c.Insert(intent.ChainID, intent.Dst) {
-			ses.Accounts = append(ses.Accounts, &account.PureAccount{ChainId: intent.ChainID, Address: intent.Dst})
+			ses.Accounts = append(ses.Accounts, &account.Account{ChainId: intent.ChainID, Address: intent.Dst})
 		}
 	}
 	ses.TransactionCount = uint32(len(intents))
@@ -456,7 +456,7 @@ func (sb *MultiThreadSerialSessionBase) FindSessionInfo(
 		return nil, errors.New("not found")
 	}
 	sb.FindSessionAccounts(idb, isc_address, func(arg1 uint64, arg2 []byte) error {
-		f[0].Accounts = append(f[0].Accounts, &account.PureAccount{ChainId: arg1, Address: arg2})
+		f[0].Accounts = append(f[0].Accounts, &account.Account{ChainId: arg1, Address: arg2})
 		return nil
 	})
 	for idx := uint32(0); idx < f[0].TransactionCount; idx++ {

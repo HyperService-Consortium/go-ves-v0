@@ -119,9 +119,9 @@ func TestTransfer(t *testing.T) {
 			t.Fatalf("ListenAndServe: %v\n", err)
 		}
 	}()
-	signer := signaturer.NewTendermintNSBSigner(
+	signer := h.HandlerError(signaturer.NewTendermintNSBSigner(
 		h.HandlerError(hex.DecodeString("2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff"),
-	).([]byte))
+	).([]byte))).(*signaturer.TendermintNSBSigner)
 
 	muldb, sindb := Prepare()
 	var server = h.HandlerError(ves_server.NewServer(

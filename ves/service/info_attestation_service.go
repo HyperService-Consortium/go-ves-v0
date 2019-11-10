@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	tx "github.com/HyperService-Consortium/go-uip/op-intent"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
@@ -33,7 +33,7 @@ func (s *InformAttestationService) Serve() (*uiprpc.AttestationReceiveReply, err
 	// todo
 	s.ActivateSession(s.GetSessionId())
 	ses, err := s.FindSessionInfo(s.GetSessionId())
-	tid, _ := ses.GetTransactingTransaction()
+	//tid, _ := ses.GetTransactingTransaction()
 	if err == nil {
 		defer func() {
 			s.UpdateSessionInfo(ses)

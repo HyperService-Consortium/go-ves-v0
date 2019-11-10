@@ -11,7 +11,7 @@ import (
 
 	tx "github.com/HyperService-Consortium/go-uip/op-intent"
 	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
-	uiptypes "github.com/HyperService-Consortium/go-uip/types"
+	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	log "github.com/HyperService-Consortium/go-ves/lib/log"
@@ -36,7 +36,8 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 	if err == nil {
 		var success bool
 		var help_info string
-		success, help_info, err = ses.AckForInit(s.GetUser(), signaturer.FromBaseSignature(s.GetUserSignature()))
+		ss:= s.GetUserSignature()
+		success, help_info, err = ses.AckForInit(s.GetUser(), signaturer.FromRaw(ss.Content, ss.SignatureType))
 		if err != nil {
 			// todo, log
 			return nil, fmt.Errorf("internal error: %v", err)

@@ -1,16 +1,20 @@
 package bni
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	base_raw_transaction "github.com/HyperService-Consortium/go-uip/base-raw-transaction"
+	"github.com/HyperService-Consortium/go-ves/types"
 	"math/big"
 	"net/url"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/HyperService-Consortium/go-ethabi"
 	gjson "github.com/tidwall/gjson"
@@ -18,10 +22,8 @@ import (
 
 	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
 	valuetype "github.com/HyperService-Consortium/go-uip/const/value_type"
-	opintent "github.com/HyperService-Consortium/go-uip/op-intent"
-	types "github.com/HyperService-Consortium/go-uip/types"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
 
-	chaininfo "github.com/HyperService-Consortium/go-uip/temporary-chain-info"
 	ethclient "github.com/HyperService-Consortium/go-ves/lib/net/eth-client"
 )
 
@@ -34,65 +36,14 @@ func decoratePrefix(hexs string) string {
 }
 
 type BN struct {
-	signer types.Signer
+	dns types.ChainDNSInterface
+	signer uiptypes.Signer
 }
 
-func (bn *BN) MustWithSigner() bool {
-	return true
-}
-
-func (bn *BN) RouteWithSigner(signer types.Signer) types.Router {
-	nbn := new(BN)
-	nbn.signer = signer
-	return nbn
-}
-
-func (bn *BN) RouteRaw(destination uint64, payload []byte) ([]byte, error) {
-	ci, err := chaininfo.SearchChainId(destination)
-	if err != nil {
-		return nil, err
-	}
-	return ethclient.Do((&url.URL{Scheme: "http", Host: ci.GetHost(), Path: "/"}).String(), payload)
-}
-
-func (bn *BN) RouteRawTransaction(destination uint64, payload []byte) ([]byte, error) {
-	b, err := bn.RouteRaw(destination, payload)
-	if err != nil {
-		return nil, err
-	}
-	var x string
-	err = json.Unmarshal(b, &x)
-	if err != nil {
-		return nil, err
-	}
-
-	if x == "" {
-		return nil, errors.New("deploy failed?")
-	}
-
-	b, err = hex.DecodeString(x[2:])
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-func (bn *BN) Route(intent *types.TransactionIntent, kvGetter types.KVGetter) ([]byte, error) {
-	// todo
-	onChainTransaction, err := bn.Translate(intent, kvGetter)
-	if err != nil {
-		return nil, err
-	}
-	return bn.RouteRaw(intent.ChainID, onChainTransaction)
-}
-
-func (bn *BN) Translate(
-	intent *opintent.TransactionIntent,
-	kvGetter types.KVGetter,
-) ([]byte, error) {
+func (bn *BN) Translate(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) (uiptypes.RawTransaction, error) {
 	switch intent.TransType {
 	case TransType.Payment:
-		return json.Marshal(map[string]interface{}{
+		b, err := json.Marshal(map[string]interface{}{
 			"jsonrpc": "2.0",
 			"method":  "eth_sendTransaction",
 			"params": []interface{}{
@@ -104,8 +55,9 @@ func (bn *BN) Translate(
 			},
 			"id": 1,
 		})
+		return base_raw_transaction.Transaction(b), err
 	case TransType.ContractInvoke:
-		var meta types.ContractInvokeMeta
+		var meta uiptypes.ContractInvokeMeta
 		err := json.Unmarshal(intent.Meta, &meta)
 		if err != nil {
 			return nil, err
@@ -120,7 +72,7 @@ func (bn *BN) Translate(
 		hexdata := hex.EncodeToString(data)
 		// meta.FuncName
 
-		return json.Marshal(map[string]interface{}{
+		b, err := json.Marshal(map[string]interface{}{
 			"jsonrpc": "2.0",
 			"method":  "eth_sendTransaction",
 			"params": []interface{}{
@@ -133,26 +85,23 @@ func (bn *BN) Translate(
 			},
 			"id": 1,
 		})
+		return base_raw_transaction.Transaction(b), err
 		//return nil, errors.New("todo")
 	default:
 		return nil, errors.New("cant translate")
 	}
 }
 
-func (bn *BN) CheckAddress(addr []byte) bool {
-	return len(addr) == 32
-}
+func (bn *BN) GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.Contract, pos uiptypes.Pos, description uiptypes.Desc) (interface{}, error) {
 
-func (bn *BN) GetStorageAt(chainID uint64, typeID uint16, contractAddress []byte, pos []byte, desc []byte) (interface{}, error) {
-
-	ci, err := chaininfo.SearchChainId(chainID)
+	ci, err := bn.dns.GetChainInfo(chainID)
 	if err != nil {
 		return nil, err
 	}
 
 	switch typeID {
 	case valuetype.Bool:
-		s, err := ethclient.NewEthClient((&url.URL{Scheme: "http", Host: ci.GetHost(), Path: "/"}).String()).GetStorageAt(contractAddress, pos, "latest")
+		s, err := ethclient.NewEthClient((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String()).GetStorageAt(contractAddress, pos, "latest")
 		if err != nil {
 			return nil, err
 		}
@@ -164,7 +113,7 @@ func (bn *BN) GetStorageAt(chainID uint64, typeID uint16, contractAddress []byte
 		bs, err := ethabi.NewDecoder().Decodes([]string{"bool"}, b)
 		return bs[0], nil
 	case valuetype.Uint256:
-		s, err := ethclient.NewEthClient(ci.GetHost()).GetStorageAt(contractAddress, pos, "latest")
+		s, err := ethclient.NewEthClient(ci.GetChainHost()).GetStorageAt(contractAddress, pos, "latest")
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +129,114 @@ func (bn *BN) GetStorageAt(chainID uint64, typeID uint16, contractAddress []byte
 	return nil, nil
 }
 
-func ContractInvocationDataABI(meta *types.ContractInvokeMeta, kvGetter types.KVGetter) ([]byte, error) {
+var ErrNotSigned  = errors.New("not signed raw transaction")
+
+func (bn *BN) RouteRaw(destination uiptypes.ChainID, rawTransaction uiptypes.RawTransaction) (
+	transactionReceipt uiptypes.TransactionReceipt, err error) {
+	if !rawTransaction.Signed() {
+		return nil, ErrNotSigned
+	}
+	ci, err := bn.dns.GetChainInfo(destination)
+	if err != nil {
+		return nil, err
+	}
+	// todo receipt
+	return ethclient.Do((&url.URL{Scheme: "http", Host: ci.GetChainHost(), Path: "/"}).String(), rawTransaction.Bytes())
+	// if err != nil {
+	//		return nil, err
+	//	}
+	//	var x string
+	//	err = json.Unmarshal(b, &x)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	if x == "" {
+	//		return nil, errors.New("deploy failed?")
+	//	}
+	//
+	//	b, err = hex.DecodeString(x[2:])
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	return b, nil
+}
+
+type options struct {
+	timeout time.Duration
+}
+
+func parseOptions(rOption []interface{}) options {
+	var parsedOptions options
+	for i := range rOption {
+		switch option := rOption[i].(type) {
+		case time.Duration:
+			parsedOptions.timeout = option
+		case uiptypes.RouteOptionTimeout:
+			parsedOptions.timeout = time.Duration(option)
+		}
+	}
+	return parsedOptions
+}
+
+func (bn *BN) WaitForTransact(chainID uiptypes.ChainID, transactionReceipt uiptypes.TransactionReceipt,
+	rOptions ...interface{}) (blockID uiptypes.BlockID, color []byte, err error) {
+	options := parseOptions(rOptions)
+	cinfo, err := bn.dns.GetChainInfo(chainID)
+	if err != nil {
+		return nil, nil, err
+	}
+	worker := ethclient.NewEthClient(cinfo.GetChainHost())
+	ddl := time.Now().Add(options.timeout)
+	for time.Now().Before(ddl) {
+		tx, err := worker.GetTransactionByHash(transactionReceipt)
+		if err != nil {
+			return nil, nil, err
+		}
+		fmt.Println(string(tx))
+		if gjson.GetBytes(tx, "blockNumber").Type != gjson.Null {
+			b, _ := hex.DecodeString(gjson.GetBytes(tx, "blockHash").String()[2:])
+			idx, _ := strconv.ParseUint(gjson.GetBytes(tx, "transactionIndex").String()[2:], 16, 64)
+			var a = make([]byte, 8)
+			binary.BigEndian.PutUint64(a, idx)
+			return b, a, nil
+		}
+		time.Sleep(time.Millisecond * 500)
+
+	}
+	return nil, nil, errors.New("timeout")
+}
+
+func (bn *BN) RouteWithSigner(signer uiptypes.Signer) (uiptypes.Router, error) {
+	nbn :=  *bn
+	nbn.signer = signer
+	return &nbn, nil
+}
+
+func NewBN(dns types.ChainDNSInterface) *BN {
+	return &BN{dns: dns}
+}
+
+func (bn *BN) MustWithSigner() bool {
+	return true
+}
+
+func (bn *BN) Route(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) ([]byte, error) {
+	// todo
+	onChainTransaction, err := bn.Translate(intent, kvGetter)
+	if err != nil {
+		return nil, err
+	}
+	return bn.RouteRaw(intent.ChainID, onChainTransaction)
+}
+
+
+func (bn *BN) CheckAddress(addr []byte) bool {
+	return len(addr) == 32
+}
+
+
+func ContractInvocationDataABI(meta *uiptypes.ContractInvokeMeta, kvGetter uiptypes.KVGetter) ([]byte, error) {
 
 	abiencoder := ethabi.NewEncoder()
 	//Encodes(descs []string, vals []interface{})
