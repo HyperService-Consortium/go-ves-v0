@@ -1,0 +1,57 @@
+{
+    "op-intents": [
+        {
+            "name": "Op1",
+            "op_type": "Payment",
+            "src": {
+                "domain": 2,
+                "user_name": "a1"
+            },
+            "dst": {
+                "domain": 1,
+                "user_name": "a2"
+            },
+            "amount": "2e0",
+            "unit": "wei"
+        },
+        {
+            "op_type": "ContractInvocation",
+            "name": "Op2",
+            "invoker": {
+                "domain": 2,
+                "user_name": "a1"
+            },
+            "contract_domain": 1,
+            "contract_addr": "cBn6d5AkwKDqwdhHVzPu/hCknzs=",
+            "contract_code": null,
+            "func": "isOwner",
+            "parameters": [
+                {
+                    "Type": "bytes",
+                    "Value": {
+                        "constant": "cBn6d5AkwKDqwdhHVzPu/hCknzs="
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Op3",
+            "op_type": "Payment",
+            "src": {
+                "domain": 2,
+                "user_name": "a1"
+            },
+            "dst": {
+                "domain": 3,
+                "user_name": "a3"
+            },
+            "amount": "2e0",
+            "unit": "wei"
+        }
+    ],
+    "dependencies": [{
+        "left": "Op1",
+        "right": "Op2",
+        "dep": "before"
+    }]
+}

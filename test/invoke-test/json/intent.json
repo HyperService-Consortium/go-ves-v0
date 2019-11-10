@@ -1,0 +1,50 @@
+{
+    "op-intents": [
+        {
+            "name": "Op1",
+            "op_type": "ContractInvocation",
+            "invoker": {
+                "domain": 2,
+                "user_name": "a1"
+            },
+            "contract_addr": "263fef3fe76fd4075ac16271d5115d01206d3674",
+            "func": "updateStake",
+            "parameters": [
+                {
+                    "type": "uint256",
+                    "value": {
+                        "constant": "1050"
+                    }
+                }
+            ],
+            "amount": "0",
+            "unit": "wei"
+        },
+        {
+            "name": "Op2",
+            "op_type": "Payment",
+            "src": {
+                "domain": 1,
+                "user_name": "a2"
+            },
+            "dst": {
+                "domain": 3,
+                "user_name": "a2"
+            },
+            "meta": {
+                "value-inconsistent": {
+                    "type": "uint256",
+                    "value": {
+						"domain":    2,
+                        "contract": "263fef3fe76fd4075ac16271d5115d01206d3674",
+                        "pos": "01",
+                        "field": "strikePrice"
+                    }
+                }
+            },
+            "amount": "0x2e0",
+            "unit": "wei"
+        }
+    ],
+    "dependencies": []
+}

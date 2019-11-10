@@ -8,8 +8,10 @@ import (
 	"fmt"
 	transactiontype "github.com/HyperService-Consortium/NSB/application/transaction-type"
 	"github.com/HyperService-Consortium/NSB/math"
+	payment_option "github.com/HyperService-Consortium/go-ves/lib/bni/payment-option"
 	"github.com/HyperService-Consortium/go-ves/types"
 	"github.com/gogo/protobuf/proto"
+	"github.com/tidwall/gjson"
 	"net/url"
 	"strings"
 
@@ -128,7 +130,12 @@ func (r *rawTransaction) Sign(user uiptypes.Signer) (uiptypes.RawTransaction, er
 func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Storage) (uiptypes.RawTransaction, error) {
 	switch intent.TransType {
 	case TransType.Payment:
-		header, err := nsbcli.GlobalClient.CreateTransferPacket(intent.Src, intent.Dst, math.NewUint256FromHexString(intent.Amt))
+		meta := gjson.ParseBytes(intent.Meta)
+		value, err := payment_option.ParseInconsistentValueOption(meta, storage, intent.Amt)
+		if err != nil {
+			return nil, err
+		}
+		header, err := nsbcli.GlobalClient.CreateTransferPacket(intent.Src, intent.Dst, math.NewUint256FromHexString(value))
 		if err != nil {
 			return nil, err
 		}

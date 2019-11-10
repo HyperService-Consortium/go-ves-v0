@@ -183,12 +183,12 @@ func (ses *MultiThreadSerialSession) AckForInit(
 ) (success_or_not bool, help_info string, err error) {
 	var addr, acks = account.GetAddress(), bitmap.GetBitMap(ses.ISCAddress, redispool.RedisCacheClient.Pool.Get())
 	// fmt.Println(ses.Acks, len(ses.Acks))
-	log.Printf("acked:")
-	log.Println(acks.Count())
-	log.Printf("ack:")
-	log.Println(acks.Length())
-	log.Printf("wanting:")
-	log.Println(len(ses.GetAccounts()))
+	//log.Printf("acked:")
+	//log.Println(acks.Count())
+	//log.Printf("ack:")
+	//log.Println(acks.Length())
+	//log.Printf("wanting:")
+	//log.Println(len(ses.GetAccounts()))
 	for idx, ak := range ses.GetAccounts() {
 		if bytes.Equal(ak.GetAddress(), addr) {
 			if ok, err := acks.InLength(int64(idx)); err != nil {
@@ -232,7 +232,7 @@ func (ses *MultiThreadSerialSession) NotifyAttestation(
 	if tid != uint64(ses.UnderTransacting) {
 		return false, "this transaction is not undertransacting", nil
 	}
-	fmt.Println("notifying")
+	//fmt.Println("notifying")
 
 	switch atte.GetAid() {
 	// case Unknown:
@@ -437,6 +437,7 @@ func (sb *MultiThreadSerialSessionBase) InsertSessionInfo(
 	}
 	for idx, tx := range session.GetTransactions() {
 		err = sb.InsertTransaction(idb, session.GetGUID(), uint64(idx), tx)
+		//fmt.Println("inserting ", session.GetGUID(), uint64(idx), tx)
 		if err != nil {
 			return err
 		}
@@ -456,17 +457,25 @@ func (sb *MultiThreadSerialSessionBase) FindSessionInfo(
 	if f == nil {
 		return nil, errors.New("not found")
 	}
-	sb.FindSessionAccounts(idb, isc_address, func(arg1 uint64, arg2 []byte) error {
+	err = sb.FindSessionAccounts(idb, isc_address, func(arg1 uint64, arg2 []byte) error {
 		f[0].Accounts = append(f[0].Accounts, &account.Account{ChainId: arg1, Address: arg2})
 		return nil
 	})
+	if err != nil {
+		return
+	}
 	for idx := uint32(0); idx < f[0].TransactionCount; idx++ {
-		sb.FindTransaction(idb, isc_address, uint64(idx), func(arg []byte) error {
+		err = sb.FindTransaction(idb, isc_address, uint64(idx), func(arg []byte) error {
 			f[0].Transactions = append(f[0].Transactions, arg)
 			return nil
 		})
+		if err != nil {
+			return
+		}
 	}
 	session = &f[0]
+	//x, _ := session.GetTransactingTransaction()
+	//fmt.Println("session from db", session.GetGUID(), len(session.GetTransactions()), x)
 	return
 }
 
@@ -549,6 +558,7 @@ func (sb *MultiThreadSerialSessionBase) InsertTransaction(
 	if err != nil {
 		return
 	}
+	//fmt.Println("want to insert", transaction_id, hex.EncodeToString(k))
 	err = db.Set(k, transaction)
 	return
 }

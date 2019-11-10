@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	base_raw_transaction "github.com/HyperService-Consortium/go-uip/base-raw-transaction"
+	payment_option "github.com/HyperService-Consortium/go-ves/lib/bni/payment-option"
 	"github.com/HyperService-Consortium/go-ves/types"
 	"math/big"
 	"net/url"
@@ -28,11 +29,13 @@ import (
 )
 
 func decoratePrefix(hexs string) string {
-	if strings.HasPrefix(hexs, "0x") {
-		return hexs
-	} else {
-		return "0x" + hexs
+	if !strings.HasPrefix(hexs, "0x") {
+		hexs =  "0x" + hexs
 	}
+	for strings.HasPrefix(hexs, "0x0") && len(hexs) > 3 {
+		hexs = "0x" + hexs[3:]
+	}
+	return hexs
 }
 
 type BN struct {
@@ -48,6 +51,14 @@ func (bn *BN) Deserialize(raw []byte) (rawTransaction uiptypes.RawTransaction, e
 func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Storage) (uiptypes.RawTransaction, error) {
 	switch intent.TransType {
 	case TransType.Payment:
+		meta := gjson.ParseBytes(intent.Meta)
+		value, err := payment_option.ParseInconsistentValueOption(meta, storage, intent.Amt)
+		if err != nil {
+			return nil, err
+		}
+
+		//fmt.Println(value, ".........")
+
 		b, err := json.Marshal(map[string]interface{}{
 			"jsonrpc": "2.0",
 			"method":  "eth_sendTransaction",
@@ -55,11 +66,12 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 				map[string]interface{}{
 					"from":  decoratePrefix(hex.EncodeToString(intent.Src)),
 					"to":    decoratePrefix(hex.EncodeToString(intent.Dst)),
-					"value": decoratePrefix(intent.Amt),
+					"value": decoratePrefix(value),
 				},
 			},
 			"id": 1,
 		})
+		//fmt.Println("...", string(b))
 		return base_raw_transaction.Transaction(b), err
 	case TransType.ContractInvoke:
 		var meta uiptypes.ContractInvokeMeta
@@ -84,7 +96,8 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 				map[string]interface{}{
 					"from":  decoratePrefix(hex.EncodeToString(intent.Src)),
 					"to":    decoratePrefix(hex.EncodeToString(intent.Dst)),
-					"value": decoratePrefix(intent.Amt),
+					// todo
+					//"value": decoratePrefix(intent.Amt),
 					"data":  decoratePrefix(hexdata),
 				},
 			},

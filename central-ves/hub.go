@@ -174,7 +174,7 @@ func (h *Hub) run() {
 					})
 				}
 			} else {
-				log.Println("debugging unknown aim", string(message.aim), message.aim)
+				log.Println("debugging unknown aim", message.chainID, hex.EncodeToString(message.aim), message.aim)
 			}
 		}
 	}

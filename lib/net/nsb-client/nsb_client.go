@@ -235,7 +235,7 @@ func (nc *NSBClient) BroadcastTxCommit(body []byte) (*ResultInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("res", a)
+	//fmt.Println("res", a)
 	return &a, nil
 }
 

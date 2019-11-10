@@ -6,20 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"github.com/HyperService-Consortium/go-ves/config"
-
-	gjson "github.com/tidwall/gjson"
+	payment_option "github.com/HyperService-Consortium/go-ves/lib/bni/payment-option"
+	logger "github.com/HyperService-Consortium/go-ves/lib/log"
+	"github.com/tidwall/gjson"
 
 	"golang.org/x/net/context"
 
 	transtype "github.com/HyperService-Consortium/go-uip/const/trans_type"
-	value_type "github.com/HyperService-Consortium/go-uip/const/value_type"
+	"github.com/HyperService-Consortium/go-uip/const/value_type"
 	tx "github.com/HyperService-Consortium/go-uip/op-intent"
-	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
 	tenbni "github.com/HyperService-Consortium/go-ves/lib/bni/ten"
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types"
 )
 
 type SessionRequireRawTransactService struct {
@@ -37,8 +38,8 @@ func (s SessionRequireRawTransactService) GetTransactionProof(chainID uiptypes.C
 var bnis = map[uint64]uiptypes.BlockChainInterface{
 	1: ethbni.NewBN(config.ChainDNS),
 	2: ethbni.NewBN(config.ChainDNS),
-	3: new(tenbni.BN),
-	4: new(tenbni.BN),
+	3: tenbni.NewBN(config.ChainDNS),
+	4: tenbni.NewBN(config.ChainDNS),
 }
 
 func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTransactReply, error) {
@@ -54,6 +55,8 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	if err != nil {
 		return nil, err
 	}
+	//fmt.Println(ses.(*session.MultiThreadSerialSession).Transactions)
+	//fmt.Println("underTransacting", underTransacting, ses.GetGUID(), ses)
 
 	var transactionIntent tx.TransactionIntent
 	err = s.FindTransaction(ses.GetGUID(), uint64(underTransacting), func(arg1 []byte) error {
@@ -63,10 +66,12 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	if err != nil {
 		return nil, err
 	}
+	//fmt.Println(".......")
 
 	bn := bnis[transactionIntent.ChainID]
 
 	if transactionIntent.TransType == transtype.ContractInvoke {
+		fmt.Println("aaaaaa")
 		var meta uiptypes.ContractInvokeMeta
 
 		err := json.Unmarshal(transactionIntent.Meta, &meta)
@@ -109,11 +114,31 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 				}
 			}
 		}
+	} else {
+		n, ok, err := payment_option.NeedInconsistentValueOption(gjson.ParseBytes(transactionIntent.Meta))
+		if err != nil {
+			logger.Warn("omit need inc-val option")
+			return nil, err
+		}
+		if ok {
+			v, err := bnis[2].GetStorageAt(n.ChainID, n.TypeID, n.ContractAddress, n.Pos, n.Description)
+			if err != nil {
+				logger.Error("get failed")
+				return nil, err
+			}
+			logger.Info("getting state from blockchain", "address", n.ContractAddress, "value-type:", v.GetValue(), v.GetType(), "at pos", n.Pos)
+			err = s.VESDB.SetStorageOf(n.ChainID, n.TypeID, n.ContractAddress, n.Pos, n.Description, v)
+			if err != nil {
+				logger.Error("set failed")
+				return nil, err
+			}
+		}
 	}
 
 	var b uiptypes.RawTransaction
 	b, err = bn.Translate(&transactionIntent, s)
 	if err != nil {
+		logger.Error("translate error", "err is ", err)
 		return nil, err
 	}
 

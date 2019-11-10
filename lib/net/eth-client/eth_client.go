@@ -2,10 +2,9 @@ package ethclient
 
 import (
 	"encoding/json"
+	"github.com/tidwall/gjson"
 
-	gjson "github.com/tidwall/gjson"
-
-	jsonobj "github.com/HyperService-Consortium/go-ves/lib/net/eth-client/jsonobj"
+	"github.com/HyperService-Consortium/go-ves/lib/net/eth-client/jsonobj"
 	jsonrpc_client "github.com/HyperService-Consortium/go-ves/lib/net/rpc-client"
 )
 
@@ -65,7 +64,6 @@ func (eth *EthClient) SendTransaction(obj []byte) (string, error) {
 // GetStorageAt return the value of position on the address
 func (eth *EthClient) GetStorageAt(contractAddress, pos []byte, tag string) (string, error) {
 	b := jsonobj.GetStorageAt(contractAddress, pos, tag)
-
 	bb, err := eth.JsonRpcClient.PostWithBody(b)
 	jsonobj.ReturnBytes(b)
 	if err != nil {

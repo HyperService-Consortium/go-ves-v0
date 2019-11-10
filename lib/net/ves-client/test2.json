@@ -1,0 +1,25 @@
+{
+    "op-intents": [
+        {
+            "name": "Op1",
+            "op_type": "ContractInvocation",
+            "invoker": {
+                "domain": 2,
+                "user_name": "a1"
+            },
+            "contract_addr": "00e1eaa022cc40d4808bfe62b8997540c914d81e",
+            "func": "updateStake",
+            "parameters": [
+                {
+                    "type": "uint256",
+                    "value": {
+                        "constant": "1000"
+                    }
+                }
+            ],
+            "amount": "0",
+            "unit": "wei"
+        }
+    ],
+    "dependencies": []
+}

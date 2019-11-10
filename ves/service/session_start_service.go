@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	logger "github.com/HyperService-Consortium/go-ves/lib/log"
 	"time"
 
 	"golang.org/x/net/context"
@@ -158,7 +159,7 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 		return nil, nil, fmt.Errorf("request isc failed on request: %v", err)
 	}
 	err = ses.AfterInitGUID()
-	fmt.Println("after init guid...", ses.ISCAddress, hex.EncodeToString(ses.ISCAddress))
+	logger.Println("after init guid...", ses.ISCAddress, hex.EncodeToString(ses.ISCAddress))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -168,8 +169,13 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 		return nil, nil, err
 	}
 	for i := uint32(0); i < ses.TransactionCount; i++ {
-		fmt.Println(s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i)))
+		//fmt.Println()
+		_, err := s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i))
+		if err != nil {
+			return nil, nil, err
+		}
 	}
+
 	// s.UpdateTxs
 	// s.UpdateAccs
 	return ses.ISCAddress, ses.GetAccounts(), nil

@@ -28,7 +28,7 @@ func (vc *VesClient) read() {
 		_, message, err := vc.conn.ReadMessage()
 		if err != nil {
 			vc.logger.Error("VesClient.read.read", "error", err)
-			return
+			continue
 		}
 
 		var buf = bytes.NewBuffer(message)
@@ -215,6 +215,9 @@ func (vc *VesClient) read() {
 						continue
 					}
 					vc.logger.Info("adding block check", "result", cb)
+
+
+					// todo XXXXXXXXXXXXXXXXXXX
 				}
 
 				// sendingAtte.GetAtte()

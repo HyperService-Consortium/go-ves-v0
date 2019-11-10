@@ -36,6 +36,6 @@ func FromBytesError(b []byte) *JsonError {
 
 func FromGJsonResultError(b gjson.Result) *JsonError {
 	return &JsonError{
-		errorx: fmt.Sprintf("jsonrpc error: %v(%v), %v", b.Get("message"), b.Get("code"), b.Get("data")),
+		errorx: fmt.Sprintf("gjsonrpc error: %v(%v), %v", b.Get("message"), b.Get("code"), b.Get("data")),
 	}
 }
