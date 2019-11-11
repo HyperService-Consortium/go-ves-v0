@@ -2,6 +2,7 @@ package vesclient
 
 import (
 	"encoding/hex"
+	"fmt"
 	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
@@ -15,6 +16,13 @@ func (vc *VesClient) ProcessRequestComingRequest(requestComingRequest *wsrpc.Req
 		"session id", hex.EncodeToString(requestComingRequest.GetSessionId()),
 		"responsible address", hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
 	)
+
+	fmt.Printf(
+		"client: new session request coming, session id: %v, responsible address: %v\n",
+		hex.EncodeToString(requestComingRequest.GetSessionId()),
+		hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
+	)
+
 
 	signer, err := vc.getNSBSigner()
 	if err != nil {
@@ -43,6 +51,10 @@ func (vc *VesClient) ProcessRequestComingRequest(requestComingRequest *wsrpc.Req
 			"user ack to nsb",
 			"info", ret.Info, "data", string(ret.Data), "log", ret.Log, "tags", ret.Tags,
 		)
+		fmt.Printf(
+			"client: user ack to nsb, address: %v\n",
+			hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
+		)
 	}
 
 	if err = vc.sendAck(
@@ -56,6 +68,10 @@ func (vc *VesClient) ProcessRequestComingRequest(requestComingRequest *wsrpc.Req
 	} else {
 		vc.logger.Info(
 			"user ack to server",
+		)
+		fmt.Printf(
+			"client: user ack to server, address: %v\n",
+			hex.EncodeToString(requestComingRequest.GetAccount().GetAddress()),
 		)
 	}
 

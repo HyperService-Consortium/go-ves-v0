@@ -31,6 +31,13 @@ func decoratePrefix(hexs string) string {
 	if !strings.HasPrefix(hexs, "0x") {
 		hexs =  "0x" + hexs
 	}
+	return hexs
+}
+
+func decorateValuePrefix(hexs string) string {
+	if !strings.HasPrefix(hexs, "0x") {
+		hexs =  "0x" + hexs
+	}
 	for strings.HasPrefix(hexs, "0x0") && len(hexs) > 3 {
 		hexs = "0x" + hexs[3:]
 	}
@@ -65,7 +72,7 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 				map[string]interface{}{
 					"from":  decoratePrefix(hex.EncodeToString(intent.Src)),
 					"to":    decoratePrefix(hex.EncodeToString(intent.Dst)),
-					"value": decoratePrefix(value),
+					"value": decorateValuePrefix(value),
 				},
 			},
 			"id": 1,
@@ -97,7 +104,7 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 					"to":    decoratePrefix(hex.EncodeToString(intent.Dst)),
 					// todo
 					//"value": decoratePrefix(intent.Amt),
-					"data":  decoratePrefix(hexdata),
+					"data":  decorateValuePrefix(hexdata),
 				},
 			},
 			"id": 1,

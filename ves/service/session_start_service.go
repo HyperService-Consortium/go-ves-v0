@@ -161,6 +161,7 @@ func (s MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb types
 }
 
 func (s MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
+
 	var ses = new(session.MultiThreadSerialSession)
 	ses.Signer = s.Signer
 	success, help_info, err := ses.InitFromOpIntents(s.GetOpintents())
@@ -209,12 +210,19 @@ func (s MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptypes
 }
 
 func (s MultiThreadSerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
+	fmt.Println(`###########################################################################################################################################
+#                                                              SessionStart                                                               #
+###########################################################################################################################################`)
+
 	if b, accs, err := s.SessionStart(); err != nil {
 		s.Logger.Error("error", "error", err)
 		return nil, err
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
+		fmt.Println(`###########################################################################################################################################
+#                                                              SendingRequest                                                             #
+###########################################################################################################################################`)
 		r, err := s.CVes.InternalRequestComing(ctx, &uiprpc.InternalRequestComingRequest{
 			SessionId: b,
 			Host:      s.Host,

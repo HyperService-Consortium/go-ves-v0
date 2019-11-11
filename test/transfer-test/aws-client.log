@@ -1,0 +1,53 @@
+2019-11-11T17:01:04.169+0800	DEBUG	central-ves/server.go:101		{"level": "info", "_msg": "prepare to serve rpc", "port": ":23352"}
+2019-11-11T17:01:05.161+0800	DEBUG	central-ves/server.go:124		{"level": "info", "_msg": "new ws serving\n", "remote": "[::1]:3074"}
+2019-11-11T17:01:05.232+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "d5bf2872904c33358d642efe33e06b35", "type": "CodeClientHelloRequest"}
+2019-11-11T17:01:05.237+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "chain id": 2130706434, "address": ""}
+2019-11-11T17:01:05.238+0800	DEBUG	central-ves/server.go:124		{"level": "info", "_msg": "new ws serving\n", "remote": "[::1]:3075"}
+2019-11-11T17:01:05.245+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "d5bf2872904c33358d642efe33e06b35", "type": "CodeClientHelloRequest"}
+2019-11-11T17:01:05.241+0800	DEBUG	ves-client/say-client-hello.go:14		{"level": "info", "_msg": "say client hello to server successfully"}
+2019-11-11T17:01:05.249+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "chain id": 2130706434, "address": ""}
+2019-11-11T17:01:05.249+0800	DEBUG	ves-client/read.go:46		{"level": "info", "_msg": "message from server", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "type": "CodeClientHelloReply"}
+2019-11-11T17:01:05.249+0800	DEBUG	ves-client/process-client-hello-reply.go:15		{"level": "info", "_msg": "adding default grpc ip ", "ip": "127.0.0.1:23351"}
+2019-11-11T17:01:05.249+0800	DEBUG	ves-client/process-client-hello-reply.go:22		{"level": "info", "_msg": "adding default nsb ip ", "ip": "127.0.0.1:26657"}
+2019-11-11T17:01:05.265+0800	DEBUG	central-ves/server.go:124		{"level": "info", "_msg": "new ws serving\n", "remote": "[::1]:3076"}
+2019-11-11T17:01:05.274+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "d5bf2872904c33358d642efe33e06b35", "type": "CodeClientHelloRequest"}
+2019-11-11T17:01:05.290+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "chain id": 2130706434, "address": ""}
+2019-11-11T17:01:05.411+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "47a1cdb6", ", chain_id": 1}
+2019-11-11T17:01:05.411+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "981739a1", ", chain_id": 2}
+2019-11-11T17:01:05.489+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333eeffffffffff", ", chain_id": 3}
+2019-11-11T17:01:05.489+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333eeffffffffff", ", chain_id": 4}
+2019-11-11T17:01:14.152+0800	DEBUG	central-ves/server.go:173		{"level": "info", "_msg": "sending session request", "chain id": 4, "address": "2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff"}
+2019-11-11T17:01:14.152+0800	DEBUG	central-ves/server.go:173		{"level": "info", "_msg": "sending session request", "chain id": 2, "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:14.152+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "c7f70d43aab6080ad41aa87f1bda0f04", "chain id": 4, "address": "2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff"}
+2019-11-11T17:01:14.152+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "5eab9e6f6fe126f7313952efb424f9c2", "chain id": 2, "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:14.152+0800	DEBUG	central-ves/server.go:173		{"level": "info", "_msg": "sending session request", "chain id": 2, "address": "d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:14.152+0800	DEBUG	central-ves/server.go:173		{"level": "info", "_msg": "sending session request", "chain id": 1, "address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-11T17:01:14.153+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "83299ef5d98e1dd0897d660002775917", "chain id": 2, "address": "d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:14.153+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "99cfa975318faf41c276d2836eba7cd9", "chain id": 1, "address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-11T17:01:14.153+0800	DEBUG	central-ves/server.go:173		{"level": "info", "_msg": "sending session request", "chain id": 1, "address": "47a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e"}
+2019-11-11T17:01:14.153+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "0fba36293ba807c438fea09abe2d364a", "chain id": 1, "address": "47a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e"}
+2019-11-11T17:01:27.547+0800	DEBUG	central-ves/server.go:185		{"level": "info", "_msg": "sending attestation request", "chain id": 2, "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:27.547+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "4fa48e94d9dd204aceb820db72fc96a4", "chain id": 2, "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:30.024+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "cd54da2d06c9a119edc52dd7ccdb0878", "type": "CodeRawProto"}
+2019-11-11T17:01:30.024+0800	DEBUG	central-ves/client.go:156		{"level": "info", "_msg": "raw proto", "from": "", "to": "08021214d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:30.024+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "227cfc44de9ff4a20ac8c0f070c4e2a1", "chain id": 2, "address": "d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:32.574+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "223e527695fd203dadef39c2dfda9bf5", "type": "CodeRawProto"}
+2019-11-11T17:01:32.574+0800	DEBUG	central-ves/client.go:156		{"level": "info", "_msg": "raw proto", "from": "", "to": "0802121493334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:32.574+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "1eec30efe1b021a3252a104000d0ea09", "chain id": 2, "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:42.292+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "c6799e24644364e7a94aaa47e227ca10", "type": "CodeRawProto"}
+2019-11-11T17:01:42.292+0800	DEBUG	central-ves/client.go:156		{"level": "info", "_msg": "raw proto", "from": "", "to": "08021214d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:42.292+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "a2643a9108d03bec4c3cf1773aa21ef4", "chain id": 2, "address": "d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:44.839+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "61c7c2c722ee0b0a0ea597341e3b0164", "type": "CodeRawProto"}
+2019-11-11T17:01:44.839+0800	DEBUG	central-ves/client.go:156		{"level": "info", "_msg": "raw proto", "from": "", "to": "0802121493334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:44.839+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "907de3db19ccd144478be16737883508", "chain id": 2, "address": "93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"}
+2019-11-11T17:01:47.090+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "f20b941d4df8c5320dd3df60a2182a2d", "type": "CodeRawProto"}
+2019-11-11T17:01:47.090+0800	DEBUG	central-ves/client.go:156		{"level": "info", "_msg": "raw proto", "from": "", "to": "08021214d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:47.090+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "3886101931aa1824db786f92936dcdc0", "chain id": 2, "address": "d051a43d3ea62afff3632bca3d5abf68bc6fd737"}
+2019-11-11T17:01:47.092+0800	DEBUG	central-ves/server.go:185		{"level": "info", "_msg": "sending attestation request", "chain id": 1, "address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-11T17:01:47.092+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "098906dcec53c5aba6898ae83bfd3b4f", "chain id": 1, "address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-11T17:01:50.119+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "0bd43f89fc1c9cd9c03aa250c2115e79", "type": "CodeRawProto"}
+2019-11-11T17:01:50.119+0800	DEBUG	central-ves/client.go:156		{"level": "info", "_msg": "raw proto", "from": "", "to": "0801121447a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e"}
+2019-11-11T17:01:50.119+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "2e800ab9fbf92c0b97e70e609ec23953", "chain id": 1, "address": "47a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e"}
+2019-11-11T17:01:53.344+0800	DEBUG	central-ves/client.go:122		{"level": "info", "_msg": "reading message", "tag": "1d356eac21817ec09cf8e6ba147de8e4", "type": "CodeRawProto"}
+2019-11-11T17:01:53.344+0800	DEBUG	central-ves/client.go:156		{"level": "info", "_msg": "raw proto", "from": "", "to": "080112140ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}
+2019-11-11T17:01:53.344+0800	DEBUG	central-ves/hub.go:158		{"level": "info", "_msg": "message unicasting", "tag": "cd583149ea7135c13240036753301e7c", "chain id": 1, "address": "0ac45f1e6b8d47ac4c73aee62c52794b5898da9f"}

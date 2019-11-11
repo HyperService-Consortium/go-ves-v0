@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	raw_transaction "github.com/HyperService-Consortium/go-ves/lib/bni/raw-transaction"
 	"time"
@@ -107,7 +108,10 @@ func (vc *VesClient) read() {
 
 			atte := s.GetAtte()
 			aid := atte.GetAid()
-
+			fmt.Printf(`###########################################################################################################################################
+#                                                        AttestationReceive %v,%v                                                           #
+###########################################################################################################################################
+`, atte.Tid, atte.Aid)
 			switch aid {
 			case TxState.Unknown:
 				vc.logger.Info("transaction is of the status unknown", "tid", atte.Tid)
@@ -175,6 +179,7 @@ func (vc *VesClient) read() {
 						}
 					}
 
+					fmt.Printf("client (chain id = %v, address = %v): sending transaction: tid %v, aid %v\n", acc.ChainId, hex.EncodeToString(acc.Address), atte.Tid, atte.Aid)
 					receipt, err := router.RouteRaw(acc.ChainId, raw_transaction.FromRaw(atte.GetContent()))
 					if err != nil {
 						vc.logger.Error("VesClient.read.AttestationReceiveRequest.router.RouteRaw", "error", err)

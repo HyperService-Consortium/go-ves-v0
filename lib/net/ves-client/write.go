@@ -45,6 +45,14 @@ func (vc *VesClient) write() {
 			return
 		}
 
+		if err = vc.SendEthAlias(
+			[]byte("eth1"),
+		); err != nil {
+			vc.logger.Error("error found", "error", err)
+			continue
+		} else {
+			fmt.Println("success")
+		}
 		switch string(bytes.TrimSpace(cmdBytes)) {
 		case "set-name":
 			vc.name, err = buf.ReadBytes(' ')
@@ -101,11 +109,11 @@ func (vc *VesClient) write() {
 			}
 		case "send-eth-alias-to-ves":
 			alias, err = buf.ReadBytes(' ')
+			fmt.Println("....", string(alias))
 			if err != nil && err != io.EOF {
 				vc.logger.Error("error found", "error", err)
 				continue
 			}
-
 			if err = vc.SendEthAlias(
 				bytes.TrimSpace(alias),
 			); err != nil {
@@ -255,6 +263,7 @@ func (vc *VesClient) ConfigEth(filePath string, fileBuffer []byte) error {
 
 func (vc *VesClient) SendEthAlias(alias []byte) error {
 	if acc, ok := vc.accs.Alias[*(*string)(unsafe.Pointer(&alias))]; ok {
+		vc.logger.Error("registering", "alias", string(alias))
 		userRegister := vc.getUserRegisterRequest()
 		b, _ := hex.DecodeString(acc.Address)
 		userRegister.Account = &uipbase.Account{Address: b, ChainId: acc.ChainID}
@@ -264,6 +273,7 @@ func (vc *VesClient) SendEthAlias(alias []byte) error {
 			vc.logger.Error("register user error", "alias", string(alias), "error", err)
 			return err
 		}
+		vc.logger.Error("register success", "alias", string(alias), "addr", hex.EncodeToString(b))
 		return nil
 	}
 	vc.logger.Error("find error", "alias", string(alias), "error", errNotFound)

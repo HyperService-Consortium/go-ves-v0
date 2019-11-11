@@ -2,6 +2,8 @@ package nsbcli
 
 import (
 	"encoding/binary"
+	"encoding/hex"
+	"fmt"
 	transactiontype "github.com/HyperService-Consortium/NSB/application/transaction-type"
 
 	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
@@ -14,6 +16,7 @@ func (nc *NSBClient) InsuranceClaim(
 ) (*DeliverTx, error) {
 	// fmt.Println(string(buf.Bytes()))
 	fap, err := nc.insuranceClaim(tid, aid)
+	fmt.Printf("nsb-client: %v insurance claim: tid %v, aid %v\n", hex.EncodeToString(user.GetPublicKey()), tid, aid)
 	if err != nil {
 		return nil, err
 	}

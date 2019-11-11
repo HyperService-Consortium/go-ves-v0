@@ -2,6 +2,7 @@ package vesclient
 
 import (
 	"encoding/hex"
+	"fmt"
 	TxState "github.com/HyperService-Consortium/go-uip/const/transaction_state_type"
 	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
@@ -11,7 +12,6 @@ import (
 )
 
 func (vc *VesClient) ProcessAttestationSendingRequest(attestationSendingRequest *wsrpc.RequestComingRequest) {
-
 	vc.logger.Info(
 		"new transaction's attestation must be created",
 		"session id", hex.EncodeToString(attestationSendingRequest.GetSessionId()),
@@ -32,6 +32,12 @@ func (vc *VesClient) ProcessAttestationSendingRequest(attestationSendingRequest 
 		"tid", transactionReply.Tid,
 		"tx", hex.EncodeToString(transactionReply.RawTransaction),
 	)
+
+	fmt.Printf("client: %v: new transaction's attestation must be created, session id: %v, tid: %v\n",
+		hex.EncodeToString(attestationSendingRequest.GetSessionId()),
+		hex.EncodeToString(attestationSendingRequest.GetAccount().GetAddress()),
+		transactionReply.Tid,
+		)
 
 	signer, err := vc.getNSBSigner()
 	if err != nil {

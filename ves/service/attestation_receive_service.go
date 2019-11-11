@@ -114,6 +114,11 @@ func (s AttestationReceiveService) Serve() (*uiprpc.AttestationReceiveReply, err
 			Address: kvs.Src,
 			ChainId: kvs.ChainID,
 		})
+		fmt.Printf(`###########################################################################################################################################
+#                                                               Transaction %v                                                             #
+###########################################################################################################################################
+`, fixedTXID)
+		fmt.Printf("ves server: sending attestation to client, chain id: %v, address: %v\n", kvs.ChainID, hex.EncodeToString(kvs.Src))
 		s.Logger.Info("sending attestation request", "chain id", kvs.ChainID, "address", hex.EncodeToString(kvs.Src))
 
 		_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{

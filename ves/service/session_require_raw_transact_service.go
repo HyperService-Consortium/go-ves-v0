@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/HyperService-Consortium/go-ves/config"
 	payment_option "github.com/HyperService-Consortium/go-ves/lib/bni/payment-option"
 	"github.com/HyperService-Consortium/go-ves/ves/vs"
@@ -65,6 +66,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	}
 	//fmt.Println(".......")
 
+	fmt.Printf("ves server: %v asking for new transaction: underTransacting: %v\n", hex.EncodeToString(transactionIntent.Src), underTransacting)
 	bn := bnis[transactionIntent.ChainID]
 
 	if transactionIntent.TransType == transtype.ContractInvoke {
@@ -125,7 +127,8 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 				s.Logger.Error("get failed")
 				return nil, err
 			}
-			s.Logger.Info("getting state from blockchain", "address", n.ContractAddress, "value-type:", v.GetValue(), v.GetType(), "at pos", n.Pos)
+			fmt.Printf("ves server: getting state from blockchain, address: %v, value-type: %v, %v at pos: %v\n", n.ContractAddress, v.GetValue(), v.GetType(), hex.EncodeToString(n.Pos))
+			s.Logger.Info("getting state from blockchain", "address", hex.EncodeToString(n.ContractAddress), "value", v.GetValue(), "type", v.GetType(), "at pos", hex.EncodeToString(n.Pos))
 			err = s.DB.SetStorageOf(n.ChainID, n.TypeID, n.ContractAddress, n.Pos, n.Description, v)
 			if err != nil {
 				s.Logger.Error("set failed")

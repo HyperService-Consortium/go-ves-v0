@@ -98,7 +98,7 @@ func searchAccount(name string, chainId uint64) (uiptypes.Account, error) {
 		case 0:
 			return nil, errors.New("nil domain is not allowed")
 		case 1: // ethereum chain 1
-			b, err := hex.DecodeString("47a1cdb6594d6efed3a6b917f2fbaa2bbcf61a2e")
+			b, err := hex.DecodeString("a0e0aab6354924c35ff9eaa687dd4f0008deacc7")
 			return &base_account.Account{
 				ChainId: 1,
 				Address: b,

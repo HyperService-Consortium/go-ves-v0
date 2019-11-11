@@ -1,0 +1,152 @@
+GOROOT=D:\Go #gosetup
+GOPATH=E:\project\go #gosetup
+D:\Go\bin\go.exe test -c -o C:\Users\Kamiyoru\AppData\Local\Temp\___2main_test_go__1_.exe github.com/HyperService-Consortium/go-ves/test/invoke-test #gosetup
+D:\Go\bin\go.exe tool test2json -t C:\Users\Kamiyoru\AppData\Local\Temp\___2main_test_go__1_.exe -test.v -test.run ^TestInvoke$ #gosetup
+=== RUN   TestInvoke
+INFO[2019-11-11 18:21:33] will connect to remote nsb host 127.0.0.1:26657
+prepare to serve on :23351
+starting
+ves server: session start: intents count: 2, dependecies count: 0
+###########################################################################################################################################
+#                                                              SessionStart                                                               #
+###########################################################################################################################################
+INFO[2019-11-11 18:21:41] after init guid... [74 71 215 130 64 168 223 236 245 81 88 71 42 214 61 84 39 109 145 37 87 200 136 196 167 52 85 75 18 128 175 250] 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa
+###########################################################################################################################################
+#                                                              SendingRequest                                                             #
+###########################################################################################################################################
+client: new session request coming, session id: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa, responsible address: 2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff
+client: user ack to nsb, address: 2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff
+ves server: session acknowledging: address: 2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff
+client: user ack to server, address: 2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff
+client: new session request coming, session id: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa, responsible address: 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6
+client: user ack to nsb, address: 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6
+ves server: session acknowledging: address: 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6
+client: user ack to server, address: 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6
+client: new session request coming, session id: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa, responsible address: a0e0aab6354924c35ff9eaa687dd4f0008deacc7
+client: user ack to nsb, address: a0e0aab6354924c35ff9eaa687dd4f0008deacc7
+ves server: session acknowledging: address: a0e0aab6354924c35ff9eaa687dd4f0008deacc7
+client: user ack to server, address: a0e0aab6354924c35ff9eaa687dd4f0008deacc7
+client: new session request coming, session id: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa, responsible address: 0ac45f1e6b8d47ac4c73aee62c52794b5898da9f
+client: user ack to nsb, address: 0ac45f1e6b8d47ac4c73aee62c52794b5898da9f
+ves server: session acknowledging: address: 0ac45f1e6b8d47ac4c73aee62c52794b5898da9f
+client: user ack to server, address: 0ac45f1e6b8d47ac4c73aee62c52794b5898da9f
+client: new session request coming, session id: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa, responsible address: 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff
+client: user ack to nsb, address: 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff
+ves server: session acknowledging: address: 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff
+INFO[2019-11-11 18:22:02] session setup finished
+###########################################################################################################################################
+#                                                              Begin Session                                                              #
+###########################################################################################################################################
+###########################################################################################################################################
+#                                                               Transaction 0                                                             #
+###########################################################################################################################################
+ves server: sending attestation to client, chain id: 2, address: 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6
+client: user ack to server, address: 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff
+ves server: 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6 asking for new transaction: underTransacting: 0
+client: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa: new transaction's attestation must be created, session id: 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6, tid: 0
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 0, aid 3
+###########################################################################################################################################
+#                                                        AttestationReceive 0,3                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 0, aid 4
+ves server: attestation from client: tid:0, aid: 4
+###########################################################################################################################################
+#                                                        AttestationReceive 0,4                                                           #
+###########################################################################################################################################
+client (chain id = 2, address = 93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6): sending transaction: tid 0, aid 4
+{"id":1,"jsonrpc":"2.0","method":"eth_sendTransaction","params":[{"data":"0x7c1f751f000000000000000000000000000000000000000000000000000000000000041a","from":"0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6","to":"0x263fef3fe76fd4075ac16271d5115d01206d3674"}]}
+{"blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","blockNumber":null,"from":"0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6","gas":"0x15f90","gasPrice":"0x3b9aca00","hash":"0x61a8a3060b2a564eabc87f835bf8b3ff1252d6444bb0621932800fcdf8b1abe2","input":"0x7c1f751f000000000000000000000000000000000000000000000000000000000000041a","nonce":"0x64","to":"0x263fef3fe76fd4075ac16271d5115d01206d3674","transactionIndex":"0x0","value":"0x0","v":"0x41","r":"0x5e464752552f1d83f657900b66fc6520c229f5751d31675c63d9ff5d677293b","s":"0x1fb613a7fe9a6e04e3c27011fb70fd460907507822614f605b5fb7f68b7b2eab"}
+{"blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","blockNumber":null,"from":"0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6","gas":"0x15f90","gasPrice":"0x3b9aca00","hash":"0x61a8a3060b2a564eabc87f835bf8b3ff1252d6444bb0621932800fcdf8b1abe2","input":"0x7c1f751f000000000000000000000000000000000000000000000000000000000000041a","nonce":"0x64","to":"0x263fef3fe76fd4075ac16271d5115d01206d3674","transactionIndex":"0x0","value":"0x0","v":"0x41","r":"0x5e464752552f1d83f657900b66fc6520c229f5751d31675c63d9ff5d677293b","s":"0x1fb613a7fe9a6e04e3c27011fb70fd460907507822614f605b5fb7f68b7b2eab"}
+{"blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","blockNumber":null,"from":"0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6","gas":"0x15f90","gasPrice":"0x3b9aca00","hash":"0x61a8a3060b2a564eabc87f835bf8b3ff1252d6444bb0621932800fcdf8b1abe2","input":"0x7c1f751f000000000000000000000000000000000000000000000000000000000000041a","nonce":"0x64","to":"0x263fef3fe76fd4075ac16271d5115d01206d3674","transactionIndex":"0x0","value":"0x0","v":"0x41","r":"0x5e464752552f1d83f657900b66fc6520c229f5751d31675c63d9ff5d677293b","s":"0x1fb613a7fe9a6e04e3c27011fb70fd460907507822614f605b5fb7f68b7b2eab"}
+{"blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","blockNumber":null,"from":"0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6","gas":"0x15f90","gasPrice":"0x3b9aca00","hash":"0x61a8a3060b2a564eabc87f835bf8b3ff1252d6444bb0621932800fcdf8b1abe2","input":"0x7c1f751f000000000000000000000000000000000000000000000000000000000000041a","nonce":"0x64","to":"0x263fef3fe76fd4075ac16271d5115d01206d3674","transactionIndex":"0x0","value":"0x0","v":"0x41","r":"0x5e464752552f1d83f657900b66fc6520c229f5751d31675c63d9ff5d677293b","s":"0x1fb613a7fe9a6e04e3c27011fb70fd460907507822614f605b5fb7f68b7b2eab"}
+{"blockHash":"0x91efc0c79942e2ecd4be7da926450f2ff3657b6eb754f51b0ba555b1495275f9","blockNumber":"0xee9","from":"0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6","gas":"0x15f90","gasPrice":"0x3b9aca00","hash":"0x61a8a3060b2a564eabc87f835bf8b3ff1252d6444bb0621932800fcdf8b1abe2","input":"0x7c1f751f000000000000000000000000000000000000000000000000000000000000041a","nonce":"0x64","to":"0x263fef3fe76fd4075ac16271d5115d01206d3674","transactionIndex":"0x0","value":"0x0","v":"0x41","r":"0x5e464752552f1d83f657900b66fc6520c229f5751d31675c63d9ff5d677293b","s":"0x1fb613a7fe9a6e04e3c27011fb70fd460907507822614f605b5fb7f68b7b2eab"}
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 0, aid 5
+ves server: attestation from client: tid:0, aid: 5
+###########################################################################################################################################
+#                                                        AttestationReceive 0,5                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 0, aid 6
+ves server: attestation from client: tid:0, aid: 6
+###########################################################################################################################################
+#                                                        AttestationReceive 0,6                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 0, aid 7
+ves server: attestation from client: tid:0, aid: 7
+###########################################################################################################################################
+#                                                               Transaction 1                                                             #
+###########################################################################################################################################
+ves server: sending attestation to client, chain id: 1, address: a0e0aab6354924c35ff9eaa687dd4f0008deacc7
+###########################################################################################################################################
+#                                                        AttestationReceive 0,7                                                           #
+###########################################################################################################################################
+ves server: a0e0aab6354924c35ff9eaa687dd4f0008deacc7 asking for new transaction: underTransacting: 1
+ves server: getting state from blockchain, address: [38 63 239 63 231 111 212 7 90 193 98 113 213 17 93 1 32 109 54 116], value-type: 1050, 8 at pos: 0000000000000000000000000000000000000000000000000000000000000001
+client: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa: new transaction's attestation must be created, session id: a0e0aab6354924c35ff9eaa687dd4f0008deacc7, tid: 1
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 1, aid 3
+###########################################################################################################################################
+#                                                        AttestationReceive 1,3                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 1, aid 4
+ves server: attestation from client: tid:1, aid: 4
+###########################################################################################################################################
+#                                                        AttestationReceive 1,4                                                           #
+###########################################################################################################################################
+client (chain id = 1, address = a0e0aab6354924c35ff9eaa687dd4f0008deacc7): sending transaction: tid 1, aid 4
+{"id":1,"jsonrpc":"2.0","method":"eth_sendTransaction","params":[{"from":"0xa0e0aab6354924c35ff9eaa687dd4f0008deacc7","to":"0x0ac45f1e6b8d47ac4c73aee62c52794b5898da9f","value":"0x41a"}]}
+{"blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","blockNumber":null,"from":"0xa0e0aab6354924c35ff9eaa687dd4f0008deacc7","gas":"0x15f90","gasPrice":"0x3b9aca00","hash":"0x8ddffcc5834f92e9ebff03452f3cb64a81729c31f1ce3f26ec8d8ed698e15175","input":"0x","nonce":"0x4","to":"0x0ac45f1e6b8d47ac4c73aee62c52794b5898da9f","transactionIndex":"0x0","value":"0x41a","v":"0x42","r":"0x5dd3ff3ae433b106c42d86a52c0fc0e9d0cdbac08d4b76b2bd8ddbbcfb42d7c","s":"0x16a460d83dd7463bd5e5ee1f5fa403d409a536be71b5894fe8c8f7de02c2184c"}
+{"blockHash":"0xc05ab5e8625ba8ee804bbe46c1d1b8df743fcdf8a15a29b09f9572124c9a4dd4","blockNumber":"0xef9","from":"0xa0e0aab6354924c35ff9eaa687dd4f0008deacc7","gas":"0x15f90","gasPrice":"0x3b9aca00","hash":"0x8ddffcc5834f92e9ebff03452f3cb64a81729c31f1ce3f26ec8d8ed698e15175","input":"0x","nonce":"0x4","to":"0x0ac45f1e6b8d47ac4c73aee62c52794b5898da9f","transactionIndex":"0x0","value":"0x41a","v":"0x42","r":"0x5dd3ff3ae433b106c42d86a52c0fc0e9d0cdbac08d4b76b2bd8ddbbcfb42d7c","s":"0x16a460d83dd7463bd5e5ee1f5fa403d409a536be71b5894fe8c8f7de02c2184c"}
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 1, aid 5
+ves server: attestation from client: tid:1, aid: 5
+###########################################################################################################################################
+#                                                        AttestationReceive 1,5                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 1, aid 6
+ves server: attestation from client: tid:1, aid: 6
+###########################################################################################################################################
+#                                                        AttestationReceive 1,6                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 1, aid 7
+ves server: attestation from client: tid:1, aid: 7
+###########################################################################################################################################
+#                                                               Transaction 2                                                             #
+###########################################################################################################################################
+ves server: sending attestation to client, chain id: 3, address: 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff
+###########################################################################################################################################
+#                                                        AttestationReceive 1,7                                                           #
+###########################################################################################################################################
+ves server: 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff asking for new transaction: underTransacting: 2
+ves server: getting state from blockchain, address: [38 63 239 63 231 111 212 7 90 193 98 113 213 17 93 1 32 109 54 116], value-type: 1050, 8 at pos: 0000000000000000000000000000000000000000000000000000000000000001
+client: 4a47d78240a8dfecf55158472ad63d54276d912557c888c4a734554b1280affa: new transaction's attestation must be created, session id: 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff, tid: 2
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 2, aid 3
+###########################################################################################################################################
+#                                                        AttestationReceive 2,3                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 2, aid 4
+ves server: attestation from client: tid:2, aid: 4
+###########################################################################################################################################
+#                                                        AttestationReceive 2,4                                                           #
+###########################################################################################################################################
+client (chain id = 3, address = 2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff): sending transaction: tid 2, aid 4
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 2, aid 5
+ves server: attestation from client: tid:2, aid: 5
+###########################################################################################################################################
+#                                                        AttestationReceive 2,5                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 2, aid 6
+ves server: attestation from client: tid:2, aid: 6
+###########################################################################################################################################
+#                                                        AttestationReceive 2,6                                                           #
+###########################################################################################################################################
+nsb-client: 2333ffffffffffffffff2333ffffffffffffffff2333ffffffffffffffffffff insurance claim: tid 2, aid 7
+ves server: attestation from client: tid:2, aid: 7
+###########################################################################################################################################
+#                                                        AttestationReceive 2,7                                                           #
+###########################################################################################################################################
+session closed session [74 71 215 130 64 168 223 236 245 81 88 71 42 214 61 84 39 109 145 37 87 200 136 196 167 52 85 75 18 128 175 250] qwq
+###########################################################################################################################################
+#                                                              SessionClose                                                               #
+###########################################################################################################################################
+--- PASS: TestInvoke (88.60s)
+PASS
+
+Process finished with exit code 0

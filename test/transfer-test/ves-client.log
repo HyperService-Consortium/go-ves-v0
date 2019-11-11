@@ -1,0 +1,10 @@
+2019-11-11T17:01:05.231+0800	DEBUG	ves-client/say-client-hello.go:14		{"level": "info", "_msg": "say client hello to server successfully"}
+2019-11-11T17:01:05.240+0800	DEBUG	ves-client/read.go:46		{"level": "info", "_msg": "message from server", "tag": "3046fb1f4b0ff1fb06e02ea2d8490872", "type": "CodeClientHelloReply"}
+2019-11-11T17:01:05.240+0800	DEBUG	ves-client/process-client-hello-reply.go:15		{"level": "info", "_msg": "adding default grpc ip ", "ip": "127.0.0.1:23351"}
+2019-11-11T17:01:05.240+0800	DEBUG	ves-client/process-client-hello-reply.go:22		{"level": "info", "_msg": "adding default nsb ip ", "ip": "127.0.0.1:26657"}
+2019-11-11T17:01:05.365+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "0ac45f1e", ", chain_id": 1}
+2019-11-11T17:01:05.386+0800	DEBUG	ves-client/write.go:251		{"level": "info", "_msg": "imported: public address", "address": "d051a43d", ", chain_id": 2}
+2019-11-11T17:01:05.483+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333bbffffffffff", ", chain_id": 3}
+2019-11-11T17:01:05.483+0800	DEBUG	ves-client/write.go:193		{"level": "info", "_msg": "imported: private key", "address": "2333bfffffffffff", ", chain_id": 4}
+2019-11-11T17:01:05.589+0800	DEBUG	ves-client/write.go:333		{"level": "info", "_msg": "read op intents from file successfully", "intent count": 1, "dependencies count": 0}
+2019-11-11T17:01:14.154+0800	DEBUG	ves-client/write.go:366		{"level": "info", "_msg": "Session Start, %v", "ok": true, "session id": "a667a085a3df06d0a80cd3f1fa8c01de4d457f03127729a1fcaf45f8ed0fbaea"}

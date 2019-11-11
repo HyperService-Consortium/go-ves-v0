@@ -192,7 +192,8 @@ func (c *Client) readPump() {
 				c.hub.server.logger.Info("error", err)
 			}
 
-			// fmt.Println("hexx registering", hex.EncodeToString(s.GetAccount().GetAddress()))
+			c.hub.server.logger.Info("hexx registering", "addr",
+			hex.EncodeToString(s.GetAccount().GetAddress()), "chain id", s.GetAccount().ChainId, "name", s.GetUserName())
 			err = c.hub.server.vesdb.InsertAccount(s.GetUserName(), s.GetAccount())
 
 			if err != nil {

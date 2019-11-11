@@ -51,7 +51,9 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 	}
 
 	if ses.GetAckCount() == uint32(len(ses.GetAccounts())) {
-
+		fmt.Println(`###########################################################################################################################################
+#                                                              Begin Session                                                              #
+###########################################################################################################################################`)
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		txb := ses.GetTransaction(0)
@@ -65,6 +67,11 @@ func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error
 			Address: kvs.Src,
 			ChainId: kvs.ChainID,
 		})
+		fmt.Printf(`###########################################################################################################################################
+#                                                               Transaction %v                                                             #
+###########################################################################################################################################
+`, 0)
+		fmt.Printf("ves server: sending attestation to client, chain id: %v, address: %v\n", kvs.ChainID, hex.EncodeToString(kvs.Src))
 		s.Logger.Info("sending attestation request", "chain id", kvs.ChainID, "address", hex.EncodeToString(kvs.Src))
 
 		_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{

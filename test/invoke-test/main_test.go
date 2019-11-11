@@ -73,7 +73,7 @@ func Prepare() (muldb types.MultiIndex, sindb types.Index) {
 }
 
 
-func TestTransfer(t *testing.T) {
+func TestInvoke(t *testing.T) {
 	go func() {
 		err := http.ListenAndServe("0.0.0.0:22239", nil)
 		if err != nil {
@@ -95,17 +95,17 @@ func TestTransfer(t *testing.T) {
 	cfg0, cfg1, cfg2 := zap.NewDevelopmentConfig(), zap.NewDevelopmentConfig(), zap.NewDevelopmentConfig()
 	cfg3, cfg4 := zap.NewDevelopmentConfig(), zap.NewDevelopmentConfig()
 
-	//cfg0.OutputPaths = []string{"ves-client.log"}
-	//cfg1.OutputPaths = []string{"aws-client.log"}
-	//cfg2.OutputPaths = []string{"qwq-client.log"}
-	//cfg3.OutputPaths = []string{"central-server.log"}
-	//cfg4.OutputPaths = []string{"ves-server.log"}
+	cfg0.OutputPaths = []string{"ves-client.log"}
+	cfg1.OutputPaths = []string{"aws-client.log"}
+	cfg2.OutputPaths = []string{"qwq-client.log"}
+	cfg3.OutputPaths = []string{"central-server.log"}
+	cfg4.OutputPaths = []string{"ves-server.log"}
 
-	cfg0.OutputPaths = []string{"stdout"}
-	cfg1.OutputPaths = []string{"stdout"}
-	cfg2.OutputPaths = []string{"stdout"}
-	cfg3.OutputPaths = []string{"stdout"}
-	cfg4.OutputPaths = []string{"stdout"}
+	//cfg0.OutputPaths = []string{"stdout"}
+	//cfg1.OutputPaths = []string{"stdout"}
+	//cfg2.OutputPaths = []string{"stdout"}
+	//cfg3.OutputPaths = []string{"stdout"}
+	//cfg4.OutputPaths = []string{"stdout"}
 
 	//vesLogger, awsLogger, qwqLogger, cVesServerLogger, vesServerLogger :=
 	//	h.HandlerError(logger.NewZapLogger(cfg0, zapcore.DebugLevel)).(logger.Logger),
@@ -118,8 +118,9 @@ func TestTransfer(t *testing.T) {
 		h.HandlerError(logger.NewZapLogger(cfg0, zapcore.DebugLevel)).(logger.Logger).With("from", "ves"),
 		h.HandlerError(logger.NewZapLogger(cfg1, zapcore.DebugLevel)).(logger.Logger).With("from", "user1"),
 		h.HandlerError(logger.NewZapLogger(cfg2, zapcore.DebugLevel)).(logger.Logger).With("from", "user2"),
-		h.HandlerError(logger.NewZapLogger(cfg1, zapcore.DebugLevel)).(logger.Logger).With("from", "cves"),
-		h.HandlerError(logger.NewZapLogger(cfg2, zapcore.DebugLevel)).(logger.Logger).With("from", "ves")
+		h.HandlerError(logger.NewZapLogger(cfg3, zapcore.DebugLevel)).(logger.Logger).With("from", "cves"),
+		h.HandlerError(logger.NewZapLogger(cfg4, zapcore.DebugLevel)).(logger.Logger).With("from", "ves")
+
 
 	config.ResetPath(cfgPath)
 	var cfg = config.Config()
@@ -192,8 +193,14 @@ func TestTransfer(t *testing.T) {
 		}
 	})
 
+	fmt.Println("starting")
+	time.Sleep(time.Second * 5)
 
-	h.HandlerError0(ves.SendOpIntents("./json/intent.json", b))
+	h.HandlerError0(aws.SendOpIntents("./json/intent.json", b))
 	<-ch
+	fmt.Println(`###########################################################################################################################################
+#                                                              SessionClose                                                               #
+###########################################################################################################################################`)
+
 }
 
