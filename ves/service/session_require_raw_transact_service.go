@@ -125,7 +125,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 				s.Logger.Error("get failed")
 				return nil, err
 			}
-			s.Logger.Info("getting state from blockchain", "address", n.ContractAddress, "value-type:", v.GetValue(), v.GetType(), "at pos", n.Pos)
+			s.Logger.Info("getting state from blockchain", "address", hex.EncodeToString(n.ContractAddress), "value:", v.GetValue(), "type", v.GetType(), "at pos", hex.EncodeToString(n.Pos))
 			err = s.DB.SetStorageOf(n.ChainID, n.TypeID, n.ContractAddress, n.Pos, n.Description, v)
 			if err != nil {
 				s.Logger.Error("set failed")
