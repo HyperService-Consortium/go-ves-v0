@@ -11,8 +11,6 @@ import (
 	"unsafe"
 
 	"github.com/gorilla/websocket"
-
-	log "github.com/HyperService-Consortium/go-ves/lib/log"
 )
 
 const (
@@ -76,17 +74,22 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
-			// fmt.Println("hello...")
 			select {
 			case <-client.helloed:
-				// fmt.Println("hello...")
+				// do nothing
 			case <-time.After(5 * time.Second):
 				message := websocket.FormatCloseMessage(
 					websocket.ClosePolicyViolation,
 					"client hello please",
 				)
-				client.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(2))
-				client.conn.Close()
+				err := client.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(2))
+				if err != nil {
+					h.server.logger.Error("write close message error", "address", client.conn.RemoteAddr())
+				}
+				err = client.conn.Close()
+				if err != nil {
+					h.server.logger.Error("close error", "address", client.conn.RemoteAddr())
+				}
 				return
 			}
 
@@ -123,7 +126,7 @@ func (h *Hub) run() {
 			}
 		case message := <-h.broadcast:
 			tag := md5.Sum(message.message)
-			log.Println("message broadcasting tag:", hex.EncodeToString(tag[:]))
+			h.server.logger.Info("message broadcasting", "tag", hex.EncodeToString(tag[:]))
 			for client := range h.clients {
 				// fmt.Println("msg...", client.user, message)
 				select {
@@ -147,17 +150,16 @@ func (h *Hub) run() {
 			}
 			message.cb()
 		case message := <-h.unicast:
-			log.Infof("must transmit %v %v\n", hex.EncodeToString(message.aim), message.chainID)
 			tag := md5.Sum(message.message)
-			log.Println("message unicasting tag:", hex.EncodeToString(tag[:]))
 			if client, ok := h.reverseClients[clientKey{
 				message.chainID,
 				*(*string)(unsafe.Pointer(&message.aim)),
 			}]; ok {
-				// fmt.Println("hexx", message.chainID, hex.EncodeToString(message.aim), client)
+				h.server.logger.Info("message unicasting", "tag", hex.EncodeToString(tag[:]), "chain id", message.chainID, "address", hex.EncodeToString(message.aim))
 				select {
 				case client.send <- &writeMessageTask{message.message, message.cb}:
 				default:
+					h.server.logger.Info("remove no response client", "tag", hex.EncodeToString(tag[:]), "chain id", message.chainID, "address", hex.EncodeToString(message.aim))
 					close(client.send)
 					delete(h.clients, client)
 					for _, address := range client.user.GetAccounts() {
@@ -174,7 +176,7 @@ func (h *Hub) run() {
 					})
 				}
 			} else {
-				log.Println("debugging unknown aim", message.chainID, hex.EncodeToString(message.aim), message.aim)
+				h.server.logger.Info("debugging unknown aim", "tag", hex.EncodeToString(tag[:]), "chain id", message.chainID, "address", hex.EncodeToString(message.aim))
 			}
 		}
 	}

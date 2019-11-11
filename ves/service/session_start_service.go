@@ -7,30 +7,35 @@ import (
 	"errors"
 	"fmt"
 	logger "github.com/HyperService-Consortium/go-ves/lib/log"
+	"github.com/HyperService-Consortium/go-ves/ves/vs"
 	"time"
 
 	"golang.org/x/net/context"
 
-	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
-	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
-	types "github.com/HyperService-Consortium/go-ves/types"
-	session "github.com/HyperService-Consortium/go-ves/types/session"
+	"github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/types/session"
 )
 
 type SessionStartService = MultiThreadSerialSessionStartService
 
+func NewSessionStartService(server *vs.VServer, context context.Context, sessionStartRequest *uiprpc.SessionStartRequest) SessionStartService {
+	return NewMultiThreadSerialSessionStartService(server, context, sessionStartRequest)
+}
+
 type SerialSessionStartService struct {
-	Signer    uiptypes.Signer
-	NsbClient *nsbcli.NSBClient
-	CVes      uiprpc.CenteredVESClient
-	types.VESDB
+	*vs.VServer
 	context.Context
 	*uiprpc.SessionStartRequest
 }
 
-func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) ([]byte, error) {
+func NewSerialSessionStartService(server *vs.VServer, context context.Context, sessionStartRequest *uiprpc.SessionStartRequest) SerialSessionStartService {
+	return SerialSessionStartService{VServer: server, Context: context, SessionStartRequest: sessionStartRequest}
+}
+
+func (s SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) ([]byte, error) {
 	var accs = anyb.GetAccounts()
 
 	var owners = make([][]byte, 0, len(accs)+1)
@@ -38,7 +43,7 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 	// owners = append(owners, s.Signer.GetPublicKey())
 	for _, owner := range accs {
 		owners = append(owners, owner.GetAddress())
-		fmt.Println("waiting", hex.EncodeToString(owner.GetAddress()))
+		s.Logger.Info("waiting", "address", hex.EncodeToString(owner.GetAddress()))
 	}
 	var txs = anyb.GetTransactions()
 	var btxs = make([][]byte, 0, len(txs))
@@ -49,43 +54,55 @@ func (s *SerialSessionStartService) RequestNSBForNewSession(anyb types.Session) 
 		}
 		btxs = append(btxs, b)
 	}
-	// fmt.Println("accs, txs", owners, txs)
+	// s.Logger.Info("accs, txs", owners, txs)
 	return s.NsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
 }
 
-func (s *SerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
+func (s SerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
 	var ses = new(session.SerialSession)
 	ses.Signer = s.Signer
 	success, help_info, err := ses.InitFromOpIntents(s.GetOpintents())
 	if err != nil {
 		// TODO: log
+		s.Logger.Error("error", "error", err)
 		return nil, nil, err
 	}
 	if !success {
+		s.Logger.Error("error", "error", err)
 		return nil, nil, errors.New(help_info)
 	}
 	ses.ISCAddress, err = s.RequestNSBForNewSession(ses)
 	if err != nil {
+		s.Logger.Error("error", "error", err)
 		return nil, nil, err
 	}
-	s.InsertSessionInfo(ses)
+	err = s.DB.InsertSessionInfo(ses)
+	if err != nil {
+		s.Logger.Error("error", "error", err)
+		return nil, nil, err
+	}
 	for i := uint32(0); i < ses.TransactionCount; i++ {
-		fmt.Println(s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i)))
+		_, err = s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i))
+		if err != nil {
+			s.Logger.Error("error", "error", err)
+			return nil, nil, err
+		}
 	}
 	// s.UpdateTxs
 	// s.UpdateAccs
 	return ses.ISCAddress, ses.GetAccounts(), nil
 }
 
-func (s *SerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
+func (s SerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
 	if b, accs, err := s.SessionStart(); err != nil {
+		s.Logger.Error("error", "error", err)
 		return nil, err
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		r, err := s.CVes.InternalRequestComing(ctx, &uiprpc.InternalRequestComingRequest{
 			SessionId: b,
-			Host:      []byte{127, 0, 0, 1, ((23351) >> 8 & 0xff), 23351 & 0xff},
+			Host:      s.Host,
 			Accounts: func() (uaccs []*uipbase.Account) {
 				for _, acc := range accs {
 					uaccs = append(uaccs, &uipbase.Account{
@@ -96,8 +113,9 @@ func (s *SerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
 				return
 			}(),
 		})
-		// fmt.Println("reply?", r, err)
+
 		if err != nil {
+			s.Logger.Error("error", "error", err)
 			return nil, err
 		}
 
@@ -109,15 +127,16 @@ func (s *SerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
 }
 
 type MultiThreadSerialSessionStartService struct {
-	Signer    uiptypes.Signer
-	NsbClient *nsbcli.NSBClient
-	CVes      uiprpc.CenteredVESClient
-	types.VESDB
+	*vs.VServer
 	context.Context
 	*uiprpc.SessionStartRequest
 }
 
-func (s *MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb types.Session) ([]byte, error) {
+func NewMultiThreadSerialSessionStartService(server *vs.VServer, context context.Context, sessionStartRequest *uiprpc.SessionStartRequest) MultiThreadSerialSessionStartService {
+	return MultiThreadSerialSessionStartService{VServer: server, Context: context, SessionStartRequest: sessionStartRequest}
+}
+
+func (s MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb types.Session) ([]byte, error) {
 	var accs = anyb.GetAccounts()
 
 	var owners = make([][]byte, 0, len(accs)+1)
@@ -125,27 +144,28 @@ func (s *MultiThreadSerialSessionStartService) RequestNSBForNewSession(anyb type
 	// owners = append(owners, s.Signer.GetPublicKey())
 	for _, owner := range accs {
 		owners = append(owners, owner.GetAddress())
-		fmt.Println("waiting", hex.EncodeToString(owner.GetAddress()))
+		s.Logger.Info("waiting", hex.EncodeToString(owner.GetAddress()))
 	}
 	var txs = anyb.GetTransactions()
 	var btxs = make([][]byte, 0, len(txs))
 	for _, tx := range txs {
 		b, err := json.Marshal(tx)
 		if err != nil {
+			s.Logger.Error("error", "error", err)
 			return nil, err
 		}
 		btxs = append(btxs, b)
 	}
-	// fmt.Println("accs, txs", owners, txs)
+
 	return s.NsbClient.CreateISC(s.Signer, make([]uint32, len(owners)), owners, txs, s.Signer.Sign(bytes.Join(anyb.GetTransactions(), []byte{})).Bytes())
 }
 
-func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
+func (s MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptypes.Account, error) {
 	var ses = new(session.MultiThreadSerialSession)
 	ses.Signer = s.Signer
 	success, help_info, err := ses.InitFromOpIntents(s.GetOpintents())
 	if err != nil {
-		// TODO: log
+		s.Logger.Error("error", "error", err)
 		return nil, nil, err
 	}
 	if !success {
@@ -153,25 +173,32 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 	}
 	ses.ISCAddress, err = s.RequestNSBForNewSession(ses)
 	if ses.ISCAddress == nil {
-		return nil, nil, fmt.Errorf("request isc failed: %v", err)
+		err = fmt.Errorf("request isc failed: %v", err)
+		s.Logger.Error("error", "error", err)
+		return nil, nil, err
 	}
 	if err != nil {
-		return nil, nil, fmt.Errorf("request isc failed on request: %v", err)
+		err = fmt.Errorf("request isc failed on request: %v", err)
+		s.Logger.Error("error", "error", err)
+		return nil, nil, err
 	}
 	err = ses.AfterInitGUID()
 	logger.Println("after init guid...", ses.ISCAddress, hex.EncodeToString(ses.ISCAddress))
 	if err != nil {
+		s.Logger.Error("error", "error", err)
 		return nil, nil, err
 	}
 
-	err = s.InsertSessionInfo(ses)
+	err = s.DB.InsertSessionInfo(ses)
 	if err != nil {
+		s.Logger.Error("error", "error", err)
 		return nil, nil, err
 	}
 	for i := uint32(0); i < ses.TransactionCount; i++ {
-		//fmt.Println()
+		//s.Logger.Info()
 		_, err := s.NsbClient.FreezeInfo(s.Signer, ses.ISCAddress, uint64(i))
 		if err != nil {
+			s.Logger.Error("error", "error", err)
 			return nil, nil, err
 		}
 	}
@@ -181,15 +208,16 @@ func (s *MultiThreadSerialSessionStartService) SessionStart() ([]byte, []uiptype
 	return ses.ISCAddress, ses.GetAccounts(), nil
 }
 
-func (s *MultiThreadSerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
+func (s MultiThreadSerialSessionStartService) Serve() (*uiprpc.SessionStartReply, error) {
 	if b, accs, err := s.SessionStart(); err != nil {
+		s.Logger.Error("error", "error", err)
 		return nil, err
 	} else {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		r, err := s.CVes.InternalRequestComing(ctx, &uiprpc.InternalRequestComingRequest{
 			SessionId: b,
-			Host:      []byte{127, 0, 0, 1, ((23351) >> 8 & 0xff), 23351 & 0xff},
+			Host:      s.Host,
 			Accounts: func() (uaccs []*uipbase.Account) {
 				for _, acc := range accs {
 					uaccs = append(uaccs, &uipbase.Account{
@@ -200,8 +228,9 @@ func (s *MultiThreadSerialSessionStartService) Serve() (*uiprpc.SessionStartRepl
 				return
 			}(),
 		})
-		// fmt.Println("reply?", r, err)
+
 		if err != nil {
+			s.Logger.Error("error", "error", err)
 			return nil, err
 		}
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 )
 
 var (
@@ -19,3 +20,13 @@ func DecodeIP(ip []byte) (string, error) {
 	}
 	return "", errorInvalidlength
 }
+
+func HostFromString(option string) ([]byte, error) {
+	r := strings.TrimPrefix(strings.TrimPrefix(option, "https://"), "http://")
+	addr, err := net.ResolveTCPAddr("", r)
+	if err != nil {
+		return nil, err
+	}
+	return append(addr.IP.To4(), byte(addr.Port>>8), byte(addr.Port&0xff)), nil
+}
+

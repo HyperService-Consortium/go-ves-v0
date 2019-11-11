@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/HyperService-Consortium/go-ves/config"
+	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 	chain_dns "github.com/HyperService-Consortium/go-ves/types/chain-dns"
 	"github.com/HyperService-Consortium/go-ves/types/kvdb"
 	"github.com/HyperService-Consortium/go-ves/types/storage-handler"
+	"github.com/HyperService-Consortium/go-ves/ves/vs"
 	"github.com/Myriad-Dreamin/minimum-lib/logger"
 	"io"
 	"net"
@@ -32,19 +34,10 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+
+
 // Server provides the basic service of session
-type Server struct {
-	logger logger.Logger
-
-	db        types.VESDB
-	resp      *uipbase.Account
-	signer    *signaturer.TendermintNSBSigner
-	cves      uiprpc.CenteredVESClient
-	nsbClient *nsbcli.NSBClient
-
-	// mutex sync.Mutex
-	// mup  map[uint16]bool
-}
+type Server vs.VServer
 
 // func (s *Server) locmup(mupper uint16) {
 // 	if !s.mup[mupper] {
@@ -110,29 +103,33 @@ func NewServer(
 	var server = new(Server)
 	options := parseOptions(rOptions)
 
-	server.logger = options.logger
-	server.signer = signer
+	server.Logger = options.logger
+	server.Signer = signer
 
-	server.resp = &uipbase.Account{Address: server.signer.GetPublicKey(), ChainId: 3}
-
+	server.Resp = &uipbase.Account{Address: server.Signer.GetPublicKey(), ChainId: 3}
+	server.Host = []byte{127, 0, 0, 1, ((23351) >> 8 & 0xff), 23351 & 0xff}
 	err := migrate(muldb, migrateFunction)
 	if err != nil {
 		return nil, fmt.Errorf("failed to migrate: %v", err)
 	}
+	server.NsbHost, err = helper.HostFromString(string(options.nsbHost))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode host: %v", err)
+	}
+	// todo use instance
+	server.DB = new(vesdb.Database)
 
-	server.db = new(vesdb.Database)
+	server.DB.SetMultiIndex(muldb)
+	server.DB.SetIndex(sindb)
 
-	server.db.SetMultiIndex(muldb)
-	server.db.SetIndex(sindb)
-
-	server.db.SetUserBase(new(user.XORMUserBase))
-	server.db.SetSessionBase(session.NewMultiThreadSerialSessionBase())
-	server.db.SetStorageHandler(new(storage_handler.Database))
-	server.db.SetSessionKVBase(new(kvdb.Database))
-	server.db.SetChainDNS(chain_dns.NewDatabase(config.HostMap))
+	server.DB.SetUserBase(new(user.XORMUserBase))
+	server.DB.SetSessionBase(session.NewMultiThreadSerialSessionBase())
+	server.DB.SetStorageHandler(new(storage_handler.Database))
+	server.DB.SetSessionKVBase(new(kvdb.Database))
+	server.DB.SetChainDNS(chain_dns.NewDatabase(config.HostMap))
 
 	log.Println("will connect to remote nsb host", options.nsbHost)
-	server.nsbClient = nsbcli.NewNSBClient(string(options.nsbHost))
+	server.NsbClient = nsbcli.NewNSBClient(string(options.nsbHost))
 	return server, nil
 }
 
@@ -153,7 +150,7 @@ func (server *Server) ListenAndServe(port, centerAddress string) error {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	server.cves = uiprpc.NewCenteredVESClient(conn)
+	server.CVes = uiprpc.NewCenteredVESClient(conn)
 
 	s := grpc.NewServer()
 

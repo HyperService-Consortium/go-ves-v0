@@ -5,98 +5,82 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/HyperService-Consortium/go-ves/ves/vs"
 	"time"
 
 	"golang.org/x/net/context"
 
 	tx "github.com/HyperService-Consortium/go-uip/op-intent"
-	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
-	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-uip/signaturer"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
-	log "github.com/HyperService-Consortium/go-ves/lib/log"
-	types "github.com/HyperService-Consortium/go-ves/types"
 )
 
 type SessionAckForInitService struct {
-	CVes uiprpc.CenteredVESClient
-	uiptypes.Signer
-	types.VESDB
+	*vs.VServer
 	context.Context
 	*uiprpc.SessionAckForInitRequest
 }
 
+func NewSessionAckForInitService(server *vs.VServer, context context.Context, sessionAckForInitRequest *uiprpc.SessionAckForInitRequest) SessionAckForInitService {
+	return SessionAckForInitService{VServer: server, Context: context, SessionAckForInitRequest: sessionAckForInitRequest}
+}
+
 func (s SessionAckForInitService) Serve() (*uiprpc.SessionAckForInitReply, error) {
-	s.ActivateSession(s.GetSessionId())
-	defer s.InactivateSession(s.GetSessionId())
-	ses, err := s.FindSessionInfo(s.SessionId)
+	s.Logger.Info("session acknowledging... ", "address", hex.EncodeToString(s.GetUser().GetAddress()))
+
+	s.DB.ActivateSession(s.GetSessionId())
+	defer s.DB.InactivateSession(s.GetSessionId())
+	ses, err := s.DB.FindSessionInfo(s.SessionId)
 	// todo: get Session Acked from isc
 	// nsbClient.
-	log.Println("session acking... ", hex.EncodeToString(s.GetUser().GetAddress()))
-	if err == nil {
-		var success bool
-		var help_info string
-		ss:= s.GetUserSignature()
-		success, help_info, err = ses.AckForInit(s.GetUser(), signaturer.FromRaw(ss.Content, ss.SignatureType))
-		if err != nil {
-			// todo, log
-			return nil, fmt.Errorf("internal error: %v", err)
-		} else if !success {
-			return nil, errors.New(help_info)
-		} else {
-			// fmt.Println(ses.GetAckCount(), uint32(len(ses.GetAccounts())))
-			if ses.GetAckCount() == uint32(len(ses.GetAccounts())) {
-
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-				defer cancel()
-				txb := ses.GetTransaction(0)
-				var kvs tx.TransactionIntent
-				err := json.Unmarshal(txb, &kvs)
-				if err != nil {
-					return nil, err
-				}
-				var accs []*uipbase.Account
-				accs = append(accs, &uipbase.Account{
-					Address: kvs.Src,
-					ChainId: kvs.ChainID,
-				})
-				log.Printf("sending attestation request to %v %v\n", hex.EncodeToString(kvs.Src), kvs.ChainID)
-				// accs = append(accs, &uipbase.Account{
-				// 	Address: kvs.Dst,
-				// 	ChainID: kvs.ChainID,
-				// })
-				_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{
-					SessionId: ses.GetGUID(),
-					Host:      []byte{127, 0, 0, 1, ((23351) >> 8 & 0xff), 23351 & 0xff},
-					Accounts:  accs,
-				})
-				// fmt.Println("reply?", r, err)
-				if err != nil {
-					return nil, err
-				}
-
-				/*
-					atte := &uipbase.Attestation{
-						Content: ses.GetTransaction(0),
-						Signatures: []*uipbase.Signature{
-							&uipbase.Signature{
-								Content:       s.Sign(ses.GetTransaction(0)),
-								SignatureType: 123456,
-							},
-						},
-					}
-				*/
-			}
-			err = s.VESDB.UpdateSessionInfo(ses)
-			if err != nil {
-				fmt.Println("uperr", err)
-				return nil, err
-			}
-			return &uiprpc.SessionAckForInitReply{
-				Ok: true,
-			}, nil
-		}
-	} else {
+	if err != nil {
+		s.Logger.Error("find session info error", "error", err)
 		return nil, err
 	}
+
+	var success bool
+	var help_info string
+	ss := s.GetUserSignature()
+	success, help_info, err = ses.AckForInit(s.GetUser(), signaturer.FromRaw(ss.Content, ss.SignatureType))
+	if err != nil {
+		s.Logger.Error("ack error", "error", err)
+		return nil, fmt.Errorf("internal error: %v", err)
+	} else if !success {
+		return nil, errors.New(help_info)
+	}
+
+	if ses.GetAckCount() == uint32(len(ses.GetAccounts())) {
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+		txb := ses.GetTransaction(0)
+		var kvs tx.TransactionIntent
+		err := json.Unmarshal(txb, &kvs)
+		if err != nil {
+			return nil, err
+		}
+		var accs []*uipbase.Account
+		accs = append(accs, &uipbase.Account{
+			Address: kvs.Src,
+			ChainId: kvs.ChainID,
+		})
+		s.Logger.Info("sending attestation request", "chain id", kvs.ChainID, "address", hex.EncodeToString(kvs.Src))
+
+		_, err = s.CVes.InternalAttestationSending(ctx, &uiprpc.InternalRequestComingRequest{
+			SessionId: ses.GetGUID(),
+			Host:      s.Host,
+			Accounts:  accs,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err = s.DB.UpdateSessionInfo(ses); err != nil {
+		s.Logger.Error("sending attestation request", "err", err)
+		return nil, err
+	}
+	return &uiprpc.SessionAckForInitReply{
+		Ok: true,
+	}, nil
 }

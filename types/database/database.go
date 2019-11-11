@@ -15,6 +15,10 @@ type Database struct {
 	dns            types.ChainDNS
 }
 
+func (db *Database) GetTransactionProof(chainID uiptypes.ChainID, blockID uiptypes.BlockID, color []byte) (uiptypes.MerkleProof, error) {
+	panic("implement me")
+}
+
 func (db *Database) GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte) (uiptypes.Variable, error) {
 	return db.storageHandler.GetStorageAt(db.sindb, chainID, typeID, contractAddress, pos, description)
 }

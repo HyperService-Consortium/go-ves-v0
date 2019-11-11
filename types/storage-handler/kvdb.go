@@ -13,6 +13,10 @@ import (
 type Database struct {
 }
 
+func (g *Database) GetTransactionProof(index types.Index, chainID uiptypes.ChainID, blockID uiptypes.BlockID, color []byte) (uiptypes.MerkleProof, error) {
+	panic("implement me")
+}
+
 type variable struct {
 	Type  uiptypes.TypeID
 	Value interface{}

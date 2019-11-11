@@ -17,12 +17,7 @@ func (s SessionRequireTransactService) Serve() (*uiprpc.SessionRequireTransactRe
 	// todo errors.New("TODO")
 	s.ActivateSession(s.GetSessionId())
 	defer s.InactivateSession(s.GetSessionId())
-	var err error
-	if err != nil {
-		return nil, err
-	} else {
-		return &uiprpc.SessionRequireTransactReply{
-			// Tx: true,
-		}, nil
-	}
+	return &uiprpc.SessionRequireTransactReply{
+		// Tx: true,
+	}, nil
 }

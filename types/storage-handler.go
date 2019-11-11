@@ -3,6 +3,7 @@ package types
 import "github.com/HyperService-Consortium/go-uip/uiptypes"
 
 type StorageHandler interface {
+	GetTransactionProof(index Index, chainID uiptypes.ChainID, blockID uiptypes.BlockID, color []byte) (uiptypes.MerkleProof, error)
 	GetStorageAt(index Index, chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte) (uiptypes.Variable, error)
 	SetStorageOf(index Index, chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte, variable uiptypes.Variable) error
 }

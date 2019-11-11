@@ -1,50 +1,59 @@
 package service
 
 import (
-	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
+	"encoding/hex"
+	"github.com/HyperService-Consortium/go-ves/ves/vs"
 	"golang.org/x/net/context"
 
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
-	types "github.com/HyperService-Consortium/go-ves/types"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	// bni "github.com/HyperService-Consortium/go-ves/types/bn-interface"
 )
 
 type InformShortenMerkleProofService struct {
-	NsbClient *nsbcli.NSBClient
-	types.VESDB
+	*vs.VServer
 	context.Context
 	*uiprpc.ShortenMerkleProofReceiveRequest
 }
 
-func (s *InformShortenMerkleProofService) Serve() (*uiprpc.ShortenMerkleProofReceiveReply, error) {
-	s.ActivateSession(s.GetSessionId())
-	ses, err := s.FindSessionInfo(s.GetSessionId())
-	if err == nil {
-		defer func() {
-			s.UpdateSessionInfo(ses)
-			s.InactivateSession(s.GetSessionId())
-		}()
+func NewInformShortenMerkleProofService(server *vs.VServer, context context.Context, shortenMerkleProofReceiveRequest *uiprpc.ShortenMerkleProofReceiveRequest) InformShortenMerkleProofService {
+	return InformShortenMerkleProofService{VServer: server, Context: context, ShortenMerkleProofReceiveRequest: shortenMerkleProofReceiveRequest}
+}
 
-		var merkle = s.GetMerkleproof()
-
-		// todo: verify merkle proof
-
-		err = s.SetKV(
-			ses.GetGUID(),
-			merkle.GetKey(),
-			merkle.GetValue(),
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		return &uiprpc.ShortenMerkleProofReceiveReply{
-			Ok: true,
-		}, nil
-
-	} else {
-		s.InactivateSession(s.GetSessionId())
+func (s InformShortenMerkleProofService) Serve() (*uiprpc.ShortenMerkleProofReceiveReply, error) {
+	s.DB.ActivateSession(s.GetSessionId())
+	ses, err := s.DB.FindSessionInfo(s.GetSessionId())
+	if err != nil {
+		s.DB.InactivateSession(s.GetSessionId())
+		s.Logger.Error("find session info", "sid", hex.EncodeToString(s.GetSessionId()), "err", err)
 		return nil, err
 	}
+
+	defer func() {
+		err = s.DB.UpdateSessionInfo(ses)
+		if err != nil {
+			s.Logger.Error("update failed", "sid", hex.EncodeToString(ses.GetGUID()), "err", err)
+		}
+		s.DB.InactivateSession(s.GetSessionId())
+	}()
+
+	ses.SetSigner(s.Signer)
+
+	var merkle = s.GetMerkleproof()
+
+	// todo: verify merkle proof
+
+	err = s.DB.SetKV(
+		ses.GetGUID(),
+		merkle.GetKey(),
+		merkle.GetValue(),
+	)
+
+	if err != nil {
+		s.Logger.Error("set kv error", "sid", hex.EncodeToString(ses.GetGUID()), "err", err)
+		return nil, err
+	}
+
+	return &uiprpc.ShortenMerkleProofReceiveReply{
+		Ok: true,
+	}, nil
 }

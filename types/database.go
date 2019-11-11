@@ -80,6 +80,7 @@ type ChainInfo interface {
 }
 
 type StorageHandlerInterface interface {
+	GetTransactionProof(chainID uiptypes.ChainID, blockID uiptypes.BlockID, color []byte) (uiptypes.MerkleProof, error)
 	GetStorageAt(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte) (uiptypes.Variable, error)
 	SetStorageOf(chainID uiptypes.ChainID, typeID uiptypes.TypeID, contractAddress uiptypes.ContractAddress, pos []byte, description []byte, variable uiptypes.Variable) error
 }
@@ -136,3 +137,4 @@ type VESDB interface {
 	StorageHandlerInterface
 	ChainDNSInterface
 }
+

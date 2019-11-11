@@ -11,14 +11,13 @@ import (
 	"github.com/HyperService-Consortium/go-ves/types"
 	"math/big"
 	"net/url"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/HyperService-Consortium/go-ethabi"
-	gjson "github.com/tidwall/gjson"
+	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/sha3"
 
 	TransType "github.com/HyperService-Consortium/go-uip/const/trans_type"
@@ -475,7 +474,7 @@ func appendSliceVal(brcnt int, t string, rawval gjson.Result) (interface{}, erro
 		return nil, fmt.Errorf("unsupported arg type: %s", t)
 	}
 	///////////////////////////////////////////
-	fmt.Println("ARR", ret, reflect.TypeOf(ret).Elem())
+	//fmt.Println("ARR", ret, reflect.TypeOf(ret).Elem())
 	return ret, err
 }
 

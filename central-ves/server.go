@@ -7,23 +7,19 @@ package centered_ves
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
+	"github.com/HyperService-Consortium/go-ves/lib/net/help-func"
 	"github.com/Myriad-Dreamin/minimum-lib/logger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"net"
 	"net/http"
-	"strings"
 
-	grpc "google.golang.org/grpc"
-	reflection "google.golang.org/grpc/reflection"
+	"github.com/HyperService-Consortium/go-uip/uiptypes"
+	"github.com/HyperService-Consortium/go-ves/types"
 
-	log "github.com/HyperService-Consortium/go-ves/lib/log"
-
-	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
-	types "github.com/HyperService-Consortium/go-ves/types"
-
-	uiprpc "github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
-	wsrpc "github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
+	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 )
 
 // func serveHome(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +78,7 @@ func parseOptions(rOptions []interface{}) ServerOptions {
 func NewServer(rpcport, addr string, db types.VESDB, rOptions ...interface{}) (srv *Server, err error) {
 	options := parseOptions(rOptions)
 	srv = &Server{Server: new(http.Server)}
-	srv.nsbip, err = HostFromString(options.nsbHost)
+	srv.nsbip, err = helper.HostFromString(string(options.nsbHost))
 	srv.hub = newHub()
 	srv.hub.server = srv
 	srv.vesdb = db
@@ -93,27 +89,18 @@ func NewServer(rpcport, addr string, db types.VESDB, rOptions ...interface{}) (s
 	return
 }
 
-func HostFromString(option NSBHostOption) ([]byte, error) {
-	r := strings.TrimPrefix(string(strings.TrimPrefix(string(option), "https://")), "http://")
-	addr, err := net.ResolveTCPAddr("", r)
-	if err != nil {
-		return nil, err
-	}
-	return append(addr.IP.To4(), byte(addr.Port >> 8), byte(addr.Port & 0xff)), nil
-}
-
 func (srv *Server) ListenAndServeRpc(port string) {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Println(fmt.Errorf("failed to listen: %v", err))
+		srv.logger.Fatal("failed to listen", "error", err)
 	}
 	s := grpc.NewServer()
 	uiprpc.RegisterCenteredVESServer(s, srv)
 	reflection.Register(s)
 
-	fmt.Printf("prepare to serve rpc on %v\n", port)
+	srv.logger.Info("prepare to serve rpc", "port", port)
 	if err := s.Serve(lis); err != nil {
-		log.Println(fmt.Errorf("failed to serve: %v", err))
+		srv.logger.Fatal("failed to serve", "error", err)
 	}
 	return
 }
@@ -130,11 +117,11 @@ func (srv *Server) Start() error {
 func (srv *Server) serveWs(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println(err)
+		srv.logger.Error("failed to upgrade to tcp", "error", err)
 		return
 	}
 
-	log.Printf("new ws: %v\n", r.RemoteAddr)
+	srv.logger.Info("new ws serving\n", "remote", r.RemoteAddr)
 	client := &Client{hub: srv.hub, helloed: make(chan bool, 1), conn: conn, send: make(chan *writeMessageTask, 256)}
 	client.hub.register <- client
 
@@ -183,7 +170,7 @@ func (srv *Server) RequestComing(accounts []uiptypes.Account, iscAddress, grpcHo
 	// fmt.Println("rpc...", accounts)
 	for _, acc := range accounts {
 		// fmt.Println("hex", acc.GetChainId(), hex.EncodeToString(acc.GetAddress()))
-		log.Println("sending session request", acc.GetChainId(), hex.EncodeToString(acc.GetAddress()))
+		srv.logger.Info("sending session request", "chain id", acc.GetChainId(), "address", hex.EncodeToString(acc.GetAddress()))
 		if err = srv.requestComing(acc, iscAddress, grpcHost); err != nil {
 			return
 		}
@@ -195,7 +182,7 @@ func (srv *Server) RequestComing(accounts []uiptypes.Account, iscAddress, grpcHo
 func (srv *Server) AttestationSending(accounts []uiptypes.Account, iscAddress, grpcHost []byte) (err error) {
 	// fmt.Println("rpc...", accounts)
 	for _, acc := range accounts {
-		log.Println("sending attestation request", acc.GetChainId(), hex.EncodeToString(acc.GetAddress()))
+		srv.logger.Info("sending attestation request", "chain id", acc.GetChainId(), "address", hex.EncodeToString(acc.GetAddress()))
 		if err = srv.attestationSending(acc, iscAddress, grpcHost); err != nil {
 			return
 		}
@@ -265,7 +252,7 @@ func (srv *Server) InternalCloseSession(
 func (srv *Server) CloseSession(accounts []uiptypes.Account, iscAddress, grpcHost, nsbHost []byte) (err error) {
 	// fmt.Println("rpc...", accounts)
 	for _, acc := range accounts {
-		log.Println("sending close session", acc.GetChainId(), hex.EncodeToString(acc.GetAddress()))
+		srv.logger.Info("sending close session", "chain id", acc.GetChainId(), "address", hex.EncodeToString(acc.GetAddress()))
 		if err = srv.closeSession(acc, iscAddress, grpcHost, nsbHost); err != nil {
 			return
 		}
@@ -278,8 +265,6 @@ func (srv *Server) closeSession(acc uiptypes.Account, iscAddress, grpcHost, nsbH
 	msg.NsbHost = nsbHost
 	msg.GrpcHost = grpcHost
 	msg.SessionId = iscAddress
-
-	// log.Infof("attestating network gate", )
 
 	packet, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeCloseSessionRequest, &msg)
 	if err != nil {

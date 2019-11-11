@@ -4,10 +4,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/HyperService-Consortium/go-ves/config"
 	payment_option "github.com/HyperService-Consortium/go-ves/lib/bni/payment-option"
-	logger "github.com/HyperService-Consortium/go-ves/lib/log"
+	"github.com/HyperService-Consortium/go-ves/ves/vs"
 	"github.com/tidwall/gjson"
 
 	"golang.org/x/net/context"
@@ -20,20 +19,18 @@ import (
 	uipbase "github.com/HyperService-Consortium/go-ves/grpc/uiprpc-base"
 	ethbni "github.com/HyperService-Consortium/go-ves/lib/bni/eth"
 	tenbni "github.com/HyperService-Consortium/go-ves/lib/bni/ten"
-	"github.com/HyperService-Consortium/go-ves/types"
 )
 
 type SessionRequireRawTransactService struct {
-	Resp *uipbase.Account
-	types.VESDB
+	*vs.VServer
 	context.Context
 	*uiprpc.SessionRequireRawTransactRequest
 }
 
-func (s SessionRequireRawTransactService) GetTransactionProof(chainID uiptypes.ChainID, blockID uiptypes.BlockID, color []byte) (uiptypes.MerkleProof, error) {
-	// todo
-	panic("implement me")
+func NewSessionRequireRawTransactService(server *vs.VServer, context context.Context, sessionRequireRawTransactRequest *uiprpc.SessionRequireRawTransactRequest) SessionRequireRawTransactService {
+	return SessionRequireRawTransactService{VServer: server, Context: context, SessionRequireRawTransactRequest: sessionRequireRawTransactRequest}
 }
+
 
 var bnis = map[uint64]uiptypes.BlockChainInterface{
 	1: ethbni.NewBN(config.ChainDNS),
@@ -44,9 +41,9 @@ var bnis = map[uint64]uiptypes.BlockChainInterface{
 
 func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTransactReply, error) {
 	// todo errors.New("TODO")
-	s.ActivateSession(s.GetSessionId())
-	defer s.InactivateSession(s.GetSessionId())
-	ses, err := s.FindSessionInfo(s.SessionId)
+	s.DB.ActivateSession(s.GetSessionId())
+	defer s.DB.InactivateSession(s.GetSessionId())
+	ses, err := s.DB.FindSessionInfo(s.SessionId)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +56,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	//fmt.Println("underTransacting", underTransacting, ses.GetGUID(), ses)
 
 	var transactionIntent tx.TransactionIntent
-	err = s.FindTransaction(ses.GetGUID(), uint64(underTransacting), func(arg1 []byte) error {
+	err = s.DB.FindTransaction(ses.GetGUID(), uint64(underTransacting), func(arg1 []byte) error {
 		err := json.Unmarshal(arg1, &transactionIntent)
 		return err
 	})
@@ -71,7 +68,6 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	bn := bnis[transactionIntent.ChainID]
 
 	if transactionIntent.TransType == transtype.ContractInvoke {
-		fmt.Println("aaaaaa")
 		var meta uiptypes.ContractInvokeMeta
 
 		err := json.Unmarshal(transactionIntent.Meta, &meta)
@@ -105,7 +101,10 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 						return nil, err
 					}
 					vv, err := json.Marshal(v)
-					s.SetKV(ses.GetGUID(), desc, vv)
+					if err != nil {
+						return nil, err
+					}
+					err = s.DB.SetKV(ses.GetGUID(), desc, vv)
 					if err != nil {
 						return nil, err
 					}
@@ -117,34 +116,34 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 	} else {
 		n, ok, err := payment_option.NeedInconsistentValueOption(gjson.ParseBytes(transactionIntent.Meta))
 		if err != nil {
-			logger.Warn("omit need inc-val option")
+			s.Logger.Warn("omit need inc-val option")
 			return nil, err
 		}
 		if ok {
 			v, err := bnis[2].GetStorageAt(n.ChainID, n.TypeID, n.ContractAddress, n.Pos, n.Description)
 			if err != nil {
-				logger.Error("get failed")
+				s.Logger.Error("get failed")
 				return nil, err
 			}
-			logger.Info("getting state from blockchain", "address", n.ContractAddress, "value-type:", v.GetValue(), v.GetType(), "at pos", n.Pos)
-			err = s.VESDB.SetStorageOf(n.ChainID, n.TypeID, n.ContractAddress, n.Pos, n.Description, v)
+			s.Logger.Info("getting state from blockchain", "address", n.ContractAddress, "value-type:", v.GetValue(), v.GetType(), "at pos", n.Pos)
+			err = s.DB.SetStorageOf(n.ChainID, n.TypeID, n.ContractAddress, n.Pos, n.Description, v)
 			if err != nil {
-				logger.Error("set failed")
+				s.Logger.Error("set failed")
 				return nil, err
 			}
 		}
 	}
 
 	var b uiptypes.RawTransaction
-	b, err = bn.Translate(&transactionIntent, s)
+	b, err = bn.Translate(&transactionIntent, s.DB)
 	if err != nil {
-		logger.Error("translate error", "err is ", err)
+		s.Logger.Error("translate error", "err", err)
 		return nil, err
 	}
 
 	if transactionIntent.TransType == transtype.Payment {
 
-		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", transactionIntent.Dst)
+		s.Logger.Info("return r-tx", "tid", underTransacting, "src", transactionIntent.Src, "dst", transactionIntent.Dst)
 		x, err := b.Serialize()
 		if err != nil {
 			return nil, err
@@ -169,7 +168,7 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 		}
 
 
-		fmt.Println("tid", underTransacting, "src", transactionIntent.Src, "dst", s.Resp.GetAddress())
+		s.Logger.Info("return r-tx", "tid", underTransacting, "src", transactionIntent.Src, "dst", s.Resp.GetAddress())
 		return &uiprpc.SessionRequireRawTransactReply{
 			RawTransaction: x,
 			Tid:            uint64(underTransacting),

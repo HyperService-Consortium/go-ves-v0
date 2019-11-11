@@ -89,68 +89,79 @@ type Client struct {
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
-		c.conn.Close()
+
+		err := c.conn.Close()
+		if err != nil {
+			c.hub.server.logger.Error("close error", "address", c.conn.RemoteAddr())
+		}
 	}()
 	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error { c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	err := c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	if err != nil {
+		c.hub.server.logger.Error("set read ddl error", "address", c.conn.RemoteAddr())
+	}
+	c.conn.SetPongHandler(func(string) error {
+		err := c.conn.SetReadDeadline(time.Now().Add(pongWait))
+		if err != nil {
+			c.hub.server.logger.Error("set read ddl error", "address", c.conn.RemoteAddr())
+		}
+		return nil
+	})
 	for {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				c.hub.server.logger.Info("close error", "error", err)
 			}
 			break
 		}
 		tag := md5.Sum(message)
-		c.hub.server.logger.Info("reading message", "tag", hex.EncodeToString(tag[:]))
-
 		var buf = bytes.NewBuffer(message)
 		var messageID uint16
-		binary.Read(buf, binary.BigEndian, &messageID)
+		err = binary.Read(buf, binary.BigEndian, &messageID)
+		c.hub.server.logger.Info("reading message", "tag", hex.EncodeToString(tag[:]), "type", wsrpc.MessageType(messageID))
 		switch wsrpc.MessageType(messageID) {
 		case wsrpc.CodeMessageRequest:
 			var s wsrpc.Message
 			err = proto.Unmarshal(buf.Bytes(), &s)
 			if err != nil {
-				log.Println("err:", err)
+				c.hub.server.logger.Info("unmarshal error", "error", err)
 				continue
 			}
-			log.Infoln("message request", s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
-			// fmt.Println(s.GetContents(), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
-			var qwq, err = wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeMessageReply, &s)
+			c.hub.server.logger.Info("message request",
+				"from", hex.EncodeToString(s.GetFrom()), "to", hex.EncodeToString(s.GetTo()))
+			var buf, err = wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeMessageReply, &s)
 
 			if err != nil {
-				log.Println("err:", qwq)
+				c.hub.server.logger.Info("error", err)
 				continue
 			}
-			c.hub.broadcast <- &broMessage{qwq.Bytes(), func() {
-				wsrpc.GetDefaultSerializer().Put(qwq)
+			c.hub.broadcast <- &broMessage{buf.Bytes(), func() {
+				wsrpc.GetDefaultSerializer().Put(buf)
 			}}
 		case wsrpc.CodeRawProto:
 
 			var s wsrpc.RawMessage
 			err = proto.Unmarshal(buf.Bytes(), &s)
 			if err != nil {
-				log.Println("err:", err)
+				c.hub.server.logger.Info("error", err)
 				continue
 			}
 			var a uipbase.Account
 			err = proto.Unmarshal(s.GetTo(), &a)
 			if err != nil {
-				log.Println("err:", err)
+				c.hub.server.logger.Info("error", err)
 				continue
 			}
-			tag := md5.Sum(s.GetContents())
-			log.Infoln("raw proto", hex.EncodeToString(tag[:]), string(s.GetFrom()), s.GetFrom(), "->", string(s.GetTo()), s.GetTo())
-			// fmt.Println(string(s.GetContents()), string(s.GetFrom()), s.GetFrom(), "->", string(a.GetAddress()), s.GetTo())
+			c.hub.server.logger.Info("raw proto",
+				"from", hex.EncodeToString(s.GetFrom()), "to", hex.EncodeToString(s.GetTo()))
 
 			c.hub.unicast <- &uniMessage{a.GetChainId(), a.GetAddress(), s.GetContents(), func() {}}
 		case wsrpc.CodeClientHelloRequest:
 			var s wsrpc.ClientHello
 			err = proto.Unmarshal(buf.Bytes(), &s)
 			if err != nil {
-				log.Println("err:", err)
+				c.hub.server.logger.Info("error", err)
 			}
 
 			c.user, err = c.hub.server.vesdb.FindUser(string(s.GetName()))
@@ -164,28 +175,28 @@ func (c *Client) readPump() {
 			t.GrpcHost = grpcips[0]
 			t.NsbHost = c.hub.server.nsbip
 
-			qwq, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeClientHelloReply, &t)
+			buf, err := wsrpc.GetDefaultSerializer().Serial(wsrpc.CodeClientHelloReply, &t)
 			if err != nil {
-				log.Println("err:", err)
+				c.hub.server.logger.Info("error", err)
 				continue
 			}
 			c.helloed <- true
-			c.hub.unicast <- &uniMessage{placeHolderChain, s.GetName(), qwq.Bytes(), func() {
-				wsrpc.GetDefaultSerializer().Put(qwq)
+			c.hub.unicast <- &uniMessage{placeHolderChain, s.GetName(), buf.Bytes(), func() {
+				wsrpc.GetDefaultSerializer().Put(buf)
 			}}
 
 		case wsrpc.CodeUserRegisterRequest:
 			var s wsrpc.UserRegisterRequest
 			err = proto.Unmarshal(buf.Bytes(), &s)
 			if err != nil {
-				log.Println("err:", err)
+				c.hub.server.logger.Info("error", err)
 			}
 
 			// fmt.Println("hexx registering", hex.EncodeToString(s.GetAccount().GetAddress()))
 			err = c.hub.server.vesdb.InsertAccount(s.GetUserName(), s.GetAccount())
 
 			if err != nil {
-				log.Println("err:", err)
+				c.hub.server.logger.Info("error", err)
 				continue
 			}
 		default:
