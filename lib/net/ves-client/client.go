@@ -74,11 +74,10 @@ type VesClient struct {
 	attestationReceiveRequestReceive *wsrpc.AttestationReceiveRequest
 	attestationReceiveReply          *wsrpc.AttestationReceiveReply
 
-	sessionStart           *uiprpc.SessionStartRequest
-	closeSessionRequest    *wsrpc.CloseSessionRequest
+	sessionStart        *uiprpc.SessionStartRequest
+	closeSessionRequest *wsrpc.CloseSessionRequest
 
-
-	closeSessionRWMutex sync.RWMutex
+	closeSessionRWMutex    sync.RWMutex
 	closeSessionSubscriber []SessionCloseSubscriber
 }
 
@@ -434,7 +433,6 @@ func (vc *VesClient) getAttestationReceiveReply() *wsrpc.AttestationReceiveReply
 	}
 	return vc.attestationReceiveReply
 }
-
 
 func (vc *VesClient) getCloseSessionRequest() *wsrpc.CloseSessionRequest {
 	if vc.closeSessionRequest == nil {

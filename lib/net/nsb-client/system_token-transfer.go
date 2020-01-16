@@ -22,7 +22,6 @@ func (nc *NSBClient) CreateTransferPacket(srcAddress, dstAddress []byte, value *
 	return txHeader, nil
 }
 
-
 func (nc *NSBClient) Transfer(
 	user uiptypes.Signer, toAddress []byte,
 	value *math.Uint256,
@@ -30,7 +29,6 @@ func (nc *NSBClient) Transfer(
 	h, e := nc.CreateTransferPacket(user.GetPublicKey(), toAddress, value)
 	return nc.systemCall(nc.sign(user, h, e))
 }
-
 
 func (nc *NSBClient) transfer(
 	value *math.Uint256,

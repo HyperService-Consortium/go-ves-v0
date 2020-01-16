@@ -34,8 +34,6 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-
-
 // Server provides the basic service of session
 type Server vs.VServer
 
@@ -67,12 +65,12 @@ type NSBHostOption string
 
 type ServerOptions struct {
 	nsbHost NSBHostOption
-	logger logger.Logger
+	logger  logger.Logger
 }
 
 func defaultServerOptions() ServerOptions {
 	return ServerOptions{
-		logger: logger.NewStdLogger(),
+		logger:  logger.NewStdLogger(),
 		nsbHost: "localhost:26657",
 	}
 }
@@ -80,17 +78,15 @@ func defaultServerOptions() ServerOptions {
 func parseOptions(rOptions []interface{}) ServerOptions {
 	var options = defaultServerOptions()
 	for i := range rOptions {
-	switch option := rOptions[i].(type) {
-	case logger.Logger:
-		options.logger = option
-	case NSBHostOption:
-		options.nsbHost = option
-	}
+		switch option := rOptions[i].(type) {
+		case logger.Logger:
+			options.logger = option
+		case NSBHostOption:
+			options.nsbHost = option
+		}
 	}
 	return options
 }
-
-
 
 // NewServer return a pointer of Server
 func NewServer(

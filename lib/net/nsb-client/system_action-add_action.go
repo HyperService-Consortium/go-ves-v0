@@ -29,7 +29,6 @@ func (nc *NSBClient) AddAction(
 	return ret.DeliverTx.Data, nil
 }
 
-
 func (nc *NSBClient) addAction(
 	iscAddress []byte, tid uint64, aid uint64, stype uint32, content []byte, signature []byte,
 ) (*nsbrpc.FAPair, error) {

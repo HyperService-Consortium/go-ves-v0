@@ -195,7 +195,7 @@ func (g *Database) SetStorageOf(index types.Index, chainID uiptypes.ChainID, typ
 	case value_type.Bytes:
 		_, err = buf.Write(val.GetValue().([]byte))
 	case value_type.Uint64, value_type.Uint32, value_type.Uint16, value_type.Uint8,
-		 value_type.Int64, value_type.Int32, value_type.Int16, value_type.Int8,
+		value_type.Int64, value_type.Int32, value_type.Int16, value_type.Int8,
 		value_type.Bool:
 		err = binary.Write(buf, binary.BigEndian, val.GetValue())
 	case value_type.Uint128, value_type.Uint256, value_type.Int128, value_type.Int256:

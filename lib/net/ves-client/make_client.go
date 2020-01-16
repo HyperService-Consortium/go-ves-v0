@@ -5,7 +5,7 @@ import (
 )
 
 // VanilleMakeClient for humans
-func VanilleMakeClient(name, addr string, options...interface{}) (*VesClient, error) {
+func VanilleMakeClient(name, addr string, options ...interface{}) (*VesClient, error) {
 
 	vcClient, err := NewVesClient(append(append(make([]interface{}, 2+len(options)),
 		logger.NewZapDevelopmentSugarOption(), CVesHostOption(addr)), options...)...)

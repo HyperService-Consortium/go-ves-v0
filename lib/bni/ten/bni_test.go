@@ -35,9 +35,9 @@ func TestBN_Translate(t *testing.T) {
 	}
 
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
+		name   string
+		fields fields
+		args   args
 		//want    uiptypes.RawTransaction
 		wantErr bool
 	}{

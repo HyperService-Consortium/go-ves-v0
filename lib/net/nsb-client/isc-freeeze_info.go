@@ -46,4 +46,3 @@ func (nc *NSBClient) freezeInfo(
 	// fmt.Println(PretiStruct(args), b)
 	return fap, nil
 }
-

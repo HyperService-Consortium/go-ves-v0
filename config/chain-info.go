@@ -23,7 +23,6 @@ func (c *ChainInfo) GetChainType() ChainType.Type {
 	return c.ChainType
 }
 
-
 func getRelay(domain uint64) (uiptypes.Account, error) {
 	switch domain {
 	case 0:
@@ -41,7 +40,7 @@ func getRelay(domain uint64) (uiptypes.Account, error) {
 			Address: b,
 		}, err
 	case 3: // tendermint chain 1
-	//2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff
+		//2333bbffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff
 		b, err := hex.DecodeString("2333eeffffffffffffff2333eeffffffffffffff2333eeffffffffffffffffff")
 		return &base_account.Account{
 			ChainId: 3,

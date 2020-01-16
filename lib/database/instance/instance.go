@@ -9,8 +9,8 @@ import (
 	chain_dns "github.com/HyperService-Consortium/go-ves/types/chain-dns"
 	vesdb "github.com/HyperService-Consortium/go-ves/types/database"
 	"github.com/HyperService-Consortium/go-ves/types/kvdb"
-	"github.com/HyperService-Consortium/go-ves/types/storage-handler"
 	"github.com/HyperService-Consortium/go-ves/types/session"
+	"github.com/HyperService-Consortium/go-ves/types/storage-handler"
 	"github.com/HyperService-Consortium/go-ves/types/user"
 )
 

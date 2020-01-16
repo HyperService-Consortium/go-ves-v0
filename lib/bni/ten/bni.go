@@ -30,9 +30,10 @@ func decoratePrefix(hexs string) string {
 }
 
 type BN struct {
-	dns types.ChainDNSInterface
+	dns    types.ChainDNSInterface
 	signer uiptypes.Signer
 }
+
 var (
 	errorDecodeSrcAddress = errors.New("the src address should be in length of 32")
 	errorDecodeDstAddress = errors.New("the dst address should be in length of 32 or 0")
@@ -102,14 +103,13 @@ func (bn *BN) RouteWithSigner(signer uiptypes.Signer) (uiptypes.Router, error) {
 }
 
 type rawTransaction struct {
-	Type transactiontype.Type
+	Type   transactiontype.Type
 	Header *nsbrpc.TransactionHeader
 }
 
 func newRawTransaction(_type transactiontype.Type, header *nsbrpc.TransactionHeader) *rawTransaction {
 	return &rawTransaction{Type: _type, Header: header}
 }
-
 
 func (r *rawTransaction) Serialize() ([]byte, error) {
 	return nsbcli.GlobalClient.Serialize(r.Type, r.Header)
@@ -221,7 +221,6 @@ func (bn *BN) MustWithSigner() bool {
 	return true
 }
 
-
 //func (bn *BN) Route(intent *uiptypes.TransactionIntent, kvGetter uiptypes.KVGetter) ([]byte, error) {
 //	// todo
 //	onChainTransaction, err := bn.Translate(intent, kvGetter)
@@ -231,8 +230,6 @@ func (bn *BN) MustWithSigner() bool {
 //	return bn.RouteRaw(intent.ChainID, onChainTransaction)
 //}
 
-
 func (bn *BN) CheckAddress(addr []byte) bool {
 	return len(addr) == 32
 }
-

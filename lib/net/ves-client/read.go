@@ -216,7 +216,6 @@ func (vc *VesClient) read() {
 					}
 					vc.logger.Info("adding block check", "result", cb)
 
-
 					// todo XXXXXXXXXXXXXXXXXXX
 				}
 
@@ -234,11 +233,11 @@ func (vc *VesClient) read() {
 
 				vc.logger.Info(
 					"insurance claiming",
-					"tid",atte.GetTid(),
+					"tid", atte.GetTid(),
 					"aid", TxState.Description(aid+1),
-					"info",ret.Info,
+					"info", ret.Info,
 					"data", string(ret.Data),
-					"log",ret.Log,
+					"log", ret.Log,
 					"tags", ret.Tags,
 				)
 

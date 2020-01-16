@@ -270,7 +270,6 @@ func (vc *VesClient) SendEthAlias(alias []byte) error {
 	return errNotFound
 }
 
-
 func (vc *VesClient) SendAlias(alias []byte) error {
 	if key, ok := vc.keys.Alias[*(*string)(unsafe.Pointer(&alias))]; ok {
 		userRegister := vc.getUserRegisterRequest()
@@ -308,7 +307,7 @@ func convRaw(rs []json.RawMessage) (ret [][]byte) {
 	return ret
 }
 
-func (vc *VesClient) readOpIntents(filePath string, fileBuffer []byte)  (opIntents, error) {
+func (vc *VesClient) readOpIntents(filePath string, fileBuffer []byte) (opIntents, error) {
 	var intents opIntents
 	file, err := os.Open(filePath)
 	if err != nil {

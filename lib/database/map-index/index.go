@@ -35,7 +35,3 @@ func (i Index) Batch(ks [][]byte, vs [][]byte) error {
 	}
 	return nil
 }
-
-
-
-

@@ -10,7 +10,7 @@ type Database struct {
 	muldb          types.MultiIndex
 	sesdb          types.SessionBase
 	userdb         types.UserBase
-	kvdb types.SessionKVBase
+	kvdb           types.SessionKVBase
 	storageHandler types.StorageHandler
 	dns            types.ChainDNS
 }
@@ -121,7 +121,6 @@ func (db *Database) ActivateSession(isc_address []byte) {
 func (db *Database) InactivateSession(isc_address []byte) {
 	db.sesdb.InactivateSession(isc_address)
 }
-
 
 func (db *Database) GetChainInfo(chainId uiptypes.ChainID) (types.ChainInfo, error) {
 	return db.dns.GetChainInfo(db.sindb, chainId)

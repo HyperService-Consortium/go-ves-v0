@@ -94,7 +94,7 @@ func NeedInconsistentValueOption(meta gjson.Result) (*Need, bool, error) {
 			if err != nil {
 				return nil, false, err
 			}
-			return &Need {
+			return &Need{
 				domain.Uint(),
 				value_type.FromString(t),
 				contractAddress,
@@ -105,8 +105,6 @@ func NeedInconsistentValueOption(meta gjson.Result) (*Need, bool, error) {
 	}
 	return nil, false, nil
 }
-
-
 
 func toPos(result gjson.Result) ([]byte, error) {
 	i := result.String()

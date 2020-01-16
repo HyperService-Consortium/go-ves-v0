@@ -10,7 +10,7 @@ type NSBHostOption string
 
 type ChainInfo struct {
 	ChainType uiptypes.ChainType
-	Host string
+	Host      string
 }
 
 func (c ChainInfo) GetChainType() uiptypes.ChainType {
@@ -44,7 +44,6 @@ func parseOptions(rOptions []interface{}) ServerOptions {
 	return options
 }
 
-
 type Database struct {
 	HostMap HostMap
 }
@@ -65,10 +64,3 @@ func NewDatabase(rOptions ...interface{}) *Database {
 		HostMap: options.HostMap,
 	}
 }
-
-
-
-
-
-
-

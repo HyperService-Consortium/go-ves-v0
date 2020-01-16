@@ -33,7 +33,6 @@ const cVesPort, cVesAddr = ":23352", ":23452"
 const cfgPath = "./ves-server-config.toml"
 const nsbHost = "127.0.0.1:26657"
 
-
 func Prepare() (muldb types.MultiIndex, sindb types.Index) {
 	var cfg = config.Config()
 	var err error
@@ -72,7 +71,6 @@ func Prepare() (muldb types.MultiIndex, sindb types.Index) {
 	return muldb, sindb
 }
 
-
 func TestTransfer(t *testing.T) {
 	go func() {
 		err := http.ListenAndServe("0.0.0.0:22239", nil)
@@ -90,7 +88,6 @@ func TestTransfer(t *testing.T) {
 	}
 	gin.DefaultWriter = f
 	defer f.Close()
-
 
 	cfg0, cfg1, cfg2 := zap.NewDevelopmentConfig(), zap.NewDevelopmentConfig(), zap.NewDevelopmentConfig()
 	cfg3, cfg4 := zap.NewDevelopmentConfig(), zap.NewDevelopmentConfig()
@@ -133,8 +130,7 @@ func TestTransfer(t *testing.T) {
 		}
 	}()
 	signer := h.HandlerError(signaturer.NewTendermintNSBSigner(
-		h.HandlerError(hex.DecodeString("2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff"),
-	).([]byte))).(*signaturer.TendermintNSBSigner)
+		h.HandlerError(hex.DecodeString("2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff2333bfffffffffffffff2333bbffffffffffffff2333bbffffffffffffffffff")).([]byte))).(*signaturer.TendermintNSBSigner)
 
 	muldb, sindb := Prepare()
 	var server = h.HandlerError(ves_server.NewServer(
@@ -192,8 +188,6 @@ func TestTransfer(t *testing.T) {
 		}
 	})
 
-
 	h.HandlerError0(ves.SendOpIntents("./json/intent.json", b))
 	<-ch
 }
-

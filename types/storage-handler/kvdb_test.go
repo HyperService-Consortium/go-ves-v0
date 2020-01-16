@@ -23,7 +23,6 @@ func TestDecorate(t *testing.T) {
 	fmt.Println(string(decorate([]byte{'a', 'b', 'c'}, []byte{'o', 'r', 'z'})))
 }
 
-
 func TestDatabase_SetStorageOf(t *testing.T) {
 	var index = map_index.NewMapIndex()
 
@@ -48,7 +47,7 @@ func TestDatabase_SetStorageOf(t *testing.T) {
 			contractAddress: []byte{13},
 			pos:             []byte{13},
 			description:     []byte{13},
-			variable:        variable{
+			variable: variable{
 				Type:  value_type.Bool,
 				Value: true,
 			},
@@ -67,7 +66,6 @@ func TestDatabase_SetStorageOf(t *testing.T) {
 func TestDatabase_GetStorageAt(t *testing.T) {
 
 	var index = map_index.NewMapIndex()
-
 
 	type args struct {
 		index           types.Index

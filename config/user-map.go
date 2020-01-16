@@ -24,9 +24,4 @@ func (accountProvider) GetTransactionProofType(chainId uint64) (uiptypes.MerkleP
 	return getTransactionProofType(chainId)
 }
 
-
-
-var UserMap  = accountProvider{}
-
-
-
+var UserMap = accountProvider{}

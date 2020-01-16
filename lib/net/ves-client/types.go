@@ -45,7 +45,6 @@ type EthAccounts struct {
 	Alias map[string]EthAccount
 }
 
-
 func (signer *EthAccount) GetPublicKey() []byte {
 	b, _ := hex.DecodeString(signer.Address)
 	return b

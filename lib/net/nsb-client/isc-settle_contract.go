@@ -7,8 +7,6 @@ import (
 	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
-
-
 func (nc *NSBClient) SettleContract(
 	user uiptypes.Signer, contractAddress []byte,
 ) (*DeliverTx, error) {
@@ -29,8 +27,7 @@ func (nc *NSBClient) SettleContract(
 	return &ret.DeliverTx, nil
 }
 
-func (nc *NSBClient) settleContract(
-) (*nsbrpc.FAPair, error) {
+func (nc *NSBClient) settleContract() (*nsbrpc.FAPair, error) {
 	var fap = new(nsbrpc.FAPair)
 	fap.FuncName = "SettleContract"
 	// fmt.Println(PretiStruct(args), b)

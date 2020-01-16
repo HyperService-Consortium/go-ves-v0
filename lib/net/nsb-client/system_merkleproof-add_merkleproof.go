@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	transactiontype "github.com/HyperService-Consortium/NSB/application/transaction-type"
 
-	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	appl "github.com/HyperService-Consortium/NSB/application"
+	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 

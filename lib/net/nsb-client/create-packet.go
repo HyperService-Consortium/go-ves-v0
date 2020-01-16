@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-
 func (*NSBClient) Sign(s uiptypes.Signer, txHeader *nsbrpc.TransactionHeader) *nsbrpc.TransactionHeader {
 	// bug: buf.Reset()
 	buf := bytes.NewBuffer(make([]byte, mxBytes))
@@ -43,7 +42,6 @@ func (nc *NSBClient) CreateUnsignedContractPacket(
 	}
 	return nc.CreateUnsignedNormalPacket(srcAddress, dstAddress, data, value)
 }
-
 
 func (nc *NSBClient) CreateUnsignedNormalPacket(
 	srcAddress, dstAddress, data, value []byte,
@@ -107,7 +105,6 @@ func (nc *NSBClient) sign(user uiptypes.Signer, txHeader *nsbrpc.TransactionHead
 	nc.Sign(user, txHeader)
 	return txHeader, nil
 }
-
 
 func init() {
 	rand.Seed(time.Now().UnixNano())

@@ -11,7 +11,6 @@ func newSessionCloseSubscriber(handler SessionCloseHandler) *sessionCloseSubscri
 	return &sessionCloseSubscriber{handler: handler}
 }
 
-
 func (ses *sessionCloseSubscriber) Abort() bool {
 	a := ses.Aborted
 	ses.Aborted = true
@@ -40,7 +39,6 @@ func (vc *VesClient) SubscribeCloseSession(handler SessionCloseHandler) SessionC
 	return subscriber
 }
 
-
 func (vc *VesClient) emitClose(SessionId []byte) {
 	vc.closeSessionRWMutex.Lock()
 	var j = len(vc.closeSessionSubscriber)
@@ -56,4 +54,3 @@ func (vc *VesClient) emitClose(SessionId []byte) {
 	vc.closeSessionSubscriber = vc.closeSessionSubscriber[j:]
 	vc.closeSessionRWMutex.Unlock()
 }
-

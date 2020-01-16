@@ -11,7 +11,6 @@ import (
 )
 
 type storage0777 struct {
-
 }
 
 func (s storage0777) GetTransactionProof(chainID uiptypes.ChainID, blockID uiptypes.BlockID, color []byte) (uiptypes.MerkleProof, error) {
@@ -47,17 +46,17 @@ func TestParseInconsistentValueOption(t *testing.T) {
 			meta:         gjson.Parse(`{"value-inconsistent":{"type":"uint256","value":{"constant":"123"}}`),
 			storage:      nil,
 			defaultValue: "1123",
-		}, "0123",  false},
+		}, "0123", false},
 		{"test_storage", args{
 			meta:         gjson.Parse(`{"value-inconsistent":{"type":"uint256","value":{"domain": 2, "contract":"00e1eaa022cc40d4808bfe62b8997540c914d81e","field":"strikePrice","pos":"01"}}}`),
 			storage:      storage0777{},
 			defaultValue: "1123",
-		}, "0777",  false},
+		}, "0777", false},
 		{"test_nothing", args{
 			meta:         gjson.Parse(``),
 			storage:      storage0777{},
 			defaultValue: "1123",
-		}, "1123",  false},
+		}, "1123", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -78,21 +77,21 @@ func TestNeedInconsistentValueOption(t *testing.T) {
 		meta gjson.Result
 	}
 	tests := []struct {
-		name    string
-		args    args
+		name string
+		args args
 		//want    *Need
 		//want1   bool
 		wantErr bool
 	}{
 		{"test_easy", args{
-			meta:         gjson.Parse(`{"value-inconsistent":{"type":"uint256","value":{"constant":"123"}}`),
-		},  false},
+			meta: gjson.Parse(`{"value-inconsistent":{"type":"uint256","value":{"constant":"123"}}`),
+		}, false},
 		{"test_storage", args{
-			meta:         gjson.Parse(`{"value-inconsistent":{"type":"uint256","value":{"domain": 2, "contract":"00e1eaa022cc40d4808bfe62b8997540c914d81e","field":"strikePrice","pos":"01"}}}`),
-		},  false},
+			meta: gjson.Parse(`{"value-inconsistent":{"type":"uint256","value":{"domain": 2, "contract":"00e1eaa022cc40d4808bfe62b8997540c914d81e","field":"strikePrice","pos":"01"}}}`),
+		}, false},
 		{"test_nothing", args{
-			meta:         gjson.Parse(``),
-		},  false},
+			meta: gjson.Parse(``),
+		}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -14,12 +14,12 @@ func TestVesClient_readOpIntents(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		vc  *VesClient
+		vc      *VesClient
 		args    args
 		wantErr bool
 	}{
-		{"test_easy", &VesClient{}, args {
-			filePath: "./test.json",
+		{"test_easy", &VesClient{}, args{
+			filePath:   "./test.json",
 			fileBuffer: make([]byte, 5000),
 		}, false},
 	}

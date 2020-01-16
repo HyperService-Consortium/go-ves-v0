@@ -29,4 +29,3 @@ func HostFromString(option string) ([]byte, error) {
 	}
 	return append(addr.IP.To4(), byte(addr.Port>>8), byte(addr.Port&0xff)), nil
 }
-

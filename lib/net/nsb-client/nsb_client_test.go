@@ -37,15 +37,14 @@ func HandlerError(i interface{}, err error) interface{} {
 	return i
 }
 
-
 type fields struct {
 	handler    *request.RequestClient
 	bufferPool *bytespool.BytesPool
 }
 
 func getNormalField() fields {
-	return fields {
-		handler: nc.handler,
+	return fields{
+		handler:    nc.handler,
 		bufferPool: nc.bufferPool,
 	}
 }
@@ -71,7 +70,7 @@ func TestNSBClient_GetAbciInfo(t *testing.T) {
 			}
 			if tt.wantErr == false {
 				rt := gjson.Get(got.Data, "state_root").Str
-				if _, err := hex.DecodeString(rt) ; len(rt) != 64 || err != nil {
+				if _, err := hex.DecodeString(rt); len(rt) != 64 || err != nil {
 					t.Fatalf("GetAbciInfo().state_root got = %v, throw with (%v, %v)", rt, len(rt), err)
 				}
 			}
@@ -126,21 +125,21 @@ func TestNSBClient_sendContractTx(t *testing.T) {
 		wantErr bool
 	}{
 
-		{name:"test_easy", fields:getNormalField(), args: args{
+		{name: "test_easy", fields: getNormalField(), args: args{
 			transType: transactiontype.CreateContract,
-			txContent:HandlerError(nc.CreateContractPacket(
+			txContent: HandlerError(nc.CreateContractPacket(
 				signer,
 				nil,
 				nil,
 				&nsbrpc.FAPair{
-					FuncName:             "option",
-					Args:                 HandlerError(json.Marshal(&delegate.ArgsCreateNewContract{
+					FuncName: "option",
+					Args: HandlerError(json.Marshal(&delegate.ArgsCreateNewContract{
 						Delegates:  nil,
 						District:   "",
 						TotalVotes: math.NewUint256FromHexString("1111"),
 					})).([]byte),
-				},)).(*nsbrpc.TransactionHeader),
-		}, want:nil, wantErr:false},
+				})).(*nsbrpc.TransactionHeader),
+		}, want: nil, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -235,7 +234,7 @@ func TestNSBClient_GetBlock(t *testing.T) {
 		want    *BlockInfo
 		wantErr bool
 	}{
-		{name:"test_get_block", fields:getNormalField(), args: args{id: 1}, want:nil, wantErr:false},
+		{name: "test_get_block", fields: getNormalField(), args: args{id: 1}, want: nil, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -267,7 +266,7 @@ func TestNSBClient_GetBlockResults(t *testing.T) {
 		want    *BlockResultsInfo
 		wantErr bool
 	}{
-		{name:"test_get_block_result", fields:getNormalField(), args: args{id: 1}, want:nil, wantErr:false},
+		{name: "test_get_block_result", fields: getNormalField(), args: args{id: 1}, want: nil, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -300,7 +299,7 @@ func TestNSBClient_GetBlocks(t *testing.T) {
 		want    *BlocksInfo
 		wantErr bool
 	}{
-		{name:"test_get_blocks", fields:getNormalField(), args: args{rangeL: 1, rangeR: 2}, want:nil, wantErr:false},
+		{name: "test_get_blocks", fields: getNormalField(), args: args{rangeL: 1, rangeR: 2}, want: nil, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -743,8 +742,8 @@ func Test_decorateHost(t *testing.T) {
 		args args
 		want string
 	}{
-		{name:"test_easy", args: args{host:"127.0.0.1"}, want: "http://127.0.0.1"},
-		{name:"test_easy_with_port", args: args{host:"127.0.0.1:26657"}, want: "http://127.0.0.1:26657"},
+		{name: "test_easy", args: args{host: "127.0.0.1"}, want: "http://127.0.0.1"},
+		{name: "test_easy_with_port", args: args{host: "127.0.0.1:26657"}, want: "http://127.0.0.1:26657"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -936,19 +935,19 @@ func TestNSBClient_CreateContractPacket(t *testing.T) {
 		want    *nsbrpc.TransactionHeader
 		wantErr bool
 	}{
-		{name:"test_get_block_result", fields:getNormalField(), args: args{
-			s: signer,
+		{name: "test_get_block_result", fields: getNormalField(), args: args{
+			s:         signer,
 			toAddress: nil,
-			value: nil,
+			value:     nil,
 			pair: &nsbrpc.FAPair{
-				FuncName:             "option",
-				Args:                 HandlerError(json.Marshal(&delegate.ArgsCreateNewContract{
+				FuncName: "option",
+				Args: HandlerError(json.Marshal(&delegate.ArgsCreateNewContract{
 					Delegates:  nil,
 					District:   "",
 					TotalVotes: math.NewUint256FromHexString("1111"),
 				})).([]byte),
 			},
-		}, want:nil, wantErr:false},
+		}, want: nil, wantErr: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

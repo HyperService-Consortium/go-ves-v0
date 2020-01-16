@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"github.com/HyperService-Consortium/go-ves/grpc/uiprpc"
 	"github.com/HyperService-Consortium/go-ves/ves/vs"
-
 	// bni "github.com/HyperService-Consortium/go-ves/types/bn-interface"
 )
 

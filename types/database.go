@@ -63,7 +63,6 @@ type KVPMultiIndex interface {
 	MultiModify([]KVPair, ...KVPair) error
 }
 
-
 type ORMMultiIndex interface {
 	MultiIndex
 	// 要求只Update到一个
@@ -137,4 +136,3 @@ type VESDB interface {
 	StorageHandlerInterface
 	ChainDNSInterface
 }
-

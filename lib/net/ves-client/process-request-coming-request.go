@@ -7,7 +7,6 @@ import (
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
-
 func (vc *VesClient) ProcessRequestComingRequest(requestComingRequest *wsrpc.RequestComingRequest) {
 
 	vc.logger.Info(

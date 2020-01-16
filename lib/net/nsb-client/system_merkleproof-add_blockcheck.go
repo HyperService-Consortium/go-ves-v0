@@ -1,15 +1,13 @@
 package nsbcli
 
-
 import (
 	"encoding/json"
 	transactiontype "github.com/HyperService-Consortium/NSB/application/transaction-type"
 
-	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	appl "github.com/HyperService-Consortium/NSB/application"
+	"github.com/HyperService-Consortium/NSB/grpc/nsbrpc"
 	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
-
 
 func (nc *NSBClient) AddBlockCheck(
 	user uiptypes.Signer, toAddress []byte,
@@ -31,7 +29,6 @@ func (nc *NSBClient) AddBlockCheck(
 	// fmt.Println(PretiStruct(ret), err)
 	return ret, nil
 }
-
 
 func (nc *NSBClient) addBlockCheck(
 	chainID uint64, blockID, rootHash []byte, rtType uint8,

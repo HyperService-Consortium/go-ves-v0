@@ -8,7 +8,6 @@ import (
 	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
-
 func (nc *NSBClient) AddActions(
 	user uiptypes.Signer, toAddress []byte, predictNumbers int,
 ) *AddActionsBatcher {

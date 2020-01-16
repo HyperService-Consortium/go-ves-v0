@@ -43,19 +43,19 @@ type Server struct {
 	hub     *Hub
 	vesdb   types.VESDB
 	rpcport string
-	nsbip []byte
+	nsbip   []byte
 }
 
 type NSBHostOption string
 
 type ServerOptions struct {
-	logger logger.Logger
+	logger  logger.Logger
 	nsbHost NSBHostOption
 }
 
 func defaultServerOptions() ServerOptions {
 	return ServerOptions{
-		logger: logger.NewStdLogger(),
+		logger:  logger.NewStdLogger(),
 		nsbHost: "127.0.0.1:26657",
 	}
 }
@@ -72,7 +72,6 @@ func parseOptions(rOptions []interface{}) ServerOptions {
 	}
 	return options
 }
-
 
 // NewServer return a pointer of Server
 func NewServer(rpcport, addr string, db types.VESDB, rOptions ...interface{}) (srv *Server, err error) {

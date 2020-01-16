@@ -31,7 +31,6 @@ func NewSessionRequireRawTransactService(server *vs.VServer, context context.Con
 	return SessionRequireRawTransactService{VServer: server, Context: context, SessionRequireRawTransactRequest: sessionRequireRawTransactRequest}
 }
 
-
 var bnis = map[uint64]uiptypes.BlockChainInterface{
 	1: ethbni.NewBN(config.ChainDNS),
 	2: ethbni.NewBN(config.ChainDNS),
@@ -166,7 +165,6 @@ func (s SessionRequireRawTransactService) Serve() (*uiprpc.SessionRequireRawTran
 		if err != nil {
 			return nil, err
 		}
-
 
 		s.Logger.Info("return r-tx", "tid", underTransacting, "src", transactionIntent.Src, "dst", s.Resp.GetAddress())
 		return &uiprpc.SessionRequireRawTransactReply{

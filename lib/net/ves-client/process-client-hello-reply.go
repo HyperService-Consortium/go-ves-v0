@@ -1,6 +1,6 @@
 package vesclient
 
-import(
+import (
 	"github.com/HyperService-Consortium/go-ves/grpc/wsrpc"
 	helper "github.com/HyperService-Consortium/go-ves/lib/net/help-func"
 	nsbcli "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"

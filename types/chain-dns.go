@@ -1,6 +1,5 @@
 package types
 
-
 type ChainDNS interface {
 	GetChainInfo(Index, chain_id) (ChainInfo, error)
 }

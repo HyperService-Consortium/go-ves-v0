@@ -36,7 +36,6 @@ func Main() {
 		os.Exit(1)
 	}
 
-
 	phandler.register(func() { vcClient.quit <- true })
 	go vcClient.write()
 	select {
