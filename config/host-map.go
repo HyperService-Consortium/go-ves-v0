@@ -28,6 +28,10 @@ var HostMap = chain_dns.HostMap{
 		Host:      "127.0.0.1:26657",
 		ChainType: ChainType.TendermintNSB,
 	},
+	6: chain_dns.ChainInfo{
+		Host:      "39.100.145.91:8545",
+		ChainType: ChainType.Ethereum,
+	},
 }
 
 func GetHostMap() chain_dns.HostMap {
@@ -47,4 +51,3 @@ func (i IdleChainDNS) GetChainInfo(chainId uiptypes.ChainID) (types.ChainInfo, e
 func init() {
 	ChainDNS = IdleChainDNS{chain_dns.NewDatabase(HostMap)}
 }
-

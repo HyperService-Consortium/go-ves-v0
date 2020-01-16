@@ -10,7 +10,7 @@ import (
 	"time"
 
 	uiptypes "github.com/HyperService-Consortium/go-uip/uiptypes"
-	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+	nsbclient "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 
 	signaturer "github.com/HyperService-Consortium/go-uip/signaturer"
 )

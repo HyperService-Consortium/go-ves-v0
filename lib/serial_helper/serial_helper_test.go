@@ -8,7 +8,7 @@ import (
 
 	types "github.com/HyperService-Consortium/go-uip/uiptypes"
 
-	mtest "github.com/HyperService-Consortium/mydrest"
+	mtest "github.com/Myriad-Dreamin/mydrest"
 )
 
 var s mtest.TestHelper

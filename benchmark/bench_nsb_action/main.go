@@ -4,9 +4,9 @@ import (
 	"flag"
 	"os"
 
-	bencher "github.com/Myriad-Dreamin/go-ves/benchmark/bench_nsb_action/bencher"
+	bencher "github.com/HyperService-Consortium/go-ves/benchmark/bench_nsb_action/bencher"
 
-	nsbclient "github.com/Myriad-Dreamin/go-ves/lib/net/nsb-client"
+	nsbclient "github.com/HyperService-Consortium/go-ves/lib/net/nsb-client"
 )
 
 var (

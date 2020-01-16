@@ -14,7 +14,7 @@ require (
 	github.com/HyperService-Consortium/go-hexutil v1.0.1 // indirect
 	github.com/HyperService-Consortium/go-mpt v1.1.1
 	github.com/HyperService-Consortium/go-rlp v1.0.2
-	github.com/HyperService-Consortium/go-uip v0.0.0-20191109145048-eadae5288c1e
+	github.com/HyperService-Consortium/go-uip v0.0.0-20200116083857-d2061bd0d6df
 	github.com/Myriad-Dreamin/minimum-lib v0.0.0-20191109053555-ffc58e6d4591
 	github.com/Myriad-Dreamin/mydrest v1.0.1
 	github.com/Myriad-Dreamin/screenrus v1.0.0

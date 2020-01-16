@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/HyperService-Consortium/go-ves/types"
-	mtest "github.com/HyperService-Consortium/mydrest"
+	mtest "github.com/Myriad-Dreamin/mydrest"
 )
 
 type TT struct {

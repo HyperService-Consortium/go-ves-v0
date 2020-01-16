@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	xorm_multi_index "github.com/HyperService-Consortium/go-ves/database/multi_index"
-	mtest "github.com/HyperService-Consortium/mydrest"
+	xorm_multi_index "github.com/HyperService-Consortium/go-ves/lib/database/multi_index"
+	mtest "github.com/Myriad-Dreamin/mydrest"
 )
 
 type TestHelper struct {
