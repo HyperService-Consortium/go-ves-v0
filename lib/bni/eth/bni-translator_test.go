@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/HyperService-Consortium/go-uip/const/trans_type"
+	"github.com/HyperService-Consortium/go-uip/const/value_type"
 	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	"github.com/HyperService-Consortium/go-ves/config"
 	"github.com/HyperService-Consortium/go-ves/types"
 	"github.com/Myriad-Dreamin/minimum-lib/sugar"
+	"math/big"
 	"testing"
 )
 
@@ -114,7 +116,9 @@ func TestBN_Translate(t *testing.T) {
 									//	})
 									Type: "uint256",
 									Value: marshal(h{
-										"constant": 1001,
+										"contract": "0000000000000000000000000000000000000000",
+										"pos": "00",
+										"field": "staking",
 									}),
 								},
 							},
@@ -122,10 +126,23 @@ func TestBN_Translate(t *testing.T) {
 				Amt:     "00",
 				ChainID: 2,
 			},
-			storage: nil,
+			storage: mockBNIStorage{data: []mockData{
+				{
+					//
+					//"contract": make([]byte, 32),
+					//"pos": []byte("00"),
+					//"field": "staking",
+					chainID:         2,
+					typeID:          value_type.Uint256,
+					contractAddress: make([]byte, 20),
+					pos:             []byte("00"),
+					description:     []byte("staking"),
+					v:               mockValue{value_type.Uint256, big.NewInt(0x0233)},
+				},
+			}},
 		}, false, gJSONWant(
 			kv{"method", "eth_sendTransaction"},
-			kv{"params.0.data", "0x7c1f751f00000000000000000000000000000000000000000000000000000000000003e9"},
+			kv{"params.0.data", "0x7c1f751f0000000000000000000000000000000000000000000000000000000000000233"},
 			kv{"params.0.from", "0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"},
 			kv{"params.0.to", "0x263fef3fe76fd4075ac16271d5115d01206d3674"},
 			kv{"params.0.value", nil},
