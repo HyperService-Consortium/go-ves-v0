@@ -3,6 +3,7 @@ package ethclient
 import (
 	"encoding/json"
 	"github.com/tidwall/gjson"
+	"net/url"
 
 	"github.com/HyperService-Consortium/go-ves/lib/net/eth-client/jsonobj"
 	jsonrpc_client "github.com/HyperService-Consortium/go-ves/lib/net/rpc-client"
@@ -109,4 +110,8 @@ func (eth *EthClient) GetBlockByHash(blockHash []byte, returnFull bool) ([]byte,
 // Do raw rpc invocation
 func Do(url string, jsonBody []byte) ([]byte, error) {
 	return jsonrpc_client.Do(url, jsonBody)
+}
+
+func HTTPDo(tcpAddr string, jsonBody []byte) ([]byte, error) {
+	return Do((&url.URL{Scheme: "http", Host: tcpAddr, Path: "/"}).String(), jsonBody)
 }
