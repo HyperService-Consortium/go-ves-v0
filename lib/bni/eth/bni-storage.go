@@ -236,7 +236,6 @@ func (bn *BN) GetTransaction(host string, index []byte) (*Transaction, error) {
 	return &qwq, nil
 }
 
-
 func (bn *BN) GetTransactionProof(chainID uint64, blockID []byte, additional []byte) (uiptypes.MerkleProof, error) {
 	cinfo, err := bn.dns.GetChainInfo(chainID)
 	if err != nil {

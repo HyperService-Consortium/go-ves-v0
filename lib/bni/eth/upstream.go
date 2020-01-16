@@ -31,9 +31,6 @@ func (mcs) Marshal(meta *uiptypes.ContractInvokeMeta) ([]byte, error) {
 	return json.Marshal(meta)
 }
 
-
-
-
 type kv struct {
 	k string
 	v interface{}
@@ -88,7 +85,7 @@ func (g gJSONAssertion) compare(bytes gjson.Result, v interface{}) error {
 }
 
 func gJSONWant(kvs ...kv) gJSONAssertion {
-	return gJSONAssertion{kvs:kvs}
+	return gJSONAssertion{kvs: kvs}
 }
 
 type mockBNIStorage struct {
@@ -122,18 +119,17 @@ type bNIStorageTestSet struct {
 }
 
 type mockData struct {
-	chainID uiptypes.ChainID
-	typeID uiptypes.TypeID
+	chainID         uiptypes.ChainID
+	typeID          uiptypes.TypeID
 	contractAddress uiptypes.ContractAddress
-	pos []byte
-	description []byte
-	v uiptypes.Variable
+	pos             []byte
+	description     []byte
+	v               uiptypes.Variable
 }
 
 type mockValue struct {
 	t value_type.Type
 	v interface{}
-
 }
 
 func (m mockValue) GetType() uiptypes.TypeID {
@@ -218,7 +214,6 @@ func assertTypeOf(l *testing.T, x uiptypes.Variable, t value_type.Type, r reflec
 	return true
 }
 
-
 func (b bNIStorageTestSet) testGetInt32(t *testing.T) {
 	x := sugar.HandlerError(b.s.GetStorageAt(2, value_type.Int32, make([]byte, 32), make([]byte, 2), make([]byte, 2))).(uiptypes.Variable)
 	if !assertType(t, x, value_type.Int32, reflect.Int32) {
@@ -228,8 +223,6 @@ func (b bNIStorageTestSet) testGetInt32(t *testing.T) {
 		t.Fatal("bad value")
 	}
 }
-
-
 
 func (b bNIStorageTestSet) testGetInt64(t *testing.T) {
 	x := sugar.HandlerError(b.s.GetStorageAt(2, value_type.Int64, make([]byte, 32), make([]byte, 2), make([]byte, 2))).(uiptypes.Variable)
@@ -253,8 +246,6 @@ func (b bNIStorageTestSet) testGetInt128(t *testing.T) {
 	}
 }
 
-
-
 func (b bNIStorageTestSet) testGetInt256(t *testing.T) {
 	x := sugar.HandlerError(b.s.GetStorageAt(2, value_type.Int256, make([]byte, 32), make([]byte, 2), make([]byte, 2))).(uiptypes.Variable)
 	if !assertTypeOf(t, x, value_type.Int256, reflect.TypeOf(bigInt3)) {
@@ -264,5 +255,3 @@ func (b bNIStorageTestSet) testGetInt256(t *testing.T) {
 		t.Fatal("bad value")
 	}
 }
-
-

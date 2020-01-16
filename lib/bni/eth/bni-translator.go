@@ -4,21 +4,19 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	base_raw_transaction "github.com/HyperService-Consortium/go-uip/base-raw-transaction"
 	"github.com/HyperService-Consortium/go-uip/const/trans_type"
 	"github.com/HyperService-Consortium/go-uip/uiptypes"
 	payment_option "github.com/HyperService-Consortium/go-ves/lib/bni/payment-option"
 	"github.com/tidwall/gjson"
 )
 
-//type Translator interface {
-//	Translate(intent *TransactionIntent, storage Storage) (rawTransaction RawTransaction, err error)
-//
-//	// reflect.DeepEqual(Deserialize(rawTransaction.Byte()), rawTransaction) == true
-//	Deserialize(raw []byte) (rawTransaction RawTransaction, err error)
-//}
-
 func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Storage) (uiptypes.RawTransaction, error) {
+
+	ci, err := bn.dns.GetChainInfo(intent.ChainID)
+	if err != nil {
+		return nil, err
+	}
+
 	switch intent.TransType {
 	case trans_type.Payment:
 		meta := gjson.ParseBytes(intent.Meta)
@@ -42,7 +40,7 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 			"id": 1,
 		})
 		//fmt.Println("...", string(b))
-		return base_raw_transaction.Transaction(b), err
+		return NewRawTransaction(b, intent.Src, false, ci.GetChainHost()), err
 	case trans_type.ContractInvoke:
 		var meta uiptypes.ContractInvokeMeta
 		err := json.Unmarshal(intent.Meta, &meta)
@@ -64,16 +62,16 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 			"method":  "eth_sendTransaction",
 			"params": []interface{}{
 				map[string]interface{}{
-					"from":  decoratePrefix(hex.EncodeToString(intent.Src)),
-					"to":    decoratePrefix(hex.EncodeToString(intent.Dst)),
+					"from": decoratePrefix(hex.EncodeToString(intent.Src)),
+					"to":   decoratePrefix(hex.EncodeToString(intent.Dst)),
 					// todo
 					//"value": decoratePrefix(intent.Amt),
-					"data":  decorateValuePrefix(hexdata),
+					"data": decorateValuePrefix(hexdata),
 				},
 			},
 			"id": 1,
 		})
-		return base_raw_transaction.Transaction(b), err
+		return NewRawTransaction(b, intent.Src, false, ci.GetChainHost()), err
 	default:
 		return nil, errors.New("cant translate")
 	}
@@ -81,5 +79,7 @@ func (bn *BN) Translate(intent *uiptypes.TransactionIntent, storage uiptypes.Sto
 
 func (bn *BN) Deserialize(raw []byte) (rawTransaction uiptypes.RawTransaction, err error) {
 	// todo
-	return base_raw_transaction.Transaction(raw), nil
+	var x = new(RawTransaction)
+	err = json.Unmarshal(raw, x)
+	return x, err
 }

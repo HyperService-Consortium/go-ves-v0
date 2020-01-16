@@ -15,32 +15,6 @@ import (
 )
 
 func TestBN_Translate(t *testing.T) {
-
-	//	{
-	//		"op-intents": [
-	//	{
-	//		"name": "Op1",
-	//		"op_type": "ContractInvocation",
-	//		"invoker": {
-	//			"domain": 2,
-	//			"user_name": "a1"
-	//		},
-	//		"contract_addr": "00e1eaa022cc40d4808bfe62b8997540c914d81e",
-	//		"func": "updateStake",
-	//		"parameters": [
-	//		{
-	//			"type": "uint256",
-	//			"value": {
-	//				"constant": "1000"
-	//			}
-	//		}
-	//	],
-	//		"amount": "0",
-	//		"unit": "wei"
-	//	}
-	//],
-	//	"dependencies": []
-	//	}
 	type fields struct {
 		dns    types.ChainDNSInterface
 		signer uiptypes.Signer
@@ -55,9 +29,8 @@ func TestBN_Translate(t *testing.T) {
 		args   args
 		//want    uiptypes.RawTransaction
 		wantErr bool
-		assert gJSONAssertion
+		assert  gJSONAssertion
 	}{
-		//{"id":1,"jsonrpc":"2.0","method":"eth_sendTransaction","params":[{"data":"0x7c1f751f00000000000000000000000000000000000000000000000000000000000003e9","from":"0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6","to":"0x263fef3fe76fd4075ac16271d5115d01206d3674"}]}
 		{"test_easy", fields{
 			dns:    config.ChainDNS,
 			signer: nil,
@@ -84,12 +57,32 @@ func TestBN_Translate(t *testing.T) {
 			},
 			storage: nil,
 		}, false, gJSONWant(
-				kv{"method", "eth_sendTransaction"},
+			kv{"method", "eth_sendTransaction"},
 			kv{"params.0.data", "0x7c1f751f00000000000000000000000000000000000000000000000000000000000003e9"},
 			kv{"params.0.from", "0x93334ae4b2d42ebba8cc7c797bfeb02bfb3349d6"},
 			kv{"params.0.to", "0x263fef3fe76fd4075ac16271d5115d01206d3674"},
 			kv{"params.0.value", nil},
-				)},
+		)},
+		{"test_payment", fields{
+			dns:    config.ChainDNS,
+			signer: nil,
+		}, args{
+			intent: &uiptypes.TransactionIntent{
+				TransType: trans_type.Payment,
+				Src:       sugar.HandlerError(hex.DecodeString("ce4871f094b30ed5bed4aa19d28cf654c6e8b3f3")).([]byte),
+				Dst:       sugar.HandlerError(hex.DecodeString("d977c0b967631f5bcc1f112fcb926ae53a1432c4")).([]byte),
+				Meta:      nil,
+				Amt:       "03e8",
+				ChainID:   2,
+			},
+			storage: nil,
+		}, false, gJSONWant(
+			kv{"method", "eth_sendTransaction"},
+			kv{"params.0.data", nil},
+			kv{"params.0.from", "0xce4871f094b30ed5bed4aa19d28cf654c6e8b3f3"},
+			kv{"params.0.to", "0xd977c0b967631f5bcc1f112fcb926ae53a1432c4"},
+			kv{"params.0.value", "0x3e8"},
+		)},
 		{"test_with_storage_var", fields{
 			dns:    config.ChainDNS,
 			signer: nil,
@@ -104,21 +97,11 @@ func TestBN_Translate(t *testing.T) {
 							FuncName: "updateStake",
 							Params: []uiptypes.RawParams{
 								{
-
-									//if result.Get("contract").Exists() &&
-									//	result.Get("pos").Exists() &&
-									//	result.Get("field").Exists() {
-									//	proposal = append(proposal, &MerkleProofProposal{
-									//		DescriptionType:   merkleproof_proposal_type.DataProof,
-									//		MerkleProofType:   merkleproofType,
-									//		ValueType:         intDesc,
-									//		SourceDescription: param.Value,
-									//	})
 									Type: "uint256",
 									Value: marshal(h{
 										"contract": "0000000000000000000000000000000000000000",
-										"pos": "00",
-										"field": "staking",
+										"pos":      "00",
+										"field":    "staking",
 									}),
 								},
 							},
@@ -128,10 +111,6 @@ func TestBN_Translate(t *testing.T) {
 			},
 			storage: mockBNIStorage{data: []mockData{
 				{
-					//
-					//"contract": make([]byte, 32),
-					//"pos": []byte("00"),
-					//"field": "staking",
 					chainID:         2,
 					typeID:          value_type.Uint256,
 					contractAddress: make([]byte, 20),
@@ -162,7 +141,7 @@ func TestBN_Translate(t *testing.T) {
 			if err != nil {
 				return
 			}
-			if err = tt.assert.AssertBytes(sugar.HandlerError(got.Serialize()).([]byte)); err != nil {
+			if err = tt.assert.AssertBytes(sugar.HandlerError(got.Bytes()).([]byte)); err != nil {
 				t.Error(err)
 			}
 		})

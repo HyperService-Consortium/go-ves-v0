@@ -18,7 +18,7 @@ func (bn *BN) MustWithSigner() bool {
 }
 
 func (bn *BN) RouteWithSigner(signer uiptypes.Signer) (uiptypes.Router, error) {
-	nbn :=  *bn
+	nbn := *bn
 	nbn.signer = signer
 	return &nbn, nil
 }
@@ -41,7 +41,7 @@ func (bn *BN) sendTransaction(
 		return nil, err
 	}
 	// todo receipt
-	b, err := rawTransaction.Serialize()
+	b, err := rawTransaction.Bytes()
 	if err != nil {
 		return nil, err
 	}
@@ -111,4 +111,3 @@ func (bn *BN) Route(intent *uiptypes.TransactionIntent, storage uiptypes.Storage
 	}
 	return bn.RouteRaw(intent.ChainID, rawTransaction)
 }
-

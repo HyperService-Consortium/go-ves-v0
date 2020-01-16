@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"strconv"
+	"strings"
 
 	bytespool "github.com/HyperService-Consortium/go-ves/lib/bytes-pool"
 )
@@ -47,6 +48,9 @@ func GetPersonalUnlock(addr string, passphrase string, duration int) []byte {
 
 	buf.Write(reqPersonalUnlock)
 
+	if !strings.HasPrefix(addr, hexPrefix) {
+		buf.WriteString(hexPrefix)
+	}
 	buf.WriteString(addr)
 
 	buf.WriteString(cbx)

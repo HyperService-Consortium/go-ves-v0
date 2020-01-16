@@ -25,9 +25,9 @@ func TestBN_GetStorageAt(t *testing.T) {
 		description     []byte
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
+		name   string
+		fields fields
+		args   args
 		//want    uiptypes.Variable
 		wantErr bool
 	}{

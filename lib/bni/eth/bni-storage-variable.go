@@ -5,7 +5,7 @@ import (
 )
 
 type variable struct {
-	Type uiptypes.TypeID
+	Type  uiptypes.TypeID
 	Value interface{}
 }
 
@@ -16,4 +16,3 @@ func (v variable) GetType() uiptypes.TypeID {
 func (v variable) GetValue() interface{} {
 	return v.Value
 }
-

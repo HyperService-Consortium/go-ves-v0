@@ -4,7 +4,7 @@ go 1.12
 
 replace (
 	github.com/HyperService-Consortium/go-hexutil => github.com/HyperService-Consortium/go-hexutil v1.0.1
-	github.com/HyperService-Consortium/go-uip => github.com/HyperService-Consortium/go-uip v0.0.0-20191110100919-663d7d0e61cb
+	github.com/HyperService-Consortium/go-uip => github.com/HyperService-Consortium/go-uip v0.0.0-20200116083857-d2061bd0d6df
 )
 
 require (

@@ -7,12 +7,10 @@ import (
 	"github.com/HyperService-Consortium/go-uip/uiptypes"
 )
 
-
 type BN struct {
-	dns types.ChainDNSInterface
+	dns    types.ChainDNSInterface
 	signer uiptypes.Signer
 }
-
 
 type options struct {
 	timeout time.Duration

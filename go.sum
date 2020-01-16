@@ -18,8 +18,8 @@ github.com/HyperService-Consortium/go-mpt v1.1.1/go.mod h1:tYeCvWyIQt4xuaLANWvVi
 github.com/HyperService-Consortium/go-rlp v1.0.1-0.20190903144357-b5693c05a6b8/go.mod h1:f6lLuGRJua3AHgMk4m6XvsF64GFlr5ekGeb2n+ymYfQ=
 github.com/HyperService-Consortium/go-rlp v1.0.2 h1:B8/l+dUxaiQ3pCyNYfR0cVB0e6PTZxRfNigHBxZRJss=
 github.com/HyperService-Consortium/go-rlp v1.0.2/go.mod h1:f6lLuGRJua3AHgMk4m6XvsF64GFlr5ekGeb2n+ymYfQ=
-github.com/HyperService-Consortium/go-uip v0.0.0-20191110100919-663d7d0e61cb h1:2WcPkDA7zL6TflklIe0nKt9TlB/92RIBAqpMJB0FRJc=
-github.com/HyperService-Consortium/go-uip v0.0.0-20191110100919-663d7d0e61cb/go.mod h1:VqzWwaIMgwqueOgWZ+Csg1HsRt1dy/D/xnLLMVkjKoI=
+github.com/HyperService-Consortium/go-uip v0.0.0-20200116083857-d2061bd0d6df h1:DrQo3UeuQ3nTyaa34KboQykX68ywnfn24AYUM/3Fqq0=
+github.com/HyperService-Consortium/go-uip v0.0.0-20200116083857-d2061bd0d6df/go.mod h1:Dsr7r708Jus0ojCM0Bve+Y3CE8A630KTFVooQVgAv9U=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Myriad-Dreamin/core-oj v1.0.0/go.mod h1:Bzykxe9H/YQkIXpqDy1Pk6sWduxwJ503opA/rH8nEQ4=
